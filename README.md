@@ -1,2 +1,2 @@
-# simulation_compare
-Comparison of various simulation frameworks
+# cocotb_testbench_example
+an example for testbench based on cocotb
