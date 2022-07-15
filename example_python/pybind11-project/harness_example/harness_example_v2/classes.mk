@@ -1,0 +1,25 @@
+VERILATOR_ROOT = /usr/local/share/verilator
+VM_DEFAULT_RULES = 1
+include $(VERILATOR_ROOT)/include/verilated.mk
+
+ set -e ; verilator -CFLAGS -fPIC -CFLAGS -m64 -CFLAGS -shared -CFLAGS -Wno-attributes -LDFLAGS -fPIC -LDFLAGS -m64 -LDFLAGS -shared -LDFLAGS -Wno-attributes -CFLAGS -I"/usr/lib/jvm/java-8-openjdk-amd64/include" -CFLAGS -I"/usr/lib/jvm/java-8-openjdk-amd64/include/linux" -CFLAGS -fvisibility=hidden -LDFLAGS -fvisibility=hidden -CFLAGS -std=c++11 -LDFLAGS -std=c++11 --autoflush   --output-split 5000 --output-split-cfuncs 500 --output-split-ctrace 500 -Wno-WIDTH -Wno-UNOPTFLAT -Wno-CMPCONST -Wno-UNSIGNED --x-assign unique --x-initial-edge --trace-depth 0 -O3 -CFLAGS -O0 -CFLAGS -DTRACE --trace  --Mdir verilator --top-module MyTopLevel  -cc "/home/xuelin/projects/spinal-project/SpinalTemplateSbt/tmp/job_1/MyTopLevel.v" --exe verilator/VMyTopLevel__spinalWrapper.cpp
+
+ verilator -CFLAGS -I/usr/include/python3.8 -I/home/xuelin/.local/lib/python3.8/site-packages/pybind11/include --cc hdl/MyTopLevel.v --trace --exe example.cpp
+
+
+# CFLAGS 表示用于 C 编译器的选项，CXXFLAGS 表示用于 C++ 编译器的选项
+# LDFLAGS 是传递给连接器的选项
+# -fpic
+# 生成可用于共享库的位置独立代码。所有的内部寻址均通过全局偏移表完成。要确定一个地址，需要将代码自身的内存位置作为表中一项插入。该选项产生可 以在共享库中存放并从中加载的目标模块。
+# -m64
+# 生成专门运行于64位环境的代码，不能运行于32位环境，仅用于x86_64[含EMT64]环境。
+# -fvisibility=hidden
+# 设置默认的ELF镜像中符号的可见性为隐藏。使用这个特性可以非常充分的提高连接和加载共享库的性能，生成更加优化的代码，提供近乎完美的API输 出和防止符号碰撞。我们强烈建议你在编译任何共享库的时候使用该选项。
+  set -e ; verilator -CFLAGS -fPIC -CFLAGS -m64 -CFLAGS -shared -CFLAGS -Wno-attributes -LDFLAGS -fPIC -LDFLAGS -m64 -LDFLAGS -shared -LDFLAGS -Wno-attributes -CFLAGS -I/usr/include/python3.8 -CFLAGS -I/home/xuelin/.local/lib/python3.8/site-packages/pybind11/include -CFLAGS -fvisibility=hidden -LDFLAGS -fvisibility=hidden -CFLAGS -std=c++11 -LDFLAGS -std=c++11 --autoflush   --output-split 5000 --output-split-cfuncs 500 --output-split-ctrace 500 -Wno-WIDTH -Wno-UNOPTFLAT -Wno-CMPCONST -Wno-UNSIGNED --x-assign unique --x-initial-edge --trace-depth 0 -O3 -CFLAGS -O0 -CFLAGS -DTRACE --trace  --Mdir verilator --top-module MyTopLevel  -cc hdl/MyTopLevel.v --trace --exe example.cpp
+  make -j -C ./verilator -f VMyTopLevel.mk
+
+  verilator -CFLAGS -fPIC -CFLAGS -m64 -CFLAGS -shared -CFLAGS -Wno-attributes -LDFLAGS -fPIC -LDFLAGS -m64 -LDFLAGS -shared -LDFLAGS -Wno-attributes -CFLAGS -I/usr/include/python3.8 -CFLAGS -I/home/xuelin/.local/lib/python3.8/site-packages/pybind11/include -CFLAGS -fvisibility=hidden -LDFLAGS -fvisibility=hidden --cc hdl/MyTopLevel.v --trace --exe example.cpp
+  make -j -C ./obj_dir -f VMyTopLevel.mk
+
+  verilator -CFLAGS -fPIC -CFLAGS -m64 -CFLAGS -shared -CFLAGS -Wno-attributes -LDFLAGS -fPIC -LDFLAGS -m64 -LDFLAGS -shared -LDFLAGS -Wno-attributes -CFLAGS -I/usr/include/python3.8 -CFLAGS -I/home/xuelin/.local/lib/python3.8/site-packages/pybind11/include -CFLAGS -fvisibility=hidden -LDFLAGS -fvisibility=hidden --cc hdl/MyTopLevel.v --trace --exe example.cpp
+  make -j -C ./obj_dir -f VMyTopLevel.mk
