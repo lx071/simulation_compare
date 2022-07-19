@@ -1,3 +1,4 @@
+import subprocess
 import sys
 
 from utils.harness_utils import simple_sim_test, sim
@@ -53,4 +54,5 @@ def do_test():
 if __name__ == '__main__':
     # basic_test()
     do_test()
+    pass
 

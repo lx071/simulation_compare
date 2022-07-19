@@ -222,12 +222,11 @@ PYBIND11_MODULE(wrapper, m)
 def runCompile(dut_path, top_module_file_name):
     dut_name = top_module_file_name.split('.')[0]  # 模块名
     top_module_path = os.path.join(dut_path, top_module_file_name)
-    complile_command_1 = f"verilator -CFLAGS -fPIC -CFLAGS -m64 -CFLAGS -shared -CFLAGS -Wno-attributes -LDFLAGS -fPIC -LDFLAGS -m64 -LDFLAGS -shared -LDFLAGS -Wno-attributes -CFLAGS -I/usr/include/python3.8 -CFLAGS -I/home/xuelin/.local/lib/python3.8/site-packages/pybind11/include -CFLAGS -fvisibility=hidden -LDFLAGS -fvisibility=hidden -CFLAGS -DTRACE --Mdir verilator --cc {top_module_path} --trace --exe harness.cpp"
+    pybind_i = subprocess.getoutput('python3 -m pybind11 --includes')
+    pybind_CFLAGS = pybind_i.replace(' ', ' -CFLAGS ')
+    complile_command_1 = f"verilator -CFLAGS -fPIC -CFLAGS -m64 -CFLAGS -shared -CFLAGS -Wno-attributes -LDFLAGS -fPIC -LDFLAGS -m64 -LDFLAGS -shared -LDFLAGS -Wno-attributes -CFLAGS {pybind_CFLAGS} -CFLAGS -fvisibility=hidden -LDFLAGS -fvisibility=hidden -CFLAGS -DTRACE --Mdir verilator --cc {top_module_path} --trace --exe harness.cpp"
     complile_command_2 = f"make -j -C ./verilator -f V{dut_name}.mk V{dut_name}"
-    complile_command_3 = "c++ -O3 -Wall -shared -std=c++11 -fPIC -faligned-new -I./verilator -I/usr/include/python3.8 -I/home/xuelin/.local/lib/python3.8/site-packages/pybind11/include -I/usr/local/share/verilator/include ./verilator/*.o -o verilator/wrapper.so"
-    print(complile_command_1)
-    print(complile_command_2)
-    print(complile_command_3)
+    complile_command_3 = f"c++ -O3 -Wall -shared -std=c++11 -fPIC -faligned-new -I./verilator {pybind_i} -I/usr/local/share/verilator/include ./verilator/*.o -o verilator/wrapper.so"
     os.system(complile_command_1)
     os.system(complile_command_2)
     os.system(complile_command_3)
