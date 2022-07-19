@@ -1,15 +1,14 @@
 #include <pybind11/pybind11.h>
 namespace py = pybind11;
 
-
 #include <stdint.h>
 #include <iostream>
 #include <string>
 
 #include "VMyTopLevel.h"
-//#ifdef TRACE
+#ifdef TRACE
 #include "verilated_vcd_c.h"
-//#endif
+#endif
 #include "VMyTopLevel__Syms.h"
 
 //8个字节
@@ -33,36 +32,6 @@ class Signal
         void setValue(uint64_t value)  {*raw = value; }
 };
 
-//模拟dut
-//class VMyTopLevel
-//{
-//    public:
-//        uint64_t io_A;
-//        uint64_t io_B;
-//        uint64_t io_X;
-//        uint64_t clk;
-//        uint64_t reset;
-//        VMyTopLevel()
-//        {
-//            io_A=5;
-//            io_B=6;
-//            io_X=7;
-//            clk=0;
-//            reset=1;
-//        }
-//        void eval() {std::cout<<"eval(--)\n";}
-//};
-//
-//class VerilatedVcdC
-//{
-//    public:
-//        VerilatedVcdC()
-//        {
-//        }
-//        void dump(uint64_t time) {std::cout<<"dump(--):"<<time<<std::endl;}
-//        void open(const char * name) {std::cout<<"open(--):"<<name<<std::endl;}
-//        void close() {std::cout<<"close(--)\n";}
-//};
 
 class Wrapper
 {
@@ -75,9 +44,9 @@ class Wrapper
         bool waveEnabled;
         //dut
         VMyTopLevel top;
-//        #ifdef TRACE
+        #ifdef TRACE
         VerilatedVcdC tfp;
-//	    #endif
+	    #endif
 
         Wrapper(const char * name)
         {
@@ -87,11 +56,13 @@ class Wrapper
             signal[3] = new Signal(top.clk);
             signal[4] = new Signal(top.reset);
 
-//            #ifdef TRACE
+            time = 0;
+            waveEnabled = true;
+            #ifdef TRACE
             Verilated::traceEverOn(true);
             top.trace(&tfp, 99);
             tfp.open("dump.vcd");
-//            #endif
+            #endif
             this->name = name;
         }
 
@@ -102,11 +73,11 @@ class Wrapper
             {
                 delete signal[idx];
             }
-//            #ifdef TRACE
+            #ifdef TRACE
             if(waveEnabled) tfp.dump((uint64_t)time);
             tfp.close();
-//            #endif
-
+            #endif
+            std::cout<<"closeAll()"<<std::endl;
         }
 };
 
@@ -119,6 +90,7 @@ Wrapper* getHandle(const char * name)
 void setValue(Wrapper* handle, int id, uint64_t newValue)
 {
     handle->signal[id]->setValue(newValue);
+//    std::cout<<"set value:"<<id<<" :"<<newValue<<std::endl;
 }
 
 uint64_t getValue(Wrapper* handle, int id)
@@ -129,20 +101,22 @@ uint64_t getValue(Wrapper* handle, int id)
 bool eval(Wrapper* handle)
 {
     handle->top.eval();
+//    std::cout<<"time:"<<handle->time<<std::endl;
+    #ifdef TRACE
+    if(handle->waveEnabled) handle->tfp.dump((uint64_t)handle->time);
+    #endif
     handle->time ++;
-    std::cout<<"time:"<<handle->time<<std::endl;
-    return true;
-//    return Verilated::gotFinish();
+    return Verilated::gotFinish();
 }
 
 void sleep_cycles(Wrapper* handle, uint64_t cycles)
 {
-//    #ifdef TRACE
+    #ifdef TRACE
     if(handle->waveEnabled)
     {
         handle->tfp.dump((uint64_t)handle->time);
     }
-//    #endif
+    #endif
     handle->time += cycles;
 }
 
