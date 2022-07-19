@@ -36,7 +36,7 @@ def test(dut):
         if main_time == 100:
             setValue(dut, "reset", 0)
         if reset_value == 1:
-           reset_value = getValue(dut, "reset")
+            reset_value = getValue(dut, "reset")
         if reset_value == 0 and main_time % 5 == 0:
             if getValue(dut, "clk") == 0:
                 setValue(dut, "clk", 1)
