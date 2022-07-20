@@ -45,7 +45,8 @@ def verilog_parse(dut_path, top_module_file_name):
 
 
 # 传入文件路径和端口名列表，生成 Wrapper文件
-def genWrapperCpp(filename, ports_name):
+def genWrapperCpp(wrapper_name, ports_name, top_module_file_name):
+    dut_name = top_module_file_name.split('.')[0]  # 模块名
     try:
         os.mkdir("verilator")
     except FileExistsError:
@@ -66,11 +67,11 @@ namespace py = pybind11;
 #include <iostream>
 #include <string>
 
-#include "VMyTopLevel.h"
+#include "V{dut_name}.h"
 #ifdef TRACE
 #include "verilated_vcd_c.h"
 #endif
-#include "VMyTopLevel__Syms.h"
+#include "V{dut_name}__Syms.h"
 
 //8个字节
 //typedef uint64_t CData;
@@ -104,7 +105,7 @@ class Wrapper
         // 是否产生波形
         bool waveEnabled;
         //dut
-        VMyTopLevel top;
+        V{dut_name} top;
         #ifdef TRACE
         VerilatedVcdC tfp;
 	    #endif
@@ -126,7 +127,7 @@ class Wrapper
         // 析构函数在对象消亡时即自动被调用
         virtual ~Wrapper()
         {{
-            for(int idx = 0;idx < 5;idx++)
+            for(int idx = 0;idx < {len(ports_name)};idx++)
             {{
                 delete signal[idx];
             }}
@@ -211,7 +212,7 @@ PYBIND11_MODULE(wrapper, m)
 }}
 
 """
-    fd = open(f'verilator/{filename}', "w")
+    fd = open(f'verilator/{wrapper_name}', "w")
     fd.write(wrapper)
     fd.close()
 
@@ -241,7 +242,7 @@ class sim:
         list_n = [i for i in range(len(ports_name))]
         self.signal_id = dict(zip(ports_name, list_n))
         # print(self.signal_id)
-        genWrapperCpp(wrapper_name, ports_name)
+        genWrapperCpp(wrapper_name, ports_name, top_module_file_name)
         runCompile(dut_path, top_module_file_name, wrapper_name)
         from verilator import wrapper
         self.wp = wrapper
