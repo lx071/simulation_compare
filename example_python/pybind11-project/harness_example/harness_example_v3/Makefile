@@ -1,4 +1,4 @@
-all: first compile middle exec end
+all: first exec end
 
 compile:
 # no wave

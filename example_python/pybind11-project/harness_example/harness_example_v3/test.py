@@ -1,10 +1,7 @@
-import subprocess
-import sys
 
 from utils.harness_utils import simple_sim_test, sim
 
 import time
-import os
 
 
 def basic_test():
@@ -29,7 +26,7 @@ def do_test():
     num = 0
     reset_value = 1
     while True:
-        if num >= 1000000:
+        if num >= 1000:
             break
         if main_time == 100:
             s.setValue("reset", 0)
@@ -54,5 +51,6 @@ def do_test():
 if __name__ == '__main__':
     # basic_test()
     do_test()
+
     pass
 

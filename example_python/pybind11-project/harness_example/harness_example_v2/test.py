@@ -77,6 +77,6 @@ def basic_test(dut):
 if __name__ == '__main__':
 
     dut = example.getHandle('add_dut')
-    # basic_test(dut)
-    test(dut)
+    basic_test(dut)
+    # test(dut)
     example.deleteHandle(dut)

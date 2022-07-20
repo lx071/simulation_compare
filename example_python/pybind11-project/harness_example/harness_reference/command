@@ -20,3 +20,4 @@
 
   verilator -CFLAGS -fPIC -CFLAGS -m64 -CFLAGS -shared -CFLAGS -Wno-attributes -LDFLAGS -fPIC -LDFLAGS -m64 -LDFLAGS -shared -LDFLAGS -Wno-attributes -CFLAGS -I/usr/include/python3.8 -CFLAGS -I/home/xuelin/.local/lib/python3.8/site-packages/pybind11/include -CFLAGS -fvisibility=hidden -LDFLAGS -fvisibility=hidden --cc hdl/MyTopLevel.v --trace --exe example.cpp
   make -j -C ./obj_dir -f VMyTopLevel.mk
+

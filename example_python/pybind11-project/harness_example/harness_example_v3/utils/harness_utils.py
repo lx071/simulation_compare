@@ -4,9 +4,6 @@ import re
 
 
 # 解析verilog代码, 返回输入端口名列表 和 输出端口名列表
-import sys
-
-
 def verilog_parse(dut_path, top_module_file_name):
     dut_name = top_module_file_name.split('.')[0]  # 模块名
     top_module_path = os.path.join(dut_path, top_module_file_name)
@@ -219,17 +216,22 @@ PYBIND11_MODULE(wrapper, m)
     fd.close()
 
 
-def runCompile(dut_path, top_module_file_name):
+def runCompile(dut_path, top_module_file_name, wrapper_file_name):
     dut_name = top_module_file_name.split('.')[0]  # 模块名
     top_module_path = os.path.join(dut_path, top_module_file_name)
     pybind_i = subprocess.getoutput('python3 -m pybind11 --includes')
     pybind_CFLAGS = pybind_i.replace(' ', ' -CFLAGS ')
-    complile_command_1 = f"verilator -CFLAGS -fPIC -CFLAGS -m64 -CFLAGS -shared -CFLAGS -Wno-attributes -LDFLAGS -fPIC -LDFLAGS -m64 -LDFLAGS -shared -LDFLAGS -Wno-attributes -CFLAGS {pybind_CFLAGS} -CFLAGS -fvisibility=hidden -LDFLAGS -fvisibility=hidden -CFLAGS -DTRACE --Mdir verilator --cc {top_module_path} --trace --exe harness.cpp"
-    complile_command_2 = f"make -j -C ./verilator -f V{dut_name}.mk V{dut_name}"
-    complile_command_3 = f"c++ -O3 -Wall -shared -std=c++11 -fPIC -faligned-new -I./verilator {pybind_i} -I/usr/local/share/verilator/include ./verilator/*.o -o verilator/wrapper.so"
-    os.system(complile_command_1)
-    os.system(complile_command_2)
-    os.system(complile_command_3)
+    # 由硬件设计文件得到C++模型以及相关文件
+    compile_command_1 = f"verilator -CFLAGS -fPIC -CFLAGS -m64 -CFLAGS -shared -CFLAGS -Wno-attributes -LDFLAGS -fPIC -LDFLAGS -m64 -LDFLAGS -shared -LDFLAGS -Wno-attributes -CFLAGS {pybind_CFLAGS} -CFLAGS -fvisibility=hidden -LDFLAGS -fvisibility=hidden -CFLAGS -DTRACE --Mdir verilator --cc {top_module_path} --trace --exe {wrapper_file_name}"
+    # 得到相关库文件(.o)以及可执行文件
+    compile_command_2 = f"make -j -C ./verilator -f V{dut_name}.mk"
+    # 由各个库文件(.o)得到共享库文件(.so)
+    compile_command_3 = f"c++ -O3 -Wall -shared -std=c++11 -fPIC -faligned-new ./verilator/*.o -o verilator/wrapper.so"
+
+    # print(compile_command_3)
+    os.system(compile_command_1)
+    os.system(compile_command_2)
+    os.system(compile_command_3)
 
 
 class sim:
@@ -238,9 +240,9 @@ class sim:
         ports_name = input_ports_name + output_ports_name
         list_n = [i for i in range(len(ports_name))]
         self.signal_id = dict(zip(ports_name, list_n))
-        print(self.signal_id)
+        # print(self.signal_id)
         genWrapperCpp(wrapper_name, ports_name)
-        runCompile(dut_path, top_module_file_name)
+        runCompile(dut_path, top_module_file_name, wrapper_name)
         from verilator import wrapper
         self.wp = wrapper
         self.dut = self.wp.getHandle('sim_wrapper')
@@ -283,7 +285,7 @@ def simple_sim_test():
         num = 0
         reset_value = 1
         while True:
-            if num >= 1000000:
+            if num >= 10000:
                 break
             if main_time == 100:
                 setValue(dut, "reset", 0)
@@ -307,7 +309,7 @@ if __name__ == '__main__':
     # input_ports_name, output_ports_name = verilog_parse('../hdl/', 'MyTopLevel.v')
     # print(input_ports_name)
     # print(output_ports_name)
-    # genWrapperCpp('example.cpp')
-    # runCompile()
+    genWrapperCpp('harness.cpp')
+    runCompile()
     # simple_sim_test()
     pass
