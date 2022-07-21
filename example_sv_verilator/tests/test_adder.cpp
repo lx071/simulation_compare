@@ -14,8 +14,8 @@ vluint64_t main_time = 0;
 int num=0;
 void assign(VMyTopLevel *top)
 {
-    top->io_A = num;
-    top->io_B = num;
+    top->io_A = num % 100;
+    top->io_B = num % 100;
     num++;
 }
 
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
         top->eval();
         tfp->dump(main_time);
-        main_time++;
+        main_time+=5;
     }
 
     tfp->close();

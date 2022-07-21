@@ -94,6 +94,8 @@ class Signal
         void setValue(uint64_t value)  {{*raw = value; }}
 }};
 
+class Wrapper;
+thread_local Wrapper *simHandle1;
 
 class Wrapper
 {{
@@ -112,6 +114,7 @@ class Wrapper
 
         Wrapper(const char * name)
         {{
+            simHandle1 = this;
             {signal_connect(ports_name)}
             
             time = 0;
@@ -139,58 +142,62 @@ class Wrapper
         }}
 }};
 
-Wrapper* getHandle(const char * name)
+double sc_time_stamp() 
 {{
-    Wrapper* handle = new Wrapper(name);
-    return handle;
+    return simHandle1->time;
 }}
 
-void setValue(Wrapper* handle, int id, uint64_t newValue)
+void getHandle(const char * name)
 {{
-    handle->signal[id]->setValue(newValue);
+    Wrapper* handle = new Wrapper(name);
+}}
+
+void setValue(int id, uint64_t newValue)
+{{
+    simHandle1->signal[id]->setValue(newValue);
 //    std::cout<<"set value:"<<id<<" :"<<newValue<<std::endl;
 }}
 
-uint64_t getValue(Wrapper* handle, int id)
+uint64_t getValue(int id)
 {{
-    return handle->signal[id]->getValue();
+    return simHandle1->signal[id]->getValue();
 }}
 
-void dump(Wrapper* handle)
+void dump()
 {{
     #ifdef TRACE
-    if(handle->waveEnabled) handle->tfp.dump((uint64_t)handle->time);
+    if(simHandle1->waveEnabled) simHandle1->tfp.dump((uint64_t)simHandle1->time);
     #endif
 }}
 
-bool eval(Wrapper* handle)
+bool eval()
 {{
-    handle->top.eval();
-//    std::cout<<"time:"<<handle->time<<std::endl;
+    simHandle1->top.eval();
+//    std::cout<<"time:"<<simHandle1->time<<std::endl;
     return Verilated::gotFinish();
 }}
 
-void sleep_cycles(Wrapper* handle, uint64_t cycles)
+void sleep_cycles(uint64_t cycles)
 {{
-    dump(handle);
-    handle->time += cycles;
+    dump();
+    simHandle1->time += cycles;
 }}
 
-void deleteHandle(Wrapper *handle)
+void deleteHandle()
 {{
-    delete handle;
+    delete simHandle1;
 }}
 
 // 启动产生波形
-void enableWave(Wrapper *handle)
+void enableWave()
 {{
-    handle->waveEnabled = true;
+    simHandle1->waveEnabled = true;
 }}
 
 // 关闭产生波形
-void disableWave(Wrapper *handle)
+void disableWave()
 {{
-    handle->waveEnabled = false;
+    simHandle1->waveEnabled = false;
 }}
 
 //定义Python与C++之间交互的func与class
@@ -199,7 +206,7 @@ PYBIND11_MODULE(wrapper, m)
     py::class_<Wrapper>(m, "Wrapper")
         .def(py::init<const char *>());
 
-    m.def("getHandle", &getHandle, py::return_value_policy::reference);
+    m.def("getHandle", &getHandle);
     m.def("setValue", &setValue);
     m.def("getValue", &getValue);
     m.def("dump", &dump);
@@ -245,28 +252,28 @@ class sim:
         runCompile(dut_path, top_module_file_name, wrapper_name)
         from verilator import wrapper
         self.wp = wrapper
-        self.dut = self.wp.getHandle('sim_wrapper')
+        self.getHandle('sim_wrapper')
 
     def setValue(self, signal_name, value):
-        self.wp.setValue(self.dut, self.signal_id[signal_name], value)
+        self.wp.setValue(self.signal_id[signal_name], value)
 
     def getValue(self, signal_name):
-        return self.wp.getValue(self.dut, self.signal_id[signal_name])
+        return self.wp.getValue(self.signal_id[signal_name])
 
     def getHandle(self, sim_name):
-        return self.wp.getHandle(sim_name)
+        self.wp.getHandle(sim_name)
 
     def deleteHandle(self):
-        self.wp.deleteHandle(self.dut)
+        self.wp.deleteHandle()
 
     def eval(self):
-        self.wp.eval(self.dut)
+        self.wp.eval()
 
     def dump(self):
-        self.wp.dump(self.dut)
+        self.wp.dump()
 
     def sleep_cycles(self, cycles):
-        self.wp.sleep_cycles(self.dut, cycles)
+        self.wp.sleep_cycles(cycles)
 
 
 def simple_sim_test():

@@ -32,8 +32,8 @@ initial begin
 
     repeat(1000000) begin
         @(posedge clk) begin
-            data1_i <= data1_i + 8'd1;
-            data2_i <= data2_i + 8'd2;
+            data1_i <= (data1_i + 8'd1) % 100;
+            data2_i <= (data2_i + 8'd1) % 100;
         end
     end
 
