@@ -1,0 +1,4 @@
+[submodule "example_python/pybind11-project/c_python_example/func_example/example/extern/pybind11"]
+	path = example_python/pybind11-project/c_python_example/func_example/example/extern/pybind11
+	url = https://github.com/pybind/pybind11.git
+	branch = stable
