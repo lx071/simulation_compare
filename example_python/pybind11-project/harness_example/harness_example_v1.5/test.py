@@ -1,6 +1,6 @@
+import sys
 
 from utils.harness_utils import simple_sim_test, sim
-
 import time
 
 
@@ -8,27 +8,29 @@ def basic_test():
     time1 = time.time()
     s = sim('./hdl/', 'MyTopLevel.v', 'harness.cpp')
     time2 = time.time()
-    simple_sim_test()
+    simple_sim_test(s)
     time3 = time.time()
     print('compile time:', time2-time1)
     print('simulation time:', time3-time2)
 
 
 def do_test():
+    sys.path.append('utils')
+    print(sys.path)
     time1 = time.time()
     # 传入dut所在目录、顶层模块文件名、生成 Wrapper文件名
     s = sim('./hdl/', 'MyTopLevel.v', 'harness.cpp')
     time2 = time.time()
-
+    s.doPythonApi()
     s.setValue("clk", 0)
     s.setValue("reset", 1)
     num = 0
     main_time = 0
     reset_value = 1
     while True:
-        if num >= 1000000:
+        if num >= 100:
             break
-        if main_time == 100:
+        if main_time == 20:
             s.setValue("reset", 0)
         if reset_value == 1:
             reset_value = s.getValue("reset")
@@ -52,8 +54,19 @@ def do_test():
     print('simulation time:', time3 - time2)
 
 
+def do_python_test():
+    sys.path.append('utils')
+    print(sys.path)
+    s = sim('./hdl/', 'MyTopLevel.v', 'harness.cpp')
+    time1 = time.time()
+    s.doPythonApi()
+    time2 = time.time()
+    print('time:', time2-time1)
+
+
 if __name__ == '__main__':
     # basic_test()
-    do_test()
+    # do_test()
+    do_python_test()
     pass
 

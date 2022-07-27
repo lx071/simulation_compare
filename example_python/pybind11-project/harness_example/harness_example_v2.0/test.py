@@ -1,6 +1,7 @@
+import sys
 
-from utils.harness_utils import simple_sim_test, sim
-
+from utils.harness_utils import simple_sim_test, sim, RisingEdge, FallingEdge, clk_rise
+from threading import Thread
 import time
 
 
@@ -15,26 +16,34 @@ def basic_test():
 
 
 def do_test():
+    sys.path.append('utils')
+    print(sys.path)
     time1 = time.time()
     # 传入dut所在目录、顶层模块文件名、生成 Wrapper文件名
     s = sim('./hdl/', 'MyTopLevel.v', 'harness.cpp')
     time2 = time.time()
-
+    s.doPythonApi()
+    s.set_time_cycles("clk", 10)
     s.setValue("clk", 0)
     s.setValue("reset", 1)
     num = 0
     main_time = 0
     reset_value = 1
     while True:
-        if num >= 1000000:
+        if num >= 100:
             break
-        if main_time == 100:
+        if main_time == 20:
             s.setValue("reset", 0)
         if reset_value == 1:
             reset_value = s.getValue("reset")
         if reset_value == 0 and main_time % 5 == 0:
             if s.getValue("clk") == 0:
-                s.setValue("clk", 1)
+                print("111")
+                t = Thread(target=clk_rise, args=(s, ))
+                t.start()
+                print("222")
+
+                RisingEdge()
                 s.setValue("io_A", num % 100)
                 s.setValue("io_B", num % 100)
                 num = num + 1
@@ -52,8 +61,24 @@ def do_test():
     print('simulation time:', time3 - time2)
 
 
+def do_python_test():
+
+    s = sim('./hdl/', 'MyTopLevel.v', 'harness.cpp')
+    time1 = time.time()
+    s.doPythonApi()
+    time2 = time.time()
+    print('time:', time2-time1)
+
+
+def event_test():
+
+    pass
+
+
 if __name__ == '__main__':
     # basic_test()
     do_test()
+    # do_python_test()
+    # event_test()
     pass
 

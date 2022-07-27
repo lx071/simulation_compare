@@ -1,6 +1,54 @@
 import os
 import subprocess
 import re
+from threading import Thread, Event, RLock
+import asyncio
+
+clk_on_event = Event()
+clk_down_event = Event()
+lock = RLock()
+# clk_on_event = 0
+
+
+def do_python_api():
+    print('do_python_api')
+    return 0
+
+
+def clk_rise(s):
+    print("3")
+    s.setValue("clk", 1)
+    print("4")
+    pass
+
+
+def RisingEdge():
+    lock.acquire()
+    print("waited")
+    clk_on_event.wait()
+    lock.release()
+    print("passed")
+    # if clk_on_event == 1:
+    pass
+
+
+def FallingEdge():
+    lock.acquire()
+    print("locked")
+    clk_down_event.wait()
+    lock.release()
+    print("unlocked")
+    pass
+
+
+def clk_on():
+    clk_on_event.set()
+    print("clk_on")
+
+
+def clk_down():
+    # clk_down_event.set()
+    print("clk_down")
 
 
 # 解析verilog代码, 返回输入端口名列表 和 输出端口名列表
@@ -61,6 +109,7 @@ def genWrapperCpp(wrapper_name, ports_name, top_module_file_name):
 
     wrapper = f"""
 #include <pybind11/pybind11.h>
+#include <pybind11/embed.h> // everything needed for embedding
 namespace py = pybind11;
 
 #include <stdint.h>
@@ -96,12 +145,15 @@ class Signal
 
 class Wrapper;
 thread_local Wrapper *simHandle1;
+py::module_ utils = py::module_::import("harness_utils");
 
 class Wrapper
 {{
     public:
         uint64_t time;
         std::string name;
+        int clk_id;
+        uint64_t clk_value;
         // 指针数组, 指向各个Signal
         Signal *signal[5];
         // 是否产生波形
@@ -118,6 +170,8 @@ class Wrapper
             {signal_connect(ports_name)}
             
             time = 0;
+            clk_id = 0;
+            clk_value = 0;
             waveEnabled = true;
             #ifdef TRACE
             Verilated::traceEverOn(true);
@@ -154,8 +208,22 @@ void getHandle(const char * name)
 
 void setValue(int id, uint64_t newValue)
 {{
+    if(id == simHandle1->clk_id)
+    {{
+        if(simHandle1->clk_value==0 && newValue == 1)
+        {{
+            //py::object res = utils.attr("clk_on")();
+            utils.attr("clk_on")();
+        }}
+        else if(simHandle1->clk_value==1 && newValue == 0)
+        {{
+            //py::object res = utils.attr("clk_down")();
+            utils.attr("clk_down")();
+        }}
+        simHandle1->clk_value = newValue;
+    }}
     simHandle1->signal[id]->setValue(newValue);
-//    std::cout<<"set value:"<<id<<" :"<<newValue<<std::endl;
+    
 }}
 
 uint64_t getValue(int id)
@@ -200,6 +268,44 @@ void disableWave()
     simHandle1->waveEnabled = false;
 }}
 
+void monitor(int id, int mode)
+{{
+    simHandle1->clk_id = id;
+    simHandle1->clk_value = simHandle1->signal[id]->getValue();
+    //simHandle1->signal[id]
+    if(mode==0) simHandle1->signal[id]->getValue();
+}} 
+
+void doPythonApi()
+{{
+    //py::print("Hello, World!"); // use the Python API
+    py::module_ calc = py::module_::import("calc");
+    
+    for(int i=0;i<1000000;i++)
+        calc.attr("add")(i%100, i%100);
+    //py::object result = calc.attr("add")(1, 2);
+    //int n = result.cast<int>();
+    //assert(n == 3);
+    //std::cout << n << std::endl;
+    
+    //py::module_ utils = py::module_::import("harness_utils");
+    //py::object res = utils.attr("do_python_api")();
+    
+}}
+
+//传入时间信号id和时钟周期
+void set_time_cycles(int id, uint64_t cycles)
+{{
+    simHandle1->clk_id = id;
+    simHandle1->clk_value = simHandle1->signal[id]->getValue();
+    //setValue(id, 0);
+    //while(1)
+    //{{
+        //if(simHandle1->time % 5 == 0) simHandle1          
+    //}}
+}}
+
+
 //定义Python与C++之间交互的func与class
 PYBIND11_MODULE(wrapper, m)
 {{
@@ -215,6 +321,8 @@ PYBIND11_MODULE(wrapper, m)
     m.def("deleteHandle", &deleteHandle);
     m.def("enableWave", &enableWave);
     m.def("disableWave", &disableWave);
+    m.def("doPythonApi", &doPythonApi);
+    m.def("set_time_cycles", &set_time_cycles);
 }}
 
 """
@@ -274,6 +382,12 @@ class sim:
 
     def sleep_cycles(self, cycles):
         self.wp.sleep_cycles(cycles)
+
+    def doPythonApi(self):
+        self.wp.doPythonApi()
+
+    def set_time_cycles(self, signal_name, cycles):
+        self.wp.set_time_cycles(self.signal_id[signal_name], cycles)
 
 
 def simple_sim_test():

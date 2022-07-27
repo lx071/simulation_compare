@@ -3,6 +3,11 @@ import subprocess
 import re
 
 
+def do_python_api():
+    print('do_python_api')
+    return 0
+
+
 # 解析verilog代码, 返回输入端口名列表 和 输出端口名列表
 def verilog_parse(dut_path, top_module_file_name):
     dut_name = top_module_file_name.split('.')[0]  # 模块名
@@ -61,6 +66,7 @@ def genWrapperCpp(wrapper_name, ports_name, top_module_file_name):
 
     wrapper = f"""
 #include <pybind11/pybind11.h>
+#include <pybind11/embed.h> // everything needed for embedding
 namespace py = pybind11;
 
 #include <stdint.h>
@@ -102,6 +108,7 @@ class Wrapper
     public:
         uint64_t time;
         std::string name;
+
         // 指针数组, 指向各个Signal
         Signal *signal[5];
         // 是否产生波形
@@ -155,7 +162,6 @@ void getHandle(const char * name)
 void setValue(int id, uint64_t newValue)
 {{
     simHandle1->signal[id]->setValue(newValue);
-//    std::cout<<"set value:"<<id<<" :"<<newValue<<std::endl;
 }}
 
 uint64_t getValue(int id)
@@ -200,6 +206,23 @@ void disableWave()
     simHandle1->waveEnabled = false;
 }}
 
+void doPythonApi()
+{{
+    py::print("Hello, World!"); // use the Python API
+    py::module_ calc = py::module_::import("calc");
+    
+    for(int i=0;i<1000000;i++)
+        calc.attr("add")(i%100, i%100);
+    py::object result = calc.attr("add")(1, 2);
+    int n = result.cast<int>();
+    assert(n == 3);
+    std::cout << n << std::endl;
+    
+    py::module_ utils = py::module_::import("harness_utils");
+    utils.attr("do_python_api")();
+}}
+
+
 //定义Python与C++之间交互的func与class
 PYBIND11_MODULE(wrapper, m)
 {{
@@ -215,6 +238,7 @@ PYBIND11_MODULE(wrapper, m)
     m.def("deleteHandle", &deleteHandle);
     m.def("enableWave", &enableWave);
     m.def("disableWave", &disableWave);
+    m.def("doPythonApi", &doPythonApi);
 }}
 
 """
@@ -275,25 +299,29 @@ class sim:
     def sleep_cycles(self, cycles):
         self.wp.sleep_cycles(cycles)
 
+    def doPythonApi(self):
+        self.wp.doPythonApi()
 
-def simple_sim_test():
+
+def simple_sim_test(s):
     from verilator import wrapper
 
-    signal_id = {'io_A': 0, 'io_B': 1, 'clk': 2, 'reset': 3, 'io_X': 4}
+    # {'io_A': 0, 'io_B': 1, 'clk': 2, 'reset': 3, 'io_X': 4}
+    signal_id = s.signal_id
 
-    def setValue(dut, signal_name, value):
-        wrapper.setValue(dut, signal_id[signal_name], value)
+    def setValue(signal_name, value):
+        wrapper.setValue(signal_id[signal_name], value)
 
-    def getValue(dut, signal_name):
-        return wrapper.getValue(dut, signal_id[signal_name])
+    def getValue(signal_name):
+        return wrapper.getValue(signal_id[signal_name])
 
-    def assign(dut, num):
-        setValue(dut, "io_A", num % 200)
-        setValue(dut, "io_B", num % 200)
+    def assign(num):
+        setValue("io_A", num % 100)
+        setValue("io_B", num % 100)
 
-    def test(dut):
-        setValue(dut, "clk", 0)
-        setValue(dut, "reset", 1)
+    def test():
+        setValue("clk", 0)
+        setValue("reset", 1)
         main_time = 0
         num = 0
         reset_value = 1
@@ -301,28 +329,24 @@ def simple_sim_test():
             if num >= 10000:
                 break
             if main_time == 100:
-                setValue(dut, "reset", 0)
+                setValue("reset", 0)
             if reset_value == 1:
-                reset_value = getValue(dut, "reset")
+                reset_value = getValue("reset")
             if reset_value == 0 and main_time % 5 == 0:
-                if getValue(dut, "clk") == 0:
-                    setValue(dut, "clk", 1)
-                    assign(dut, num)
+                if getValue("clk") == 0:
+                    setValue("clk", 1)
+                    assign(num)
                     num = num + 1
                 else:
-                    setValue(dut, "clk", 0)
-            wrapper.eval(dut)
-            main_time = main_time + 1
-    dut = wrapper.getHandle('add_dut')
-    test(dut)
-    wrapper.deleteHandle(dut)
+                    setValue("clk", 0)
+            wrapper.eval()
+            wrapper.sleep_cycles(5)
+            main_time = main_time + 5
+
+    wrapper.getHandle('add_dut')
+    test()
+    wrapper.deleteHandle()
 
 
 if __name__ == '__main__':
-    # input_ports_name, output_ports_name = verilog_parse('../hdl/', 'MyTopLevel.v')
-    # print(input_ports_name)
-    # print(output_ports_name)
-    genWrapperCpp('harness.cpp')
-    runCompile()
-    # simple_sim_test()
     pass
