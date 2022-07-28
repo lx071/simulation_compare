@@ -1,6 +1,6 @@
 import sys
 
-from utils.harness_utils import simple_sim_test, sim
+from utils.harness_utils import simple_sim_test, sim, RisingEdge, FallingEdge
 import time
 
 
@@ -22,6 +22,8 @@ def do_test():
     s = sim('./hdl/', 'MyTopLevel.v', 'harness.cpp')
     time2 = time.time()
     # s.doPythonApi()
+    # res = s.operation("add", 4, 5)
+    # print(res)
     # s.setValue("clk", 0)
     s.set_clk_info("clk", 10)
     s.setValue("reset", 1)
@@ -36,11 +38,10 @@ def do_test():
         if reset_value == 1:
             reset_value = s.getValue("reset")
         if reset_value == 0 and main_time % 5 == 0:
-            if s.getValue("clk") == 0:
-                num = num + 1
-            else:
+            if RisingEdge(s, "clk"):
                 s.setValue("io_A", num % 100)
                 s.setValue("io_B", num % 100)
+                num = num + 1
         main_time = main_time + 5
         # 执行硬件设计逻辑，得到当前状态(各端口值)
         s.eval()

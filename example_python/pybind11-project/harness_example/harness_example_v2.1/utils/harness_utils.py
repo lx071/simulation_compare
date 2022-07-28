@@ -8,6 +8,24 @@ def do_python_api():
     return 0
 
 
+def add(a, b):
+    return a + b
+
+
+def RisingEdge(s, clk_name):
+    if s.getValue(clk_name) == 1:
+        return True
+    else:
+        return False
+
+
+def FallingEdge(s, clk_name):
+    if s.getValue(clk_name) == 0:
+        return True
+    else:
+        return False
+
+
 # 解析verilog代码, 返回输入端口名列表 和 输出端口名列表
 def verilog_parse(dut_path, top_module_file_name):
     dut_name = top_module_file_name.split('.')[0]  # 模块名
@@ -197,7 +215,12 @@ void gen_clk()
     else if(time % clk_edge_period==0)
     {{
         uint64_t value = getValue(clk_id);
-        if(value == 0) setValue(clk_id, 1);
+        if(value == 0) 
+        {{
+            setValue(clk_id, 1);
+            //py::module_ utils = py::module_::import("harness_utils");
+            //utils.attr("clk_on")();
+        }}
         else setValue(clk_id, 0);
     }}
 }}
@@ -249,6 +272,15 @@ void doPythonApi()
     py::module_ utils = py::module_::import("harness_utils");
     utils.attr("do_python_api")();
 }}
+ 
+ 
+int operation(char *func_name, int x, int y)
+{{
+    py::module_ utils = py::module_::import("harness_utils");
+    py::object result = utils.attr(func_name)(x, y);
+    int n = result.cast<int>();
+    return n;
+}}
 
 
 //定义Python与C++之间交互的func与class
@@ -268,6 +300,7 @@ PYBIND11_MODULE(wrapper, m)
     m.def("disableWave", &disableWave);
     m.def("doPythonApi", &doPythonApi);
     m.def("set_clk_info", &set_clk_info);
+    m.def("operation", &operation);
 }}
 
 """
@@ -333,6 +366,9 @@ class sim:
 
     def set_clk_info(self, clk_name, cycles):
         self.wp.set_clk_info(self.signal_id[clk_name], cycles)
+
+    def operation(self, func_name, a, b):
+        return self.wp.operation(func_name, a, b)
 
 
 def simple_sim_test(s):
