@@ -30,6 +30,47 @@ module MyTopLevel (
     end
   end
 
+  reg[7:0]  dat_out_v;
+  reg[1:0]  xmit_en = 0;
 
+export "DPI-C" function send_long;
+export "DPI-C" function send_bit;
+export "DPI-C" function send_bit_vec;
+
+function void send_long(longint data);
+begin
+    $display("send_long side");
+    $display(data);
+end
+endfunction
+
+function void send_bit(bit data);
+begin
+    $display("send_bit side");
+    $display(data);
+end
+endfunction
+
+
+function void send_bit_vec(bit[256:0] data);
+begin
+    $display("send_bit_vec side");
+    $display("%h", data);
+    $display(data[7:0]);
+    $display(data[15:8]);
+    $display(data[23:16]);
+    $display(data[31:24]);
+    $display(data[39:32]);
+    $display(data[47:40]);
+    $display(data[55:48]);
+    $display(data[63:56]);
+    $display(data[71:64]);
+    $display(data[79:72]);
+    $display(data[87:80]);
+    $display(data[95:88]);
+    $display(data[103:96]);
+end
+endfunction
 
 endmodule
+

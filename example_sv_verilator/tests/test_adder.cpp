@@ -18,6 +18,10 @@ void assign(VMyTopLevel *top)
     top->io_B = num % 100;
     num++;
 }
+#include "VMyTopLevel__Dpi.h"
+#include "svdpi.h"
+
+extern "C" void sv_print();
 
 int main(int argc, char **argv)
 {
@@ -29,6 +33,11 @@ int main(int argc, char **argv)
     tfp->open("dump.vcd");
     top->clk = 0;
     top->reset = 1;
+
+    //const svScope scope = svGetScopeFromName("TOP.MyTopLevel");
+    //assert(scope);  // Check for nullptr if scope not found
+    //svSetScope(scope);
+    //sv_print();
 
     while(!Verilated::gotFinish())
     {

@@ -30,5 +30,11 @@ module MyTopLevel (
     end
   end
 
+export "DPI-C" function sv_print;
+
+function void sv_print();
+    $display("sv side : print\n");
+endfunction
 
 endmodule
+

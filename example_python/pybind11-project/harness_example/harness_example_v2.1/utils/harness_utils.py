@@ -12,20 +12,6 @@ def add(a, b):
     return a + b
 
 
-def RisingEdge(s, clk_name):
-    if s.getValue(clk_name) == 1:
-        return True
-    else:
-        return False
-
-
-def FallingEdge(s, clk_name):
-    if s.getValue(clk_name) == 0:
-        return True
-    else:
-        return False
-
-
 # 解析verilog代码, 返回输入端口名列表 和 输出端口名列表
 def verilog_parse(dut_path, top_module_file_name):
     dut_name = top_module_file_name.split('.')[0]  # 模块名
@@ -139,9 +125,16 @@ class Wrapper
         #ifdef TRACE
         VerilatedVcdC tfp;
 	    #endif
-
+        
+        
+        
         Wrapper(const char * name)
         {{
+            //for DPI-C
+            const svScope scope = svGetScopeFromName("TOP.{dut_name}");
+            assert(scope);  // Check for nullptr if scope not found
+            svSetScope(scope);
+            
             simHandle1 = this;
             {signal_connect(ports_name)}
             
@@ -282,6 +275,39 @@ int operation(char *func_name, int x, int y)
     return n;
 }}
 
+#include "svdpi.h"
+#include "V{dut_name}__Dpi.h"
+
+//typedef unsigned char uint8_t;
+//typedef unsigned int uint32_t; 
+//typedef uint8_t svScalar;
+//typedef svScalar svBit;
+//typedef uint32_t svBitVecVal;
+extern void send_long(long long int data);
+extern void send_bit(const svBit data);
+extern void send_bit_vec(const svBitVecVal* data);
+
+void put(int data)
+{{
+    long long int data_1 = 131;
+    unsigned char data_2 = 231;
+    const svBitVecVal data_3[4] = {{0xFFEEFEF7, 0xF133FEF3, 0xF234FEF1, 0xF379FEF9}};
+    send_long(data_1);
+    send_bit(data_2);
+    send_bit_vec(data_3);
+}}
+
+//传入bytes数据，转为unsigned int *，即svBitVecVal *，再传给SV
+void put_bytes(py::bytes &value)
+{{
+    static unsigned int tmp[256] = {{0}};
+    Py_ssize_t size = PyBytes_GET_SIZE(value.ptr());
+    char * ptr = PyBytes_AsString(value.ptr());
+
+    memcpy(tmp, ptr, 256);
+
+    send_bit_vec(tmp);
+}}
 
 //定义Python与C++之间交互的func与class
 PYBIND11_MODULE(wrapper, m)
@@ -301,6 +327,8 @@ PYBIND11_MODULE(wrapper, m)
     m.def("doPythonApi", &doPythonApi);
     m.def("set_clk_info", &set_clk_info);
     m.def("operation", &operation);
+    m.def("put", &put);
+    m.def("put_bytes", &put_bytes);
 }}
 
 """
@@ -321,7 +349,7 @@ def runCompile(dut_path, top_module_file_name, wrapper_file_name):
     # 由各个库文件(.o)得到共享库文件(.so)
     compile_command_3 = f"c++ -O3 -Wall -shared -std=c++11 -fPIC -faligned-new ./verilator/*.o -o verilator/wrapper.so"
 
-    # print(compile_command_3)
+    print(compile_command_1)
     os.system(compile_command_1)
     os.system(compile_command_2)
     os.system(compile_command_3)
@@ -369,6 +397,14 @@ class sim:
 
     def operation(self, func_name, a, b):
         return self.wp.operation(func_name, a, b)
+
+    def put(self, data):
+        self.wp.put(data)
+        pass
+
+    def put_bytes(self, data):
+        self.wp.put_bytes(data)
+        pass
 
 
 def simple_sim_test(s):
