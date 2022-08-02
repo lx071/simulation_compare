@@ -4,7 +4,7 @@
 
 `timescale 1ns/1ps
 
-module MyTopLevel2 (
+module MyTopLevel (
   input      [7:0]    io_A,
   input      [7:0]    io_B,
   output     [7:0]    io_X,
@@ -14,7 +14,21 @@ module MyTopLevel2 (
 
   reg        [7:0]    a;
   reg        [7:0]    b;
+  wire                when_MyTopLevel_l36;
 
-  assign io_X = (io_A + io_B);
+  assign when_MyTopLevel_l36 = 1'b1;
+  assign io_X = (a + b);
+  always @(posedge clk or posedge reset) begin
+    if(reset) begin
+      a <= 8'h0;
+      b <= 8'h0;
+    end else begin
+      if(when_MyTopLevel_l36) begin
+        a <= io_A;
+        b <= io_B;
+      end
+    end
+  end
 
 endmodule
+

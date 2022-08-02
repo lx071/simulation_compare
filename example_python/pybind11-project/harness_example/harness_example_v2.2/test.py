@@ -67,21 +67,44 @@ def do_python_test():
 
 
 def do_bfm_test():
-    s = sim('./hdl/', 'MyTopLevel.v')
     time1 = time.time()
-
-    data_all = 0
-    for i in range(32):
-        data = random.randint(0, 255)
-        print(data)
-        data_all = (data_all << 8) + data
-
-    bytes_val = data_all.to_bytes(32, 'big')
-    print(bytes_val)
-    s.put_bytes(bytes_val)
-
+    s = sim('./hdl/', 'bfm.v')
     time2 = time.time()
-    print('time:', time2 - time1)
+
+    def put_data():
+        data_all = 0
+        for i in range(32):
+            data = random.randint(0, 100)
+            # print(data)
+            data_all = (data_all << 8) + data
+
+        bytes_val = data_all.to_bytes(32, 'big')
+        # print(bytes_val)
+        s.put_bytes(bytes_val)
+
+    s.set_clk_info("clk_i", 10)
+    s.setValue("reset_i", 1)
+    num = 0
+    cur_time = 0
+    reset_time = 100
+    put_time = 120
+    while True:
+        if num > 31250:
+            break
+        if cur_time == reset_time:
+            s.setValue("reset_i", 0)
+        if cur_time == put_time:
+            put_data()
+            put_time = put_time + 32 * 10
+            num = num + 1
+        s.eval()
+        s.sleep_cycles(5)
+        cur_time = cur_time + 5
+
+    s.deleteHandle()
+    time3 = time.time()
+    print('compile time:', time2 - time1)
+    print('simulation time:', time3 - time2)
     pass
 
 

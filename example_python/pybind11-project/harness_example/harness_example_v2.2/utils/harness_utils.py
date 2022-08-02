@@ -281,19 +281,9 @@ int operation(char *func_name, int x, int y)
 //typedef uint8_t svScalar;
 //typedef svScalar svBit;
 //typedef uint32_t svBitVecVal;
-extern void send_long(long long int data);
-extern void send_bit(const svBit data);
+
 extern void send_bit_vec(const svBitVecVal* data);
 
-void put(int data)
-{{
-    long long int data_1 = 131;
-    unsigned char data_2 = 231;
-    const svBitVecVal data_3[4] = {{0xFFEEFEF7, 0xF133FEF3, 0xF234FEF1, 0xF379FEF9}};
-    send_long(data_1);
-    send_bit(data_2);
-    send_bit_vec(data_3);
-}}
 
 //传入bytes数据，转为unsigned int *，即svBitVecVal *，再传给SV
 void put_bytes(py::bytes &value)
@@ -325,7 +315,6 @@ PYBIND11_MODULE(wrapper, m)
     m.def("doPythonApi", &doPythonApi);
     m.def("set_clk_info", &set_clk_info);
     m.def("operation", &operation);
-    m.def("put", &put);
     m.def("put_bytes", &put_bytes);
 }}
 
@@ -423,10 +412,6 @@ class sim:
 
     def operation(self, func_name, a, b):
         return self.wp.operation(func_name, a, b)
-
-    def put(self, data):
-        self.wp.put(data)
-        pass
 
     def put_bytes(self, data):
         self.wp.put_bytes(data)
