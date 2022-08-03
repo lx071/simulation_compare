@@ -257,6 +257,7 @@ void gen_clk()
 //设置时钟信号的信息
 void set_clk_info(int id, uint64_t cycles)
 {{
+    sleep(5);
     std::cout<<"set_clk_info"<<std::endl;
     simHandle2->clk_id = id;
     simHandle2->clk_cycles = cycles;

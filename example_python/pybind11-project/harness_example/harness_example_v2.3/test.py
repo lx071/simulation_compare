@@ -121,6 +121,7 @@ def do_clk_test():
     time2 = time.time()
 
     async def set_clk_info():
+        await asyncio.sleep(1)
         s.set_clk_info("clk_i", 10)
 
     async def set_signal_info():
