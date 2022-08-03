@@ -19,7 +19,7 @@ MyTopLevel inst_add(
     .reset(reset_i)
 );
 
-reg[3:0]    xmit_en;
+reg xmit_en;
 reg[5:0]    num = 0;
 reg[TOTAL_WIDTH-1:0]		dat_out_v;
 
@@ -36,7 +36,8 @@ always @(posedge clk_i or posedge reset_i) begin
             B_s = dat_out_v[7:0];
             dat_out_v = (dat_out_v >> 8);
             num = num + 1;
-            recv(6);
+            //$display("recv_verilog");
+            //recv(6);
         end
         if(num >= 32) begin
             num = 0;
@@ -47,6 +48,7 @@ end
 
 function void send_bit_vec(bit[255:0] data);
 begin
+    $display("send_bit_vec");
     xmit_en = xmit_en + 1;
     dat_out_v = data[TOTAL_WIDTH-1:0];
 end

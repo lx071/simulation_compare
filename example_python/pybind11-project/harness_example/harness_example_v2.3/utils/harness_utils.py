@@ -2,6 +2,13 @@ import os
 import subprocess
 import re
 
+from threading import Thread, Event, RLock
+import time
+import asyncio
+
+event = Event()
+lock = RLock()
+
 
 def do_python_api():
     print('do_python_api')
@@ -12,7 +19,18 @@ def add(a, b):
     return a + b
 
 
+async def car(name):
+    # time.sleep(3)
+    # lock.acquire()
+    print('车%s正在等绿灯' % name)
+    event.wait()    # 等灯绿 此时event为False,直到event.set()将其值设置为True,才会继续运行.
+    print('车%s通行' % name)
+    # lock.release()
+
+
 def recv(data):
+    print('recv_python:', data)
+    event.set()
     print(data)
 
 
@@ -111,6 +129,7 @@ class Signal
 
 class Wrapper;
 thread_local Wrapper *simHandle1;
+thread_local Wrapper *simHandle2;
 
 class Wrapper
 {{
@@ -139,6 +158,8 @@ class Wrapper
             svSetScope(scope);
             
             simHandle1 = this;
+            simHandle2 = this;
+            
             {signal_connect(ports_name)}
             
             time = 0;
@@ -178,6 +199,8 @@ void getHandle(const char * name)
 
 void setValue(int id, uint64_t newValue)
 {{
+    std::cout<<"setValue: "<<id<<", "<<newValue<<std::endl;
+    std::cout<<(uint64_t)simHandle1->time<<std::endl;
     simHandle1->signal[id]->setValue(newValue);
 }}
 
@@ -203,29 +226,40 @@ bool eval()
 //根据当前时间产生时钟信号
 void gen_clk()
 {{
-    uint64_t time = simHandle1->time;
-    int clk_id = simHandle1->clk_id;
-    uint64_t clk_edge_period = simHandle1->clk_cycles/2;
-    
-    if(time == 0) setValue(clk_id, 0);  
-    else if(time % clk_edge_period==0)
+    uint64_t time;
+    int clk_id = simHandle2->clk_id;
+    uint64_t clk_edge_period = simHandle2->clk_cycles/2;
+    int num = 0;
+    while(!Verilated::gotFinish())
     {{
-        uint64_t value = getValue(clk_id);
-        if(value == 0) 
+        if(num > 100) break;
+        time = simHandle2->time;
+        if(time == 0) simHandle2->signal[clk_id]->setValue(0);
+        else if(time % clk_edge_period==0)
         {{
-            setValue(clk_id, 1);
-            //py::module_ utils = py::module_::import("harness_utils");
-            //utils.attr("clk_on")();
+            uint64_t value = simHandle2->signal[clk_id]->getValue();
+            if(value == 0) 
+            {{
+                simHandle2->signal[clk_id]->setValue(1);
+                //py::module_ utils = py::module_::import("harness_utils");
+                //utils.attr("clk_on")();
+            }}
+            else simHandle2->signal[clk_id]->setValue(0);
         }}
-        else setValue(clk_id, 0);
-    }}
+        eval();
+        dump();
+        simHandle2->time = time + clk_edge_period;
+        std::cout<<"simHandle2->time:"<<simHandle2->time<<std::endl;
+        num++;
+    }} 
 }}
 
 //设置时钟信号的信息
 void set_clk_info(int id, uint64_t cycles)
 {{
-    simHandle1->clk_id = id;
-    simHandle1->clk_cycles = cycles;
+    std::cout<<"set_clk_info"<<std::endl;
+    simHandle2->clk_id = id;
+    simHandle2->clk_cycles = cycles;
     gen_clk();
 }}
 
@@ -292,6 +326,7 @@ extern void recv(int data);
 
 void recv(int data) 
 {{
+    std::cout<<"recv_cpp"<<std::endl;
     py::module_ utils = py::module_::import("utils.harness_utils");
     utils.attr("recv")(data);
 }}

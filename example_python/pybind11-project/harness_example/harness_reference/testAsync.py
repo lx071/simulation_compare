@@ -38,18 +38,19 @@ async def c2():
 # asyncio.create_task相当于把协程封装成Task
 async def c3():
     task1 = asyncio.create_task(a())
-    task2 = asyncio.create_task(b())
+    # task2 = asyncio.create_task(b())
+
     print("XXX")
-    await task2
+    # await task2
     print("YYY")
     # await task2
     # await asyncio.sleep(3)
     print("ZZZ")
-
+    await task1
     # print("XXX")
     # await task2
     # print("YYY")
-    # # await task1
+    # await task1
     # print("ZZZ")
 
 
@@ -94,4 +95,4 @@ async def c6():
 
 
 if __name__ == '__main__':
-    show_perf(c6)
+    show_perf(c3)
