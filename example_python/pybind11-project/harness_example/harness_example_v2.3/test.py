@@ -66,9 +66,6 @@ def do_python_test():
     print('time:', time2-time1)
 
 
-import asyncio
-
-
 def do_bfm_test():
     time1 = time.time()
     s = sim('./hdl/', 'bfm.v')
@@ -101,8 +98,7 @@ def do_bfm_test():
         if cur_time == put_time:
             put_data()
             put_time = put_time + 32 * 10
-            # if num >= 1:
-            #     asyncio.run(car("car1"))
+
             num = num + 1
         s.eval()
         s.sleep_cycles(5)
@@ -120,24 +116,7 @@ def do_clk_test():
     s = sim('./hdl/', 'bfm.v')
     time2 = time.time()
 
-    async def set_clk_info():
-        await asyncio.sleep(1)
-        s.set_clk_info("clk_i", 10)
-
-    async def set_signal_info():
-        s.setValue("reset_i", 1)
-        s.dump()
-        s.eval()
-
-    async def run_test():
-        task1 = asyncio.create_task(set_clk_info())
-        task2 = asyncio.create_task(set_signal_info())
-
-        await task1
-        await task2
-
-    # s.setValue("reset_i", 1)
-    asyncio.run(run_test())
+    s.set_clk_info("clk_i", 10)
 
     s.deleteHandle()
     time3 = time.time()

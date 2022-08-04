@@ -20,39 +20,41 @@ MyTopLevel inst_add(
 );
 
 reg xmit_en;
-reg[5:0]    num = 0;
-reg[TOTAL_WIDTH-1:0]		dat_out_v;
+reg[8:0]    num = 0;
 
-export "DPI-C" function send_bit_vec;
 import "DPI-C" function void recv (input int data);
+import "DPI-C" function void c_py_gen_packet(output bit[2047:0] pkt);
 
+//bit [15:0][127:0] data;
+bit[2047:0] data;
+
+
+int flag=0;
 always @(posedge clk_i or posedge reset_i) begin
     if(reset_i) begin
         A_s = 8'h0;
         B_s = 8'h0;
     end else begin
-        if(xmit_en) begin
-            A_s = dat_out_v[7:0];
-            B_s = dat_out_v[7:0];
-            dat_out_v = (dat_out_v >> 8);
-            num = num + 1;
-            //$display("recv_verilog");
-            //recv(6);
+        if(flag == 0) begin
+            c_py_gen_packet(data);
+            xmit_en = xmit_en + 1;
+            flag = flag + 1;
         end
-        if(num >= 32) begin
+        if(xmit_en) begin
+            //$display("get data[0] ='h%h",data[7:0]);
+            //$display("get data[1] ='h%h",data[15:8]);
+            //$display("get data[255] ='h%h",data[2047:2040]);
+            A_s = data[7:0];
+            B_s = data[7:0];
+            data = (data >> 8);
+            num = num + 1;
+        end
+        if(num >= 256) begin
             num = 0;
             xmit_en = xmit_en - 1;
+            recv(666);
         end
     end
 end
-
-function void send_bit_vec(bit[255:0] data);
-begin
-    $display("send_bit_vec");
-    xmit_en = xmit_en + 1;
-    dat_out_v = data[TOTAL_WIDTH-1:0];
-end
-endfunction
-
 
 endmodule

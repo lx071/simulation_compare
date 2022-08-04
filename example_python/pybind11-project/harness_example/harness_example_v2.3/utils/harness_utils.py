@@ -1,13 +1,7 @@
 import os
+import random
 import subprocess
 import re
-
-from threading import Thread, Event, RLock
-import time
-import asyncio
-
-event = Event()
-lock = RLock()
 
 
 def do_python_api():
@@ -19,19 +13,21 @@ def add(a, b):
     return a + b
 
 
-async def car(name):
-    # time.sleep(3)
-    # lock.acquire()
-    print('车%s正在等绿灯' % name)
-    event.wait()    # 等灯绿 此时event为False,直到event.set()将其值设置为True,才会继续运行.
-    print('车%s通行' % name)
-    # lock.release()
-
-
 def recv(data):
     print('recv_python:', data)
-    event.set()
-    print(data)
+
+
+def send_msg():
+    data_all = 0
+    # 01 02 03 ... 20
+    for i in range(256):
+        data = random.randint(1, 100)
+        # print(data)
+        data_all = (data_all << 8) + data
+
+    bytes_val = data_all.to_bytes(256, 'big')
+    return bytes_val
+    pass
 
 
 # 解析verilog代码, 返回输入端口名列表 和 输出端口名列表
@@ -153,9 +149,9 @@ class Wrapper
         Wrapper(const char * name)
         {{
             //for DPI-C
-            const svScope scope = svGetScopeFromName("TOP.{dut_name}");
-            assert(scope);  // Check for nullptr if scope not found
-            svSetScope(scope);
+            //const svScope scope = svGetScopeFromName("TOP.{dut_name}");
+            //assert(scope);  // Check for nullptr if scope not found
+            //svSetScope(scope);
             
             simHandle1 = this;
             simHandle2 = this;
@@ -199,8 +195,8 @@ void getHandle(const char * name)
 
 void setValue(int id, uint64_t newValue)
 {{
-    std::cout<<"setValue: "<<id<<", "<<newValue<<std::endl;
-    std::cout<<(uint64_t)simHandle1->time<<std::endl;
+    //std::cout<<"setValue: "<<id<<", "<<newValue<<std::endl;
+    //std::cout<<(uint64_t)simHandle1->time<<std::endl;
     simHandle1->signal[id]->setValue(newValue);
 }}
 
@@ -230,9 +226,14 @@ void gen_clk()
     int clk_id = simHandle2->clk_id;
     uint64_t clk_edge_period = simHandle2->clk_cycles/2;
     int num = 0;
+    simHandle2->signal[1]->setValue(1);
     while(!Verilated::gotFinish())
     {{
-        if(num > 100) break;
+        if(num == 20)
+        {{
+            simHandle2->signal[1]->setValue(0);
+        }}
+        if(num > 1000) break;
         time = simHandle2->time;
         if(time == 0) simHandle2->signal[clk_id]->setValue(0);
         else if(time % clk_edge_period==0)
@@ -249,7 +250,7 @@ void gen_clk()
         eval();
         dump();
         simHandle2->time = time + clk_edge_period;
-        std::cout<<"simHandle2->time:"<<simHandle2->time<<std::endl;
+        //std::cout<<"simHandle2->time:"<<simHandle2->time<<std::endl;
         num++;
     }} 
 }}
@@ -257,7 +258,6 @@ void gen_clk()
 //设置时钟信号的信息
 void set_clk_info(int id, uint64_t cycles)
 {{
-    sleep(5);
     std::cout<<"set_clk_info"<<std::endl;
     simHandle2->clk_id = id;
     simHandle2->clk_cycles = cycles;
@@ -313,6 +313,7 @@ int operation(char *func_name, int x, int y)
     return n;
 }}
 
+
 #include "svdpi.h"
 #include "V{dut_name}__Dpi.h"
 
@@ -322,26 +323,31 @@ int operation(char *func_name, int x, int y)
 //typedef svScalar svBit;
 //typedef uint32_t svBitVecVal;
 
-extern void send_bit_vec(const svBitVecVal* data);
+extern void c_py_gen_packet(svBitVecVal* data);
 extern void recv(int data);
+
+void c_py_gen_packet(svBitVecVal* data) 
+{{
+    static unsigned char tmp[256] = {{0}};
+    py::module_ utils = py::module_::import("utils.harness_utils");
+    py::bytes result = utils.attr("send_msg")();
+    Py_ssize_t size = PyBytes_GET_SIZE(result.ptr());
+    char * ptr = PyBytes_AsString(result.ptr());    //# low bit 01 02 03 ... 20 high bit
+    int i;
+    for(i = 0; i < size; i++)
+    {{
+        //std::cout<<"i"<<std::endl;
+        tmp[255-i] = ptr[i];   
+        //printf("%x", ptr[i]);     
+    }}
+    memcpy(data, ptr, 256);
+
+}}
 
 void recv(int data) 
 {{
-    std::cout<<"recv_cpp"<<std::endl;
     py::module_ utils = py::module_::import("utils.harness_utils");
     utils.attr("recv")(data);
-}}
-
-//传入bytes数据，转为unsigned int *，即svBitVecVal *，再传给SV
-void put_bytes(py::bytes &value)
-{{
-    static unsigned int tmp[256] = {{0}};
-    Py_ssize_t size = PyBytes_GET_SIZE(value.ptr());
-    char * ptr = PyBytes_AsString(value.ptr());
-
-    memcpy(tmp, ptr, 256);
-
-    send_bit_vec(tmp);
 }}
 
 //定义Python与C++之间交互的func与class
@@ -362,7 +368,6 @@ PYBIND11_MODULE(wrapper, m)
     m.def("doPythonApi", &doPythonApi);
     m.def("set_clk_info", &set_clk_info);
     m.def("operation", &operation);
-    m.def("put_bytes", &put_bytes);
 }}
 
 """
@@ -459,10 +464,6 @@ class sim:
 
     def operation(self, func_name, a, b):
         return self.wp.operation(func_name, a, b)
-
-    def put_bytes(self, data):
-        self.wp.put_bytes(data)
-        pass
 
 
 def simple_sim_test(s):
