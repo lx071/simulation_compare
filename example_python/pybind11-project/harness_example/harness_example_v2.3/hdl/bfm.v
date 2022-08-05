@@ -30,15 +30,20 @@ bit[2047:0] data;
 
 
 int flag=0;
+int message_num = 0;
 always @(posedge clk_i or posedge reset_i) begin
     if(reset_i) begin
         A_s = 8'h0;
         B_s = 8'h0;
     end else begin
+        if(message_num>3907) begin
+            flag = flag + 1;
+        end
         if(flag == 0) begin
             c_py_gen_packet(data);
             xmit_en = xmit_en + 1;
             flag = flag + 1;
+            message_num = message_num + 1;
         end
         if(xmit_en) begin
             //$display("get data[0] ='h%h",data[7:0]);
@@ -52,7 +57,8 @@ always @(posedge clk_i or posedge reset_i) begin
         if(num >= 256) begin
             num = 0;
             xmit_en = xmit_en - 1;
-            recv(666);
+            //recv(666);
+            flag = flag - 1;
         end
     end
 end
