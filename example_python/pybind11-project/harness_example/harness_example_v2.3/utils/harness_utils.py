@@ -135,6 +135,7 @@ class Wrapper
         std::string name;
         int clk_id;
         uint64_t clk_cycles;
+        uint64_t cycle_num;
         //const char* send_message_func_name;
         std::string send_message_func_name;
 
@@ -168,7 +169,6 @@ class Wrapper
             tfp.open("dump.vcd");
             #endif
             this->name = name;
-            this->send_message_func_name = send_message_func_name;
         }}
 
         // 析构函数在对象消亡时即自动被调用
@@ -228,7 +228,8 @@ void gen_clk()
     uint64_t time;
     int clk_id = simHandle1->clk_id;
     uint64_t clk_edge_period = simHandle1->clk_cycles/2;
-    int num = 0;
+    uint64_t cycle_num = simHandle1->cycle_num;
+    uint64_t num = 0;
     simHandle1->signal[1]->setValue(1);
     while(!Verilated::gotFinish())
     {{
@@ -236,7 +237,7 @@ void gen_clk()
         {{
             simHandle1->signal[1]->setValue(0);
         }}
-        if(num > 1000) break;
+        if(num > 2 * cycle_num) break;
         time = simHandle1->time;
         if(time == 0) simHandle1->signal[clk_id]->setValue(0);
         else if(time % clk_edge_period==0)
@@ -259,11 +260,12 @@ void gen_clk()
 }}
 
 //设置时钟信号的信息
-void set_clk_info(int id, uint64_t cycles)
+void set_clk_info(int id, uint64_t cycles, uint64_t cycle_num)
 {{    
     std::cout<<"set_clk_info"<<std::endl;
     simHandle1->clk_id = id;
     simHandle1->clk_cycles = cycles;
+    simHandle1->cycle_num = cycle_num;
     gen_clk();
 }}
 
@@ -466,8 +468,8 @@ class sim:
     def doPythonApi(self):
         self.wp.doPythonApi()
 
-    def set_clk_info(self, clk_name, cycles):
-        self.wp.set_clk_info(self.signal_id[clk_name], cycles)
+    def set_clk_info(self, clk_name, cycles, cycle_num):
+        self.wp.set_clk_info(self.signal_id[clk_name], cycles, cycle_num)
 
     def operation(self, func_name, a, b):
         return self.wp.operation(func_name, a, b)
