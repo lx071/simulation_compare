@@ -116,6 +116,7 @@ def do_clk_test():
     s = sim('./hdl/', 'bfm.v')
     time2 = time.time()
 
+    s.set_send_message_func("send_msg")
     s.set_clk_info("clk_i", 10)
 
     s.deleteHandle()
@@ -126,10 +127,6 @@ def do_clk_test():
 
 
 if __name__ == '__main__':
-    # basic_test()
-    # do_test()
-    # do_python_test()
-    # do_bfm_test()
     do_clk_test()
     pass
 

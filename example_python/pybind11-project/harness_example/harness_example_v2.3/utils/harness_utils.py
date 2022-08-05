@@ -135,6 +135,8 @@ class Wrapper
         std::string name;
         int clk_id;
         uint64_t clk_cycles;
+        //const char* send_message_func_name;
+        std::string send_message_func_name;
 
         // 指针数组, 指向各个Signal
         Signal *signal[5];
@@ -166,6 +168,7 @@ class Wrapper
             tfp.open("dump.vcd");
             #endif
             this->name = name;
+            this->send_message_func_name = send_message_func_name;
         }}
 
         // 析构函数在对象消亡时即自动被调用
@@ -223,44 +226,44 @@ bool eval()
 void gen_clk()
 {{
     uint64_t time;
-    int clk_id = simHandle2->clk_id;
-    uint64_t clk_edge_period = simHandle2->clk_cycles/2;
+    int clk_id = simHandle1->clk_id;
+    uint64_t clk_edge_period = simHandle1->clk_cycles/2;
     int num = 0;
-    simHandle2->signal[1]->setValue(1);
+    simHandle1->signal[1]->setValue(1);
     while(!Verilated::gotFinish())
     {{
         if(num == 20)
         {{
-            simHandle2->signal[1]->setValue(0);
+            simHandle1->signal[1]->setValue(0);
         }}
         if(num > 1000) break;
-        time = simHandle2->time;
-        if(time == 0) simHandle2->signal[clk_id]->setValue(0);
+        time = simHandle1->time;
+        if(time == 0) simHandle1->signal[clk_id]->setValue(0);
         else if(time % clk_edge_period==0)
         {{
-            uint64_t value = simHandle2->signal[clk_id]->getValue();
+            uint64_t value = simHandle1->signal[clk_id]->getValue();
             if(value == 0) 
             {{
-                simHandle2->signal[clk_id]->setValue(1);
+                simHandle1->signal[clk_id]->setValue(1);
                 //py::module_ utils = py::module_::import("harness_utils");
                 //utils.attr("clk_on")();
             }}
-            else simHandle2->signal[clk_id]->setValue(0);
+            else simHandle1->signal[clk_id]->setValue(0);
         }}
         eval();
         dump();
-        simHandle2->time = time + clk_edge_period;
-        //std::cout<<"simHandle2->time:"<<simHandle2->time<<std::endl;
+        simHandle1->time = time + clk_edge_period;
+        //std::cout<<"simHandle1->time:"<<simHandle1->time<<std::endl;
         num++;
     }} 
 }}
 
 //设置时钟信号的信息
 void set_clk_info(int id, uint64_t cycles)
-{{
+{{    
     std::cout<<"set_clk_info"<<std::endl;
-    simHandle2->clk_id = id;
-    simHandle2->clk_cycles = cycles;
+    simHandle1->clk_id = id;
+    simHandle1->clk_cycles = cycles;
     gen_clk();
 }}
 
@@ -313,6 +316,10 @@ int operation(char *func_name, int x, int y)
     return n;
 }}
 
+void set_send_message_func(std::string func_name)
+{{
+    simHandle1->send_message_func_name = func_name;
+}}
 
 #include "svdpi.h"
 #include "V{dut_name}__Dpi.h"
@@ -328,20 +335,19 @@ extern void recv(int data);
 
 void c_py_gen_packet(svBitVecVal* data) 
 {{
+    const char * func_name = simHandle1->send_message_func_name.c_str();
+    //std::cout<<"func_name_2:"<<func_name<<std::endl;
     static unsigned char tmp[256] = {{0}};
     py::module_ utils = py::module_::import("utils.harness_utils");
-    py::bytes result = utils.attr("send_msg")();
+    py::bytes result = utils.attr(func_name)();
     Py_ssize_t size = PyBytes_GET_SIZE(result.ptr());
     char * ptr = PyBytes_AsString(result.ptr());    //# low bit 01 02 03 ... 20 high bit
     int i;
     for(i = 0; i < size; i++)
     {{
-        //std::cout<<"i"<<std::endl;
-        tmp[255-i] = ptr[i];   
-        //printf("%x", ptr[i]);     
+        tmp[255-i] = ptr[i];      
     }}
     memcpy(data, ptr, 256);
-
 }}
 
 void recv(int data) 
@@ -368,6 +374,7 @@ PYBIND11_MODULE(wrapper, m)
     m.def("doPythonApi", &doPythonApi);
     m.def("set_clk_info", &set_clk_info);
     m.def("operation", &operation);
+    m.def("set_send_message_func", &set_send_message_func);
 }}
 
 """
@@ -442,7 +449,7 @@ class sim:
         return self.wp.getValue(self.signal_id[signal_name])
 
     def getHandle(self, sim_name):
-        self.wp.getHandle(sim_name)
+        return self.wp.getHandle(sim_name)
 
     def deleteHandle(self):
         self.wp.deleteHandle()
@@ -464,6 +471,9 @@ class sim:
 
     def operation(self, func_name, a, b):
         return self.wp.operation(func_name, a, b)
+
+    def set_send_message_func(self, clk_name):
+        self.wp.set_send_message_func(clk_name)
 
 
 def simple_sim_test(s):
