@@ -29,6 +29,7 @@ import "DPI-C" function void c_py_gen_packet(output bit[4095:0] pkt);
 //bit [15:0][127:0] data;
 //bit[2047:0] data;
 bit[4095:0] data;
+bit[4095:0] data_test;
 
 
 int flag=0;
@@ -43,6 +44,7 @@ always @(posedge clk_i or posedge reset_i) begin
         //end
         if(flag == 0) begin
             c_py_gen_packet(data);
+            recv(666);
             xmit_en = xmit_en + 1;
             flag = flag + 1;
             message_num = message_num + 1;
@@ -56,7 +58,7 @@ always @(posedge clk_i or posedge reset_i) begin
             data = (data >> 8);
             num = num + 1;
         end
-        if(num >= 512) begin
+        if(num >= 32) begin
             num = 0;
             xmit_en = xmit_en - 1;
             //recv(666);

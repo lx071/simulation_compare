@@ -50,7 +50,7 @@ int main(int argc, char **argv)
         }
 
         top->eval();
-        tfp->dump(main_time);
+        //tfp->dump(main_time);
         main_time+=5;
     }
 

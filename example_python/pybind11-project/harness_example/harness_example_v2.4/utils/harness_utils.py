@@ -231,13 +231,8 @@ void gen_clk()
     uint64_t clk_edge_period = simHandle1->clk_cycles/2;
     uint64_t cycle_num = simHandle1->cycle_num;
     uint64_t num = 0;
-    simHandle1->signal[1]->setValue(1);
     while(!Verilated::gotFinish())
     {{
-        if(num == 20)
-        {{
-            simHandle1->signal[1]->setValue(0);
-        }}
         if(num > 2 * cycle_num) break;
         time = simHandle1->time;
         if(time == 0) simHandle1->signal[clk_id]->setValue(0);
