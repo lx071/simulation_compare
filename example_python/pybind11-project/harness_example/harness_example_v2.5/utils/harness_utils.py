@@ -5,20 +5,8 @@ import re
 
 
 def do_python_api():
-    # print('do_python_api')
-    # i = 2
-    # return 0
-    data_all = 0
-    # 01 02 03 ... 20
-    for i in range(32):
-        # data = random.randint(1, 100)
-        # print(data)
-        data = i % 120
-        data_all = (data_all << 8) + data
-
-    bytes_val = data_all.to_bytes(32, 'big')
-    return bytes_val
-    pass
+    print('do_python_api')
+    return 0
 
 
 def add(a, b):
@@ -29,17 +17,27 @@ def recv(data):
     print('recv_python:', data)
 
 
-def send_msg():
-    data_all = 0
-    # 01 02 03 ... 20
-    for i in range(512):
-        # data = random.randint(1, 100)
-        # print(data)
-        data = i % 100
-        data_all = (data_all << 8) + data
+from queue import Queue
+q = Queue()
 
-    bytes_val = data_all.to_bytes(512, 'big')
-    return bytes_val
+
+import random
+def gen_msg():
+    # 01 02 03 ... 20
+    for j in range(50000):
+        data_all = 0
+        for i in range(32):
+            # data = random.randint(1, 100)
+            # print(data)
+            data = i % 100
+            data_all = (data_all << 8) + data
+
+        bytes_val = data_all.to_bytes(32, 'big')
+        q.put(bytes_val)
+
+
+def send_msg():
+    return q.get()
     pass
 
 
@@ -137,7 +135,7 @@ class Signal
 }};
 
 class Wrapper;
-thread_local Wrapper *simHandle1;
+Wrapper *simHandle1;
 thread_local Wrapper *simHandle2;
 
 class Wrapper
@@ -231,43 +229,50 @@ void dump()
 bool eval()
 {{
     simHandle1->top.eval();
-//    std::cout<<"time:"<<simHandle1->time<<std::endl;
-    return Verilated::gotFinish();
+    return true;
+    //return Verilated::gotFinish();
 }}
 
 //根据当前时间产生时钟信号
 void gen_clk()
 {{
-    uint64_t main_time = 0;
+    uint64_t time;
     int clk_id = simHandle1->clk_id;
     uint64_t clk_edge_period = simHandle1->clk_cycles/2;
     uint64_t cycle_num = simHandle1->cycle_num;
     uint64_t num = 0;
     simHandle1->signal[1]->setValue(1);
-    py::module_ utils = py::module_::import("utils.harness_utils");
-    py::object result;
+    
     while(!Verilated::gotFinish())
     {{
-        if(num>=1000000) break;
-        if(main_time==100) simHandle1->top.reset=0;
-        if(simHandle1->top.reset ==0 && main_time%5==0)
+        //py::gil_scoped_release release;
+        
+        if(num == 20)
+        {{
+            simHandle1->signal[1]->setValue(0);
+        }}
+        if(num > 2 * cycle_num) break;
+        
+        time = simHandle1->time;
+        
+        if(time == 0) simHandle1->signal[clk_id]->setValue(0);
+        else if(time % clk_edge_period==0)
         {{
             uint64_t value = simHandle1->signal[clk_id]->getValue();
-            if(value == 0) simHandle1->signal[clk_id]->setValue(1);           
+            if(value == 0) simHandle1->signal[clk_id]->setValue(1);
             else simHandle1->signal[clk_id]->setValue(0);
-            if(value == 0)
-            {{
-                
-                if(num%32==0) result = utils.attr("do_python_api")();
-                simHandle1->top.io_A = num % 100;
-                simHandle1->top.io_B = num % 100;
-                num++;
-            }}
         }}
-        simHandle1->top.eval();
-        //tfp->dump(main_time);
-        main_time+=5;
-    }}
+        //py::gil_scoped_acquire acquire;
+        
+        eval();        
+        dump();
+        
+        simHandle1->time = time + clk_edge_period;
+        //std::cout<<"simHandle1->time:"<<simHandle1->time<<std::endl;
+        num++;        
+    }} 
+    std::cout<<"gen_clk"<<std::endl;
+    
 }}
 
 //设置时钟信号的信息
@@ -277,7 +282,7 @@ void set_clk_info(int id, uint64_t cycles, uint64_t cycle_num)
     simHandle1->clk_id = id;
     simHandle1->clk_cycles = cycles;
     simHandle1->cycle_num = cycle_num;
-    gen_clk();
+    gen_clk();   
 }}
 
 void sleep_cycles(uint64_t cycles)
@@ -331,15 +336,38 @@ int operation(char *func_name, int x, int y)
 
 void set_send_message_func(std::string func_name)
 {{
-    simHandle1->send_message_func_name = func_name;
+    std::cout<<"set_send_message_func"<<std::endl;
+    simHandle1->send_message_func_name = func_name;   
 }}
 
+#include "svdpi.h"
+#include "V{dut_name}__Dpi.h"
 
 //typedef unsigned char uint8_t;
 //typedef unsigned int uint32_t; 
 //typedef uint8_t svScalar;
 //typedef svScalar svBit;
 //typedef uint32_t svBitVecVal;
+
+extern void c_py_gen_packet(svBitVecVal* data);
+extern void recv(int data);
+
+void c_py_gen_packet(svBitVecVal* data) 
+{{
+    const char * func_name = simHandle1->send_message_func_name.c_str();
+    //std::cout<<"func_name_2:"<<func_name<<std::endl;
+    static unsigned char tmp[256] = {{0}};
+    py::module_ utils = py::module_::import("utils.harness_utils");
+    py::bytes result = utils.attr(func_name)();
+    Py_ssize_t size = PyBytes_GET_SIZE(result.ptr());
+    char * ptr = PyBytes_AsString(result.ptr());    //# low bit 01 02 03 ... 20 high bit
+    int i;
+    for(i = 0; i < size; i++)
+    {{
+        tmp[255-i] = ptr[i];      
+    }}
+    memcpy(data, ptr, 256);
+}}
 
 void recv(int data) 
 {{

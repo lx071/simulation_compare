@@ -38,9 +38,14 @@ input   clk_r
 	reg[7:0] data;
 
     reg[7:0] data_recv;
+
     initial begin
         //$display("$time=%0t",$realtime);
         $display("passed");
+        data = $urandom_range(0,255);
+        $display(data);
+        xmit_en = xmit_en + 1;
+        dat_out_v = data;
 
     end
 
