@@ -126,7 +126,7 @@ def do_clk_test():
 
     def a():
         # 设置时钟信息(时钟端口名、时钟周期、运行周期数)  10ps*300=3000ps=3ns
-        s.set_clk_info("clk_i", 10, 400000)
+        s.set_clk_info("clk_i", 10, 10000)
 
         s.deleteHandle()
         time3 = time.time()
@@ -140,12 +140,13 @@ def do_clk_test():
         pass
 
     def func():
-        # t1 = threading.Thread(target=a, args=())
-        # t2 = threading.Thread(target=b, args=())
-        b()
-        a()
-        # t2.start()
-        # t1.start()
+        t1 = threading.Thread(target=a, args=())
+        t2 = threading.Thread(target=b, args=())
+        # b()
+        # a()
+
+        t1.start()
+        t2.start()
 
         pass
 

@@ -18,13 +18,14 @@ def recv(data):
 
 
 from queue import Queue
+import random
+import copy
 q = Queue()
 
 
-import random
 def gen_msg():
     # 01 02 03 ... 20
-    for j in range(50000):
+    for j in range(320):
         data_all = 0
         for i in range(32):
             # data = random.randint(1, 100)
@@ -34,11 +35,17 @@ def gen_msg():
 
         bytes_val = data_all.to_bytes(32, 'big')
         q.put(bytes_val)
+        print(q.qsize())
 
 
 def send_msg():
-    return q.get()
-    pass
+    data = q.get()
+    print("get")
+    print(q.qsize())
+    data_local = copy.deepcopy(data)
+    del data
+    return data_local
+    # return q.get()
 
 
 # 解析verilog代码, 返回输入端口名列表 和 输出端口名列表
@@ -236,16 +243,19 @@ bool eval()
 //根据当前时间产生时钟信号
 void gen_clk()
 {{
+    //sleep(1);
+    //py::gil_scoped_release release;
     uint64_t time;
     int clk_id = simHandle1->clk_id;
     uint64_t clk_edge_period = simHandle1->clk_cycles/2;
     uint64_t cycle_num = simHandle1->cycle_num;
     uint64_t num = 0;
     simHandle1->signal[1]->setValue(1);
+    //py::gil_scoped_acquire acquire;
     
     while(!Verilated::gotFinish())
     {{
-        //py::gil_scoped_release release;
+        py::gil_scoped_release release;
         
         if(num == 20)
         {{
@@ -262,7 +272,7 @@ void gen_clk()
             if(value == 0) simHandle1->signal[clk_id]->setValue(1);
             else simHandle1->signal[clk_id]->setValue(0);
         }}
-        //py::gil_scoped_acquire acquire;
+        py::gil_scoped_acquire acquire;
         
         eval();        
         dump();

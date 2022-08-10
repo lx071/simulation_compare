@@ -1,3 +1,4 @@
+import copy
 import os
 # import random
 import subprocess
@@ -24,7 +25,7 @@ q = Queue()
 
 def gen_msg():
     # 01 02 03 ... 20
-    for j in range(1000000):
+    for j in range(100000):
         data_all = 0
         for i in range(32):
             # data = random.randint(1, 100)
@@ -47,8 +48,11 @@ def send_msg():
     #
     # bytes_val = data_all.to_bytes(32, 'big')
     # return bytes_val
-    return q.get()
-    pass
+
+    data = q.get()
+    data_local = copy.deepcopy(data)
+    del data
+    return data_local
 
 
 # 解析verilog代码, 返回输入端口名列表 和 输出端口名列表
