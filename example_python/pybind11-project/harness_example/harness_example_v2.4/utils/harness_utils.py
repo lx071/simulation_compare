@@ -20,13 +20,13 @@ def recv(data):
 def send_msg():
     data_all = 0
     # 01 02 03 ... 20
-    for i in range(512):
+    for i in range(32):
         # data = random.randint(1, 100)
         # print(data)
         data = i % 100
         data_all = (data_all << 8) + data
-
-    bytes_val = data_all.to_bytes(512, 'big')
+    print('data_all:', data_all)
+    bytes_val = data_all.to_bytes(32, 'big')
     return bytes_val
     pass
 
@@ -343,9 +343,9 @@ void c_py_gen_packet(svBitVecVal* data)
     int i;
     for(i = 0; i < size; i++)
     {{
-        tmp[255-i] = ptr[i];      
+        tmp[31-i] = ptr[i];      
     }}
-    memcpy(data, ptr, 256);
+    memcpy(data, tmp, 32);
 }}
 
 void recv(int data) 
@@ -475,50 +475,6 @@ class sim:
 
     def disableWave(self):
         self.wp.disableWave()
-
-
-def simple_sim_test(s):
-    from simulation.verilator import wrapper
-
-    # {'io_A': 0, 'io_B': 1, 'clk': 2, 'reset': 3, 'io_X': 4}
-    signal_id = s.signal_id
-    print(signal_id)
-
-    def setValue(signal_name, value):
-        wrapper.setValue(signal_id[signal_name], value)
-
-    def getValue(signal_name):
-        return wrapper.getValue(signal_id[signal_name])
-
-    def assign(num):
-        setValue("io_A", num % 100)
-        setValue("io_B", num % 100)
-
-    def test():
-        s.set_clk_info("clk", 10)
-        setValue("reset", 1)
-        main_time = 0
-        num = 0
-        reset_value = 1
-        while True:
-            if num >= 1000:
-                break
-            if main_time >= 100:
-                setValue("reset", 0)
-            if reset_value == 1:
-                reset_value = getValue("reset")
-            if reset_value == 0 and main_time % 5 == 0:
-                if getValue("clk") == 0:
-                    num = num + 1
-                else:
-                    assign(num)
-            wrapper.eval()
-            wrapper.sleep_cycles(5)
-            main_time = main_time + 5
-
-    wrapper.getHandle('add_dut')
-    test()
-    wrapper.deleteHandle()
 
 
 if __name__ == '__main__':

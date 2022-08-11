@@ -1,7 +1,8 @@
 module spi_initiator_bfm(
 input   clk_r
 );
-    parameter TOTAL_WIDTH = 8;
+    parameter DAT_WIDTH = 8;
+    parameter TOTAL_WIDTH = 256;
 	//reg clk_r = 0;
 	//reg clock = 0;
 	//always #10 clk_r <= ~clk_r;
@@ -20,7 +21,7 @@ input   clk_r
 	reg[TOTAL_WIDTH-1:0]		dat_out_r;
 	reg xmit_en = 0;
 
-    import "DPI-C" function void c_py_gen_packet(output bit[4095:0] pkt);
+    import "DPI-C" function void c_py_gen_packet(output bit[255:0] pkt);
 
     //`define task_send u_bfm.send
 
@@ -35,24 +36,26 @@ input   clk_r
 			.MOSI(sdo),
 			.MISO(sdi)
 	);
-	reg[7:0] data;
+	//reg[31:0] data;
+	bit[255:0] data;
 
-    reg[7:0] data_recv;
+    reg[31:0] data_recv;
 
     initial begin
         //$display("$time=%0t",$realtime);
         $display("passed");
-        data = $urandom_range(0,255);
+        c_py_gen_packet(data);
+        //data = $urandom_range(0,2147483647);
         $display(data);
         xmit_en = xmit_en + 1;
-        dat_out_v = data;
+        dat_out_v = data[TOTAL_WIDTH-1:0];
 
     end
 
     // Transmit state machine
 	reg      xmit_state = 0;
 	reg[7:0] xmit_count = 0;
-	always @(negedge sck) begin
+	always @(posedge sck) begin
 		sdo <= (xmit_state)?dat_out_r[TOTAL_WIDTH-1]:dat_out_v[TOTAL_WIDTH-1];
 		case (xmit_state)
 			0: begin
@@ -75,7 +78,7 @@ input   clk_r
 	reg      recv_state = 0;
 	reg[7:0] recv_count = 0;
 	//reg[7:0] data_out = 0;
-	always @(posedge sck) begin
+	always @(negedge sck) begin
 		dat_in_r <= {dat_in_r[TOTAL_WIDTH-2:0], sdi};
 		case (recv_state)
 			0: begin
@@ -91,8 +94,8 @@ input   clk_r
 					// The final bit hasn't been shifted in, so we
 					// handle that here
 					xmit_en = xmit_en - 1;
-
-					//recv({dat_in_r[DAT_WIDTH-2:0], sdi});
+                    $display({dat_in_r[TOTAL_WIDTH-2:0], sdi});
+					//recv({dat_in_r[TOTAL_WIDTH-2:0], sdi});
 					flag <= 1;
 					recv_count <= 0;
 				end else begin
