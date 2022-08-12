@@ -20,7 +20,7 @@ def recv(data):
 from queue import Queue
 import random
 import copy
-q = Queue(100)
+q = Queue(2000)
 
 
 def gen_msg():
