@@ -506,49 +506,5 @@ class sim:
         self.wp.disableWave()
 
 
-def simple_sim_test(s):
-    from simulation.verilator import wrapper
-
-    # {'io_A': 0, 'io_B': 1, 'clk': 2, 'reset': 3, 'io_X': 4}
-    signal_id = s.signal_id
-    print(signal_id)
-
-    def setValue(signal_name, value):
-        wrapper.setValue(signal_id[signal_name], value)
-
-    def getValue(signal_name):
-        return wrapper.getValue(signal_id[signal_name])
-
-    def assign(num):
-        setValue("io_A", num % 100)
-        setValue("io_B", num % 100)
-
-    def test():
-        s.set_clk_info("clk", 10)
-        setValue("reset", 1)
-        main_time = 0
-        num = 0
-        reset_value = 1
-        while True:
-            if num >= 1000:
-                break
-            if main_time >= 100:
-                setValue("reset", 0)
-            if reset_value == 1:
-                reset_value = getValue("reset")
-            if reset_value == 0 and main_time % 5 == 0:
-                if getValue("clk") == 0:
-                    num = num + 1
-                else:
-                    assign(num)
-            wrapper.eval()
-            wrapper.sleep_cycles(5)
-            main_time = main_time + 5
-
-    wrapper.getHandle('add_dut')
-    test()
-    wrapper.deleteHandle()
-
-
 if __name__ == '__main__':
     pass
