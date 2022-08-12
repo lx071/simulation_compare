@@ -1,5 +1,5 @@
 import os
-# import random
+import random
 import subprocess
 import re
 
@@ -21,9 +21,9 @@ def send_msg():
     data_all = 0
     # 01 02 03 ... 20
     for i in range(32):
-        # data = random.randint(1, 100)
+        data = random.randint(1, 100)
         # print(data)
-        data = i % 100
+        # data = i % 100
         data_all = (data_all << 8) + data
     print('data_all:', data_all)
     bytes_val = data_all.to_bytes(32, 'big')

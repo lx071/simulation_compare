@@ -45,7 +45,7 @@ input   clk_r
         //$display("$time=%0t",$realtime);
         $display("passed");
         c_py_gen_packet(data);
-        //data = $urandom_range(0,2147483647);
+        $display("get data:");
         $display(data);
         xmit_en = xmit_en + 1;
         dat_out_v = data[TOTAL_WIDTH-1:0];
@@ -77,6 +77,7 @@ input   clk_r
 	// Receive state machine
 	reg      recv_state = 0;
 	reg[7:0] recv_count = 0;
+	reg[7:0] recv_num = 0;
 	//reg[7:0] data_out = 0;
 	always @(negedge sck) begin
 		dat_in_r <= {dat_in_r[TOTAL_WIDTH-2:0], sdi};
@@ -93,14 +94,28 @@ input   clk_r
 					// Send the resulting data back. Note that
 					// The final bit hasn't been shifted in, so we
 					// handle that here
-					xmit_en = xmit_en - 1;
+					//xmit_en = xmit_en - 1;
+					$display("receive data:");
                     $display({dat_in_r[TOTAL_WIDTH-2:0], sdi});
 					//recv({dat_in_r[TOTAL_WIDTH-2:0], sdi});
 					flag <= 1;
 					recv_count <= 0;
+					recv_num = recv_num + 1;
+
+					if (recv_num >= 5) begin
+				        xmit_en = xmit_en - 1;
+				    end else begin
+                        c_py_gen_packet(data);
+                        $display("get data:");
+                        $display(data);
+                        //xmit_en = xmit_en + 1;
+                        dat_out_v = data[TOTAL_WIDTH-1:0];
+				    end
+
 				end else begin
 					recv_count <= recv_count + 1;
 				end
+
 			end
 		endcase
 	end

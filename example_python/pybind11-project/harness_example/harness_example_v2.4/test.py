@@ -12,7 +12,7 @@ def do_clk_test():
     # 设置获取message数据的回调函数名
     s.set_send_message_func("send_msg")
     # 设置时钟信息(时钟端口名、时钟周期、运行周期数)  10ps*300=3000ps=3ns
-    s.set_clk_info("clk_r", 10, 280)
+    s.set_clk_info("clk_r", 10, 1600)
 
     s.deleteHandle()
     time3 = time.time()
