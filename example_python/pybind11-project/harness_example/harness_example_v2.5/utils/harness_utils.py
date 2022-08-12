@@ -20,12 +20,12 @@ def recv(data):
 from queue import Queue
 import random
 import copy
-q = Queue()
+q = Queue(100)
 
 
 def gen_msg():
     # 01 02 03 ... 20
-    for j in range(320):
+    for j in range(31255):
         data_all = 0
         for i in range(32):
             # data = random.randint(1, 100)
@@ -35,17 +35,16 @@ def gen_msg():
 
         bytes_val = data_all.to_bytes(32, 'big')
         q.put(bytes_val)
-        print(q.qsize())
+        # print('put:', q.qsize())
 
 
 def send_msg():
-    data = q.get()
-    print("get")
-    print(q.qsize())
-    data_local = copy.deepcopy(data)
-    del data
-    return data_local
-    # return q.get()
+    # data = q.get()
+    # # print("get", q.qsize())
+    # data_local = copy.deepcopy(data)
+    # del data
+    # return data_local
+    return q.get()
 
 
 # 解析verilog代码, 返回输入端口名列表 和 输出端口名列表
