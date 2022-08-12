@@ -22,6 +22,7 @@ input   clk_r
 	reg xmit_en = 0;
 
     import "DPI-C" function void c_py_gen_packet(output bit[255:0] pkt);
+    import "DPI-C" function void recv (input int data);
 
     //`define task_send u_bfm.send
 
