@@ -227,18 +227,11 @@ class Wrapper
 void* say_A(void* args)
 {{
     std::cout << "Hello A！" << std::endl;
+    sleep(0.1);
     std::cout << "Hello A end！" << std::endl;
     //py::module_ utils = py::module_::import("utils.harness_utils");    
     //utils.attr("gen_msg")();    
     pthread_exit(NULL);
-}}
-
-// 线程的运行函数
-void* say_B(void* args)
-{{
-    std::cout << "Hello B！" << std::endl;
-    std::cout << "Hello B end！" << std::endl;
-    return 0;
 }}
 
 double sc_time_stamp() 
@@ -280,6 +273,7 @@ bool eval()
 //根据当前时间产生时钟信号
 void* gen_clk(void* args)
 {{
+    std::cout<<"gen_clk"<<std::endl;
     uint64_t time;
     int clk_id = simHandle1->clk_id;
     uint64_t clk_edge_period = simHandle1->clk_cycles/2;
@@ -323,8 +317,8 @@ void test_mul_thread()
 {{
     // 定义线程的 id 变量，多个变量使用数组
     pthread_t tids[NUM_THREADS];
-    int ret1 = pthread_create(&tids[0], NULL, gen_clk, NULL);
-    //int ret2 = pthread_create(&tids[1], NULL, gen_clk, NULL);
+    int ret1 = pthread_create(&tids[0], NULL, say_A, NULL);
+    int ret2 = pthread_create(&tids[1], NULL, gen_clk, NULL);    
     if (ret1 != 0)
     {{
         std::cout << "pthread_create error: error_code=" << ret1 << std::endl;
