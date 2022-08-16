@@ -37,9 +37,10 @@ input   reset_i
     reg[31:0] data_recv;
 
     always @(posedge reset_i) begin
-        $display("passed");
+        //$display("passed");
+        //data = 255'b0;
         c_py_gen_packet(data);
-        $display("get data:", data);
+        //$display("get data:", data);
         xmit_en = xmit_en + 1;
         dat_out_v = data[TOTAL_WIDTH-1:0];
     end
@@ -87,17 +88,18 @@ input   reset_i
 					// The final bit hasn't been shifted in, so we
 					// handle that here
 					//xmit_en = xmit_en - 1;
-					$display("receive data:", {dat_in_r[TOTAL_WIDTH-2:0], sdi});
+					//$display("receive data:", {dat_in_r[TOTAL_WIDTH-2:0], sdi});
 					//recv({dat_in_r[TOTAL_WIDTH-2:0], sdi});
 					flag <= 1;
 					recv_count <= 0;
 					recv_num = recv_num + 1;
 
-					if (recv_num >= 4) begin
+					if (recv_num >= 125000) begin
 				        xmit_en = xmit_en - 1;
 				    end else begin
+				        //data = 255'b0;
                         c_py_gen_packet(data);
-                        $display("get data:", data);
+                        //$display("get data:", data);
                         //xmit_en = xmit_en + 1;
                         dat_out_v = data[TOTAL_WIDTH-1:0];
 				    end

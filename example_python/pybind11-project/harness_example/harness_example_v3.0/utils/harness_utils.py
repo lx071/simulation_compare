@@ -25,7 +25,7 @@ def send_msg():
         # print(data)
         # data = i % 100
         data_all = (data_all << 8) + data
-    print('data_all:', data_all)
+    # print('data_all:', data_all)
     bytes_val = data_all.to_bytes(32, 'big')
     return bytes_val
     pass

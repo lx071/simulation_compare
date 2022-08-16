@@ -301,7 +301,10 @@ void set_clk_info(int id, uint64_t cycles, uint64_t cycle_num)
     simHandle1->clk_cycles = cycles;
     simHandle1->cycle_num = cycle_num;
 
-    test_mul_thread();
+    test_mul_thread();    
+    //sleep(0.1);
+    //py::module_ utils = py::module_::import("utils.harness_utils");    
+    //utils.attr("do_python_api")();    //error
     //等各个线程退出后，进程才结束，否则进程强制结束了，线程可能还没反应过来；
     pthread_exit(NULL);
 }}
