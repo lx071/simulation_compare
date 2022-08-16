@@ -195,9 +195,9 @@ class Wrapper
 void* say_A(void* args)
 {{
     std::cout << "Hello A！" << std::endl;
-    sleep(0.1);
+    //sleep(0.1);
     std::cout << "Hello A end！" << std::endl;
-    py::module_ utils = py::module_::import("utils.harness_utils");    
+    //py::module_ utils = py::module_::import("utils.harness_utils");    
     //utils.attr("do_python_api")();    //error
     pthread_exit(NULL);
 }}
