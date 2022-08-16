@@ -42,6 +42,7 @@ always @(posedge clk_i or posedge reset_i) begin
         //    flag = flag + 1;
         //end
         if(flag == 0) begin
+            //$display("c_py_gen_packet");
             c_py_gen_packet(data);
             xmit_en = xmit_en + 1;
             flag = flag + 1;
@@ -56,7 +57,7 @@ always @(posedge clk_i or posedge reset_i) begin
             data = (data >> 8);
             num = num + 1;
         end
-        if(num >= 512) begin
+        if(num >= 32) begin
             num = 0;
             xmit_en = xmit_en - 1;
             //recv(666);
