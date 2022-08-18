@@ -15,6 +15,7 @@ module PoseidonTopLevel (
   input               clk,
   input               resetn
 );
+import "DPI-C" function void c_py_gen_packet(output bit[255:0] pkt);
 
   reg                 poseidonLoop_1_io_output_ready;
   wire                aXI4StreamReceiver_1_io_input_ready;

@@ -23,7 +23,7 @@ end:
 	date +%M.%s.%N
 
 clean:
-	-rm -r ./verilator dump.vcd __pycache__
+	-rm -r ./verilator dump.vcd ./utils/__pycache__
 
 
 	

@@ -1,6 +1,6 @@
 import random
 import sys
-from utils.harness_utils import sim
+from utils.harness_utils import sim, verilog_parse
 import time
 
 
@@ -23,6 +23,9 @@ def do_clk_test():
 
 
 if __name__ == '__main__':
-    do_clk_test()
+    # do_clk_test()
+    input_ports_name, output_ports_name = verilog_parse('./hdl/', 'PoseidonTopLevel.v')
+    print(input_ports_name)
+    print(output_ports_name)
     pass
 

@@ -23,7 +23,7 @@ end:
 	date +%M.%s.%N
 
 clean:
-	-rm -r ./simulation __pycache__
+	-rm -r ./simulation ./utils/__pycache__
 
 
 	
