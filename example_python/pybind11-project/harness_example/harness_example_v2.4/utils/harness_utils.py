@@ -1,5 +1,5 @@
 import os
-import random
+# import random
 import subprocess
 import re
 
@@ -17,18 +17,34 @@ def recv(data):
     print('recv_python:', data)
 
 
-def send_msg():
-    data_all = 0
+from queue import Queue
+import random
+import copy
+q = Queue(2000)
+
+
+def gen_msg():
     # 01 02 03 ... 20
-    for i in range(32):
-        data = random.randint(1, 100)
-        # print(data)
-        # data = i % 100
-        data_all = (data_all << 8) + data
-    print('data_all:', data_all)
-    bytes_val = data_all.to_bytes(32, 'big')
-    return bytes_val
-    pass
+    for j in range(31255):
+        data_all = 0
+        for i in range(32):
+            # data = random.randint(1, 100)
+            # print(data)
+            data = i % 100
+            data_all = (data_all << 8) + data
+
+        bytes_val = data_all.to_bytes(32, 'big')
+        q.put(bytes_val)
+        # print('put:', q.qsize())
+
+
+def send_msg():
+    # data = q.get()
+    # # print("get", q.qsize())
+    # data_local = copy.deepcopy(data)
+    # del data
+    # return data_local
+    return q.get()
 
 
 # 解析verilog代码, 返回输入端口名列表 和 输出端口名列表
@@ -125,7 +141,7 @@ class Signal
 }};
 
 class Wrapper;
-thread_local Wrapper *simHandle1;
+Wrapper *simHandle1;
 thread_local Wrapper *simHandle2;
 
 class Wrapper
@@ -219,40 +235,53 @@ void dump()
 bool eval()
 {{
     simHandle1->top.eval();
-//    std::cout<<"time:"<<simHandle1->time<<std::endl;
-    return Verilated::gotFinish();
+    return true;
+    //return Verilated::gotFinish();
 }}
 
 //根据当前时间产生时钟信号
 void gen_clk()
 {{
+    //sleep(1);
+    //py::gil_scoped_release release;
     uint64_t time;
     int clk_id = simHandle1->clk_id;
     uint64_t clk_edge_period = simHandle1->clk_cycles/2;
     uint64_t cycle_num = simHandle1->cycle_num;
     uint64_t num = 0;
+    simHandle1->signal[1]->setValue(1);
+    //py::gil_scoped_acquire acquire;
+    
     while(!Verilated::gotFinish())
     {{
+        py::gil_scoped_release release;
+        
+        if(num == 20)
+        {{
+            simHandle1->signal[1]->setValue(0);
+        }}
         if(num > 2 * cycle_num) break;
+        
         time = simHandle1->time;
+        
         if(time == 0) simHandle1->signal[clk_id]->setValue(0);
         else if(time % clk_edge_period==0)
         {{
             uint64_t value = simHandle1->signal[clk_id]->getValue();
-            if(value == 0) 
-            {{
-                simHandle1->signal[clk_id]->setValue(1);
-                //py::module_ utils = py::module_::import("harness_utils");
-                //utils.attr("clk_on")();
-            }}
+            if(value == 0) simHandle1->signal[clk_id]->setValue(1);
             else simHandle1->signal[clk_id]->setValue(0);
         }}
-        eval();
+        py::gil_scoped_acquire acquire;
+        
+        eval();        
         dump();
+        
         simHandle1->time = time + clk_edge_period;
         //std::cout<<"simHandle1->time:"<<simHandle1->time<<std::endl;
-        num++;
+        num++;        
     }} 
+    std::cout<<"gen_clk"<<std::endl;
+    
 }}
 
 //设置时钟信号的信息
@@ -262,7 +291,7 @@ void set_clk_info(int id, uint64_t cycles, uint64_t cycle_num)
     simHandle1->clk_id = id;
     simHandle1->clk_cycles = cycles;
     simHandle1->cycle_num = cycle_num;
-    gen_clk();
+    gen_clk();   
 }}
 
 void sleep_cycles(uint64_t cycles)
@@ -316,7 +345,8 @@ int operation(char *func_name, int x, int y)
 
 void set_send_message_func(std::string func_name)
 {{
-    simHandle1->send_message_func_name = func_name;
+    std::cout<<"set_send_message_func"<<std::endl;
+    simHandle1->send_message_func_name = func_name;   
 }}
 
 #include "svdpi.h"
@@ -343,9 +373,9 @@ void c_py_gen_packet(svBitVecVal* data)
     int i;
     for(i = 0; i < size; i++)
     {{
-        tmp[31-i] = ptr[i];      
+        tmp[255-i] = ptr[i];      
     }}
-    memcpy(data, tmp, 32);
+    memcpy(data, ptr, 256);
 }}
 
 void recv(int data) 

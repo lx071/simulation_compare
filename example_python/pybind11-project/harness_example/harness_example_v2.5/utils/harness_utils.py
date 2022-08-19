@@ -17,34 +17,18 @@ def recv(data):
     print('recv_python:', data)
 
 
-from queue import Queue
-import random
-import copy
-q = Queue(2000)
-
-
-def gen_msg():
-    # 01 02 03 ... 20
-    for j in range(31255):
-        data_all = 0
-        for i in range(32):
-            # data = random.randint(1, 100)
-            # print(data)
-            data = i % 100
-            data_all = (data_all << 8) + data
-
-        bytes_val = data_all.to_bytes(32, 'big')
-        q.put(bytes_val)
-        # print('put:', q.qsize())
-
-
 def send_msg():
-    # data = q.get()
-    # # print("get", q.qsize())
-    # data_local = copy.deepcopy(data)
-    # del data
-    # return data_local
-    return q.get()
+    data_all = 0
+    # 01 02 03 ... 20
+    for i in range(32):
+        # data = random.randint(1, 100)
+        # print(data)
+        data = i % 100
+        data_all = (data_all << 8) + data
+
+    bytes_val = data_all.to_bytes(32, 'big')
+    return bytes_val
+    pass
 
 
 # 解析verilog代码, 返回输入端口名列表 和 输出端口名列表
@@ -119,6 +103,10 @@ namespace py = pybind11;
 #endif
 #include "V{dut_name}__Syms.h"
 
+#include <pthread.h>
+#include <unistd.h>
+#define NUM_THREADS 2
+
 //8个字节
 //typedef uint64_t CData;
 
@@ -155,7 +143,7 @@ class Wrapper
         uint64_t cycle_num;
         //const char* send_message_func_name;
         std::string send_message_func_name;
-
+        
         // 指针数组, 指向各个Signal
         Signal *signal[5];
         // 是否产生波形
@@ -165,19 +153,19 @@ class Wrapper
         #ifdef TRACE
         VerilatedVcdC tfp;
 	    #endif
-        
+
         Wrapper(const char * name)
         {{
             //for DPI-C
             //const svScope scope = svGetScopeFromName("TOP.{dut_name}");
             //assert(scope);  // Check for nullptr if scope not found
             //svSetScope(scope);
-            
+
             simHandle1 = this;
             simHandle2 = this;
-            
+
             {signal_connect(ports_name)}
-            
+
             time = 0;
             waveEnabled = true;
             #ifdef TRACE
@@ -187,7 +175,7 @@ class Wrapper
             #endif
             this->name = name;
         }}
-
+        
         // 析构函数在对象消亡时即自动被调用
         virtual ~Wrapper()
         {{
@@ -202,6 +190,17 @@ class Wrapper
             std::cout<<"closeAll()"<<std::endl;
         }}
 }};
+
+// 线程的运行函数
+void* say_A(void* args)
+{{
+    std::cout << "Hello A！" << std::endl;
+    //sleep(0.1);
+    std::cout << "Hello A end！" << std::endl;
+    //py::module_ utils = py::module_::import("utils.harness_utils");    
+    //utils.attr("do_python_api")();    //error
+    pthread_exit(NULL);
+}}
 
 double sc_time_stamp() 
 {{
@@ -235,70 +234,86 @@ void dump()
 bool eval()
 {{
     simHandle1->top.eval();
-    return true;
-    //return Verilated::gotFinish();
+//    std::cout<<"time:"<<simHandle1->time<<std::endl;
+    return Verilated::gotFinish();
 }}
 
 //根据当前时间产生时钟信号
-void gen_clk()
+void* gen_clk(void* args)
 {{
-    //sleep(1);
-    //py::gil_scoped_release release;
+    std::cout<<"gen_clk"<<std::endl;
     uint64_t time;
     int clk_id = simHandle1->clk_id;
     uint64_t clk_edge_period = simHandle1->clk_cycles/2;
     uint64_t cycle_num = simHandle1->cycle_num;
     uint64_t num = 0;
     simHandle1->signal[1]->setValue(1);
-    //py::gil_scoped_acquire acquire;
-    
+
     while(!Verilated::gotFinish())
     {{
         py::gil_scoped_release release;
-        
         if(num == 20)
         {{
             simHandle1->signal[1]->setValue(0);
         }}
         if(num > 2 * cycle_num) break;
-        
         time = simHandle1->time;
-        
         if(time == 0) simHandle1->signal[clk_id]->setValue(0);
         else if(time % clk_edge_period==0)
         {{
             uint64_t value = simHandle1->signal[clk_id]->getValue();
-            if(value == 0) simHandle1->signal[clk_id]->setValue(1);
+            if(value == 0) 
+            {{
+                simHandle1->signal[clk_id]->setValue(1);
+                //py::module_ utils = py::module_::import("harness_utils");
+                //utils.attr("clk_on")();
+            }}
             else simHandle1->signal[clk_id]->setValue(0);
         }}
+
         py::gil_scoped_acquire acquire;
-        
-        eval();        
+        eval();
         dump();
-        
         simHandle1->time = time + clk_edge_period;
         //std::cout<<"simHandle1->time:"<<simHandle1->time<<std::endl;
-        num++;        
+        num++;
     }} 
-    std::cout<<"gen_clk"<<std::endl;
-    
+    pthread_exit(NULL);
+}}
+
+void test_mul_thread()
+{{
+    // 定义线程的 id 变量，多个变量使用数组
+    pthread_t tids[NUM_THREADS];
+    int ret1 = pthread_create(&tids[0], NULL, say_A, NULL);
+    int ret2 = pthread_create(&tids[1], NULL, gen_clk, NULL);    
+    if (ret1 != 0)
+    {{
+        std::cout << "pthread_create error: error_code=" << ret1 << std::endl;
+    }}
 }}
 
 //设置时钟信号的信息
 void set_clk_info(int id, uint64_t cycles, uint64_t cycle_num)
-{{    
+{{       
     std::cout<<"set_clk_info"<<std::endl;
     simHandle1->clk_id = id;
     simHandle1->clk_cycles = cycles;
     simHandle1->cycle_num = cycle_num;
-    gen_clk();   
+
+    test_mul_thread();    
+    //sleep(0.1);
+    //py::module_ utils = py::module_::import("utils.harness_utils");    
+    //utils.attr("do_python_api")();    //error
+    //等各个线程退出后，进程才结束，否则进程强制结束了，线程可能还没反应过来；
+    pthread_exit(NULL);
 }}
 
 void sleep_cycles(uint64_t cycles)
 {{
     dump();
     simHandle1->time += cycles;
-    gen_clk();
+    //gen_clk();
 }}
 
 void deleteHandle()
@@ -322,19 +337,19 @@ void doPythonApi()
 {{
     py::print("Hello, World!"); // use the Python API
     py::module_ calc = py::module_::import("calc");
-    
+
     for(int i=0;i<1000000;i++)
         calc.attr("add")(i%100, i%100);
     py::object result = calc.attr("add")(1, 2);
     int n = result.cast<int>();
     assert(n == 3);
     std::cout << n << std::endl;
-    
+
     py::module_ utils = py::module_::import("utils.harness_utils");
     utils.attr("do_python_api")();
 }}
- 
- 
+
+
 int operation(char *func_name, int x, int y)
 {{
     py::module_ utils = py::module_::import("harness_utils");
@@ -345,8 +360,7 @@ int operation(char *func_name, int x, int y)
 
 void set_send_message_func(std::string func_name)
 {{
-    std::cout<<"set_send_message_func"<<std::endl;
-    simHandle1->send_message_func_name = func_name;   
+    simHandle1->send_message_func_name = func_name;
 }}
 
 #include "svdpi.h"
@@ -367,6 +381,7 @@ void c_py_gen_packet(svBitVecVal* data)
     //std::cout<<"func_name_2:"<<func_name<<std::endl;
     static unsigned char tmp[256] = {{0}};
     py::module_ utils = py::module_::import("utils.harness_utils");
+
     py::bytes result = utils.attr(func_name)();
     Py_ssize_t size = PyBytes_GET_SIZE(result.ptr());
     char * ptr = PyBytes_AsString(result.ptr());    //# low bit 01 02 03 ... 20 high bit
@@ -389,7 +404,7 @@ PYBIND11_MODULE(wrapper, m)
 {{
     py::class_<Wrapper>(m, "Wrapper")
         .def(py::init<const char *>());
-
+        
     m.def("getHandle", &getHandle);
     m.def("setValue", &setValue);
     m.def("getValue", &getValue);
@@ -404,7 +419,6 @@ PYBIND11_MODULE(wrapper, m)
     m.def("operation", &operation);
     m.def("set_send_message_func", &set_send_message_func);
 }}
-
 """
     fd = open(f'simulation/{dut_name}-harness.cpp', "w")
     fd.write(wrapper)

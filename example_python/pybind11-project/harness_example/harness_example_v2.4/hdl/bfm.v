@@ -42,11 +42,10 @@ always @(posedge clk_i or posedge reset_i) begin
         //    flag = flag + 1;
         //end
         if(flag == 0) begin
-            //$display("c_py_gen_packet");
             c_py_gen_packet(data);
             xmit_en = xmit_en + 1;
             flag = flag + 1;
-            message_num = message_num + 1;
+            //message_num = message_num + 1;
         end
         if(xmit_en) begin
             //$display("get data[0] ='h%h",data[7:0]);
