@@ -10,7 +10,7 @@
 # 仿真
 # 仿真时读入vvp文件，送进vvp虚拟机执行.
 
-all: first exec end
+all: first compile second visual end
 
 first:
 	date +%M.%s.%N
@@ -26,7 +26,7 @@ end:
 
 # only make compile
 compile:
-	iverilog -o run.out ./test_adder.v \ ./../hdl/MyTopLevel.v
+	iverilog -o run.out ./../hdl/*.v
 
 # only make visual ( make .elf file to the .vcd file )
 
@@ -38,4 +38,4 @@ exec:
 	python test.py
 
 clean:
-	rm -rf simulation
+	rm -rf dump.vcd run.out
