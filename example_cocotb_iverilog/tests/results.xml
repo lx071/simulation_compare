@@ -1,6 +1,0 @@
-<testsuites name="results">
-  <testsuite name="all" package="all">
-    <property name="random_seed" value="1657613457" />
-    <testcase name="adder_basic_test" classname="test_adder" file="/home/xuelin/projects/cocotb-project/example_compare/example_cocotb_iverilog/tests/test_adder.py" lineno="28" time="0.032373905181884766" sim_time_ns="1.096" ratio_time="33.85442670083808" />
-  </testsuite>
-</testsuites>
