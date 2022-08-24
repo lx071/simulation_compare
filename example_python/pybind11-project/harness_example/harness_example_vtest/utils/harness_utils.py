@@ -130,6 +130,7 @@ class Signal
     public:
         //指针指向信号值
         CData* raw;
+        //构造函数      单冒号(:)的作用是表示后面是初始化列表,对类成员进行初始化
         Signal(CData *raw) : raw(raw){{}}
         Signal(CData &raw) : raw(std::addressof(raw)){{}}
         uint64_t getValue() {{return *raw;}}
