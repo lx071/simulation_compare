@@ -33,7 +33,7 @@ async def adder_basic_test(dut):
 
     await FallingEdge(dut.reset)
 
-    for i in range(1000000):
+    for i in range(1000):
         await RisingEdge(dut.clk)
         dut.io_A.value = i % 200
         dut.io_B.value = i % 200
