@@ -19,14 +19,15 @@ def recv(data):
 
 def send_msg():
     data_all = 0
-    # 01 02 03 ... 20
-    for i in range(512):
+    # 256*3=768Byte=6144bit
+    op = 1
+    for i in range(256):
         # data = random.randint(1, 100)
         # print(data)
         data = i % 100
-        data_all = (data_all << 8) + data
+        data_all = (data_all << 24) + (data << 16) + (data << 8) + op
 
-    bytes_val = data_all.to_bytes(512, 'big')
+    bytes_val = data_all.to_bytes(768, 'big')
     return bytes_val
     pass
 
@@ -44,6 +45,7 @@ def verilog_parse(dut_path, top_module_file_name):
     current_module_name = ''
     input_ports_name = []
     output_ports_name = []
+    ports_width = dict()
     with open(top_module_path, "r") as verilog_file:
         while verilog_file:
             verilog_line = verilog_file.readline().strip(' ')  # 读取一行
@@ -64,17 +66,31 @@ def verilog_parse(dut_path, top_module_file_name):
                 if input_port:
                     # 输入端口名列表
                     input_ports_name.append(input_port.group(3))
+                    range = input_port.group(2)
+                    if range is None:
+                        ports_width[input_port.group(3)] = 1
+                    else:
+                        left, right = range[1:-1].split(':')
+                        ports_width[input_port.group(3)] = abs(int(left)-int(right))+1
                 if output_port:
                     # 输出端口名列表
                     output_ports_name.append(output_port.group(3))
-    # print(dut_name)
-    # print(input_ports_name)
-    # print(output_ports_name)
-    return input_ports_name, output_ports_name
+                    range = output_port.group(2)
+                    if range is None:
+                        ports_width[output_port.group(3)] = 1
+                    else:
+                        left, right = range[1:-1].split(':')
+                        ports_width[output_port.group(3)] = abs(int(left) - int(right)) + 1
+    print(dut_name)
+    print(input_ports_name)
+    print(output_ports_name)
+    for x, y in ports_width.items():
+        print(x, y)
+    return input_ports_name, output_ports_name, ports_width
 
 
 # 传入文件路径和端口名列表，生成 Wrapper文件
-def genWrapperCpp(ports_name, top_module_file_name):
+def genWrapperCpp(ports_name, ports_width, top_module_file_name):
     dut_name = top_module_file_name.split('.')[0]  # 模块名
     try:
         os.mkdir("simulation")
@@ -84,8 +100,17 @@ def genWrapperCpp(ports_name, top_module_file_name):
     def signal_connect(ports_name):
         str = ''
         for i in range(len(ports_name)):
+            typePrefix = ''
+            if ports_width[ports_name[i]] <= 8:
+                typePrefix = "CData"
+            elif ports_width[ports_name[i]] <= 16:
+                typePrefix = "SData"
+            elif ports_width[ports_name[i]] <= 32:
+                typePrefix = "IData"
+            elif ports_width[ports_name[i]] <= 64:
+                typePrefix = "QData"
             str = str + f"""
-            signal[{i}] = new Signal(top.{ports_name[i]});"""
+            signal[{i}] = new {typePrefix}SignalAccess(top.{ports_name[i]});"""
         return str
 
     wrapper = f"""
@@ -113,14 +138,59 @@ namespace py = pybind11;
 //typedef vluint64_t   QData;     ///< Verilated pack data, 33-64 bits
 //typedef vluint32_t   EData;     ///< Verilated pack element of WData array
 //typedef EData        WData;     ///< Verilated pack data, >64 bits, as an array
-class Signal
+
+class ISignalAccess{{
+    public:
+        virtual ~ISignalAccess() {{}}
+        
+        virtual uint64_t getValue() = 0;
+        virtual void setValue(uint64_t value) = 0;
+}};
+
+class  CDataSignalAccess : public ISignalAccess
 {{
     public:
         //指针指向信号值
         CData* raw;
         //构造函数      单冒号(:)的作用是表示后面是初始化列表,对类成员进行初始化
-        Signal(CData *raw) : raw(raw){{}}
-        Signal(CData &raw) : raw(std::addressof(raw)){{}}
+        CDataSignalAccess(CData *raw) : raw(raw){{}}
+        CDataSignalAccess(CData &raw) : raw(std::addressof(raw)){{}}
+        uint64_t getValue() {{return *raw;}}
+        void setValue(uint64_t value)  {{*raw = value; }}
+}};
+
+class  SDataSignalAccess : public ISignalAccess
+{{
+    public:
+        //指针指向信号值
+        SData* raw;
+        //构造函数      单冒号(:)的作用是表示后面是初始化列表,对类成员进行初始化
+        SDataSignalAccess(SData *raw) : raw(raw){{}}
+        SDataSignalAccess(SData &raw) : raw(std::addressof(raw)){{}}
+        uint64_t getValue() {{return *raw;}}
+        void setValue(uint64_t value)  {{*raw = value; }}
+}};
+
+class  IDataSignalAccess : public ISignalAccess
+{{
+    public:
+        //指针指向信号值
+        IData* raw;
+        //构造函数      单冒号(:)的作用是表示后面是初始化列表,对类成员进行初始化
+        IDataSignalAccess(IData *raw) : raw(raw){{}}
+        IDataSignalAccess(IData &raw) : raw(std::addressof(raw)){{}}
+        uint64_t getValue() {{return *raw;}}
+        void setValue(uint64_t value)  {{*raw = value; }}
+}};
+
+class  QDataSignalAccess : public ISignalAccess
+{{
+    public:
+        //指针指向信号值
+        QData* raw;
+        //构造函数      单冒号(:)的作用是表示后面是初始化列表,对类成员进行初始化
+        QDataSignalAccess(QData *raw) : raw(raw){{}}
+        QDataSignalAccess(QData &raw) : raw(std::addressof(raw)){{}}
         uint64_t getValue() {{return *raw;}}
         void setValue(uint64_t value)  {{*raw = value; }}
 }};
@@ -142,7 +212,7 @@ class Wrapper
         std::string send_message_func_name;
 
         // 指针数组, 指向各个Signal
-        Signal *signal[5];
+        ISignalAccess *signal[{len(ports_name)}];
         // 是否产生波形
         bool waveEnabled;
         //dut
@@ -232,13 +302,10 @@ void gen_clk()
     uint64_t clk_edge_period = simHandle1->clk_cycles/2;
     uint64_t cycle_num = simHandle1->cycle_num;
     uint64_t num = 0;
-    simHandle1->signal[1]->setValue(1);
+
     while(!Verilated::gotFinish())
     {{
-        if(num == 20)
-        {{
-            simHandle1->signal[1]->setValue(0);
-        }}
+
         if(num > 2 * cycle_num) break;
         time = simHandle1->time;
         if(time == 0) simHandle1->signal[clk_id]->setValue(0);
@@ -311,7 +378,7 @@ void doPythonApi()
     utils.attr("do_python_api")();
 }}
  
- 
+
 int operation(char *func_name, int x, int y)
 {{
     py::module_ utils = py::module_::import("harness_utils");
@@ -334,14 +401,16 @@ void set_send_message_func(std::string func_name)
 //typedef svScalar svBit;
 //typedef uint32_t svBitVecVal;
 
-extern void c_py_gen_packet(svBitVecVal* data);
 extern void recv(int data);
+
+extern void c_py_gen_packet(svBitVecVal* data);
+
 
 void c_py_gen_packet(svBitVecVal* data) 
 {{
     const char * func_name = simHandle1->send_message_func_name.c_str();
     //std::cout<<"func_name_2:"<<func_name<<std::endl;
-    static unsigned char tmp[256] = {{0}};
+    static unsigned char tmp[768] = {{0}};
     py::module_ utils = py::module_::import("utils.harness_utils");
     py::bytes result = utils.attr(func_name)();
     Py_ssize_t size = PyBytes_GET_SIZE(result.ptr());
@@ -349,9 +418,9 @@ void c_py_gen_packet(svBitVecVal* data)
     int i;
     for(i = 0; i < size; i++)
     {{
-        tmp[255-i] = ptr[i];      
+        tmp[768-i] = ptr[i];      
     }}
-    memcpy(data, ptr, 256);
+    memcpy(data, ptr, 768);
 }}
 
 void recv(int data) 
@@ -433,13 +502,15 @@ def runCompile(dut_path, top_module_file_name):
 class sim:
     # s = sim('./hdl/', 'bfm.v')
     def __init__(self, dut_path, top_module_file_name):
-        input_ports_name, output_ports_name = verilog_parse(dut_path, top_module_file_name)
+        input_ports_name, output_ports_name, ports_width = verilog_parse(dut_path, top_module_file_name)
+        print('in:', input_ports_name)
+        print('out:', output_ports_name)
         ports_name = input_ports_name + output_ports_name
         list_n = [i for i in range(len(ports_name))]
         self.signal_id = dict(zip(ports_name, list_n))
         # print(self.signal_id)
         self.dut_path = dut_path
-        genWrapperCpp(ports_name, top_module_file_name)
+        genWrapperCpp(ports_name, ports_width, top_module_file_name)
         runCompile(dut_path, top_module_file_name)
         # print(os.getcwd())
         from simulation.verilator import wrapper

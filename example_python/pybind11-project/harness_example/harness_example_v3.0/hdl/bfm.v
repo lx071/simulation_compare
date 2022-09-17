@@ -2,67 +2,53 @@
 
 module bfm(
 input   clk_i,
-input   reset_i,
-output  reg [7:0] res_o
+output  reg [15:0] res_o
 );
 
-reg [7:0] A_s;
-reg [7:0] B_s;
+reg [7:0] A_s=3;
+reg [7:0] B_s=4;
+reg [2:0] op=1;
+reg reset_i=0;
+reg start;
+reg done;
 
 parameter TOTAL_WIDTH=256;
 
-MyTopLevel inst_add(
-    .io_A(A_s),
-    .io_B(B_s),
-    .io_X(res_o),
+tinyalu inst_alu(
     .clk(clk_i),
-    .reset(reset_i)
+    .A(A_s),
+	.B(B_s),
+	.op(op),
+	.reset_n(reset_i),
+	.start(start),
+	.done(done),
+	.result(res_o)
 );
-
-reg xmit_en;
-reg[15:0]    num = 0;
-
+int num=0;
 import "DPI-C" function void recv (input int data);
-//import "DPI-C" function void c_py_gen_packet(output bit[2047:0] pkt);
-import "DPI-C" function void c_py_gen_packet(output bit[4095:0] pkt);
+import "DPI-C" function void c_py_gen_packet(output bit[6143:0] pkt);
 
-//bit [15:0][127:0] data;
-//bit[2047:0] data;
-bit[4095:0] data;
+bit[6143:0] data;
 
+always @(posedge clk_i) begin
+    if(num<=10) num = num + 1;
+    if(num==10) begin
+        reset_i=1;
+        recv(456);
+        c_py_gen_packet(data);
+        $display("get data[0] ='h%h",data[7:0]);
+        $display("get data[1] ='h%h",data[15:8]);
+        $display("get data[2] ='h%h",data[23:16]);
 
-int flag=0;
-int message_num = 0;
-always @(posedge clk_i or posedge reset_i) begin
-    if(reset_i) begin
-        A_s = 8'h0;
-        B_s = 8'h0;
-    end else begin
-        //if(message_num>3907) begin
-        //    flag = flag + 1;
-        //end
-        if(flag == 0) begin
-            c_py_gen_packet(data);
-            xmit_en = xmit_en + 1;
-            flag = flag + 1;
-            message_num = message_num + 1;
-        end
-        if(xmit_en) begin
-            //$display("get data[0] ='h%h",data[7:0]);
-            //$display("get data[1] ='h%h",data[15:8]);
-            //$display("get data[255] ='h%h",data[2047:2040]);
-            A_s = data[7:0];
-            B_s = data[7:0];
-            data = (data >> 8);
-            num = num + 1;
-        end
-        if(num >= 512) begin
-            num = 0;
-            xmit_en = xmit_en - 1;
-            //recv(666);
-            flag = flag - 1;
-        end
+        $display("get data[3] ='h%h",data[31:24]);
+        $display("get data[4] ='h%h",data[39:32]);
+        $display("get data[5] ='h%h",data[47:40]);
+
+        $display("get data[6] ='h%h",data[55:48]);
+        $display("get data[7] ='h%h",data[63:56]);
+        $display("get data[8] ='h%h",data[71:64]);
     end
+
 end
 
 endmodule

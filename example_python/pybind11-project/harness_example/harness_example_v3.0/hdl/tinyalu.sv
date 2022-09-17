@@ -1,7 +1,9 @@
-module tinyalu (input [7:0] A,
+`timescale 1ns/1ps
+
+module tinyalu (input clk,
+        input [7:0] A,
 		input [7:0] B,
 		input [2:0] op,
-//		input clk,
 		input reset_n,
 		input start,
 		output done,
@@ -9,11 +11,10 @@ module tinyalu (input [7:0] A,
 
    wire [15:0] 		      result_aax, result_mult;
    wire 		      start_single, start_mult;
-	bit clk;
+	//bit clk;
 
-	initial clk = 0;
-	always #5 clk = ~clk;
-
+	//initial clk = 0;
+	//always #5 clk = ~clk;
 
    assign start_single = start & ~op[2];
    assign start_mult   = start & op[2];
@@ -27,7 +28,7 @@ module tinyalu (input [7:0] A,
 
    assign done = (op[2]) ? done_mult : done_aax;
 
-   assign result = (op[2]) ? result_mult : result_aax;
+   assign result = (op[2]) ? result_mult :  result_aax;
 
 endmodule // tinyalu
 
@@ -55,7 +56,7 @@ module single_cycle(input [7:0] A,
      if (!reset_n)
        done <= 0;
      else
-       done <= ((start == 1'b1) && (op != 3'b000));
+       done <=  ((start == 1'b1) && (op != 3'b000));
 
 endmodule : single_cycle
 

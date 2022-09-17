@@ -6,9 +6,10 @@ def do_clk_test():
     time1 = time.time()
     s = sim('./hdl/', 'bfm.v')
     time2 = time.time()
-    s.disableWave()
+    # s.disableWave()
     # 设置获取message数据的回调函数名
     s.set_send_message_func("send_msg")
+
     # 设置时钟信息(时钟端口名、时钟周期、运行周期数)  10ps*300=3000ps=3ns
     s.set_clk_info("clk_i", 10, 1000010)
 
