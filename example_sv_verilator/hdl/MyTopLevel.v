@@ -16,12 +16,14 @@ module MyTopLevel (
   reg        [7:0]    b;
   wire                when_MyTopLevel_l36;
 
+  reg en;
   assign when_MyTopLevel_l36 = 1'b1;
   assign io_X = (a + b);
   always @(posedge clk or posedge reset) begin
     if(reset) begin
       a <= 8'h0;
       b <= 8'h0;
+
     end else begin
       if(when_MyTopLevel_l36) begin
         a <= io_A;
@@ -34,6 +36,8 @@ export "DPI-C" function sv_print;
 
 function void sv_print();
     $display("sv side : print\n");
+    en = 1;
+    $display("en = %d:", en);
 endfunction
 
 endmodule

@@ -224,9 +224,9 @@ class Wrapper
         Wrapper(const char * name)
         {{
             //for DPI-C
-            //const svScope scope = svGetScopeFromName("TOP.{dut_name}");
-            //assert(scope);  // Check for nullptr if scope not found
-            //svSetScope(scope);
+            const svScope scope = svGetScopeFromName("TOP.{dut_name}");
+            assert(scope);  // Check for nullptr if scope not found
+            svSetScope(scope);
             
             simHandle1 = this;
             simHandle2 = this;
@@ -294,6 +294,17 @@ bool eval()
     return Verilated::gotFinish();
 }}
 
+#include "svdpi.h"
+#include "V{dut_name}__Dpi.h"
+
+//typedef unsigned char uint8_t;
+//typedef unsigned int uint32_t; 
+//typedef uint8_t svScalar;
+//typedef svScalar svBit;
+//typedef uint32_t svBitVecVal;
+
+extern void send();
+
 //根据当前时间产生时钟信号
 void gen_clk()
 {{
@@ -308,7 +319,11 @@ void gen_clk()
 
         if(num > 2 * cycle_num) break;
         time = simHandle1->time;
-        if(time == 0) simHandle1->signal[clk_id]->setValue(0);
+        if(time == 0)
+        {{
+            send();
+            simHandle1->signal[clk_id]->setValue(0);
+        }}
         else if(time % clk_edge_period==0)
         {{
             uint64_t value = simHandle1->signal[clk_id]->getValue();
@@ -392,14 +407,7 @@ void set_send_message_func(std::string func_name)
     simHandle1->send_message_func_name = func_name;
 }}
 
-#include "svdpi.h"
-#include "V{dut_name}__Dpi.h"
 
-//typedef unsigned char uint8_t;
-//typedef unsigned int uint32_t; 
-//typedef uint8_t svScalar;
-//typedef svScalar svBit;
-//typedef uint32_t svBitVecVal;
 
 extern void recv(int data);
 

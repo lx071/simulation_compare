@@ -25,9 +25,10 @@ tinyalu inst_alu(
 	.result(res_o)
 );
 
-
+export "DPI-C" task send;
 import "DPI-C" function void recv (input int data);
 import "DPI-C" function void c_py_gen_packet(output bit[6143:0] pkt);
+
 
 
 bit[6143:0] data;
@@ -38,16 +39,21 @@ int clk_num=0;
 int flag=0;
 int message_num = 0;
 
-reg en=1;
+reg en;
 assign sck = (en)?clk_i:1'b1;
 
-always @(posedge sck) begin
+always @(posedge clk_i) begin
     if(clk_num<=10) clk_num = clk_num + 1;
-    if(clk_num==10) reset_i=1;
+    if(clk_num==10) begin
+        $display("en = %d",en);
+        //en = en + 1;
+        reset_i=1;
+    end
+end
+
+always @(posedge sck) begin
 
     if(reset_i) begin
-        //num = 0;
-        //$display("num = %h",num);
         //if(message_num>=10) begin
         //    flag = flag + 1;
         //end
@@ -83,5 +89,14 @@ always @(posedge sck) begin
     end
 
 end
+
+task send();
+begin
+    $display("en = %d",en);
+    en = 1;
+    $display("en = %d",en);
+    //dat_out_v = data[DAT_WIDTH-1:0];
+end
+endtask
 
 endmodule

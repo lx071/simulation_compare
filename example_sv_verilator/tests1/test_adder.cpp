@@ -34,10 +34,10 @@ int main(int argc, char **argv)
     top->clk = 0;
     top->reset = 1;
 
-    //const svScope scope = svGetScopeFromName("TOP.MyTopLevel");
-    //assert(scope);  // Check for nullptr if scope not found
-    //svSetScope(scope);
-    //sv_print();
+    const svScope scope = svGetScopeFromName("TOP.MyTopLevel");
+    assert(scope);  // Check for nullptr if scope not found
+    svSetScope(scope);
+    sv_print();
 
     while(!Verilated::gotFinish())
     {
