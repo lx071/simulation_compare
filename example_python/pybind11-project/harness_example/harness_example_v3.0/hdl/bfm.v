@@ -5,8 +5,8 @@ input   clk_i,
 output  reg [15:0] res_o
 );
 
-reg [7:0] A_s=3;
-reg [7:0] B_s=4;
+reg [7:0] A_s;
+reg [7:0] B_s;
 reg [2:0] op=1;
 reg reset_i=0;
 reg start;
@@ -45,9 +45,12 @@ always @(posedge clk_i) begin
     if(reset_i) begin
         //num = 0;
         //$display("num = %h",num);
+        //if(message_num>=10) begin
+        //    flag = flag + 1;
+        //end
 
         if(flag == 0) begin
-            recv(456);
+            //recv(456);
             c_py_gen_packet(data);
             xmit_en = 1;
             flag = flag + 1;
@@ -59,12 +62,9 @@ always @(posedge clk_i) begin
             B_s = data[15:8];
             op = data[18:16];
 
-            $display("get data[0] = %d",A_s);
-            $display("get data[1] = %d",B_s);
-            $display("get data[2] = %d",op);
-            //$display("get data[0] ='h%h",A_s);
-            //$display("get data[1] ='h%h",B_s);
-            //$display("get data[2] ='h%h",op);
+            //$display("get data[0] = %d",A_s);
+            //$display("get data[1] = %d",B_s);
+            //$display("get data[2] = %d",op);
 
             data = (data >> 24);
             num = num + 1;
@@ -75,6 +75,7 @@ always @(posedge clk_i) begin
         if(num>=256) begin
             num = 0;
             xmit_en = xmit_en - 1;
+            flag = flag - 1;
         end
     end
 

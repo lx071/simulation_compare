@@ -24,7 +24,7 @@ def send_msg():
     for i in range(256):
         # data = random.randint(1, 100)
         # print(data)
-        data = i % 100
+        data = (i + 1) % 100
         data_all = (data_all << 24) + (data << 16) + (data << 8) + op
 
     bytes_val = data_all.to_bytes(768, 'big')
