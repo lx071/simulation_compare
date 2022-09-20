@@ -308,7 +308,7 @@ extern void send();
 //根据当前时间产生时钟信号
 void gen_clk()
 {{
-    std::cout<<"gen_clk"<<std::endl;
+    //std::cout<<"gen_clk"<<std::endl;
     uint64_t time;
     int clk_id = simHandle1->clk_id;
     uint64_t clk_edge_period = simHandle1->clk_cycles/2;
@@ -317,8 +317,8 @@ void gen_clk()
     
     while(!Verilated::gotFinish())
     {{
-        std::cout<<"XXX"<<std::endl;
-        py::gil_scoped_release release;
+        //std::cout<<"XXX"<<std::endl;
+        //py::gil_scoped_release release;
         
         if(num > 2 * cycle_num) break;
         time = simHandle1->time;
@@ -339,7 +339,7 @@ void gen_clk()
             else simHandle1->signal[clk_id]->setValue(0);
         }}
         
-        py::gil_scoped_acquire acquire;
+        //py::gil_scoped_acquire acquire;
         
         eval();
         dump();
@@ -352,7 +352,7 @@ void gen_clk()
 //设置时钟信号的信息
 void set_clk_info(int id, uint64_t cycles, uint64_t cycle_num)
 {{    
-    std::cout<<"set_clk_info"<<std::endl;
+    //std::cout<<"set_clk_info"<<std::endl;
     simHandle1->clk_id = id;
     simHandle1->clk_cycles = cycles;
     simHandle1->cycle_num = cycle_num;
