@@ -1,4 +1,4 @@
-from utils.harness_utils import sim
+from utils.harness_utils import sim, gen_msg
 import time
 import multiprocessing
 
@@ -22,7 +22,7 @@ def do_clk_test():
         pass
 
     def b():
-
+        gen_msg()
         print("func b()")
         pass
 

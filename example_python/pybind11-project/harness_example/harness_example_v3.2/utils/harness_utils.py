@@ -2,6 +2,7 @@ import os
 # import random
 import subprocess
 import re
+from queue import Queue
 
 
 def do_python_api():
@@ -15,6 +16,22 @@ def add(a, b):
 
 def recv(data):
     print('recv_python:', data)
+
+driver_queue = Queue(maxsize=1)
+
+def gen_msg():
+    data_all = 0
+    # 256*3=768Byte=6144bit
+    op = 1
+    for i in range(256):
+        # data = random.randint(1, 100)
+        # print(data)
+        data = (i + 1) % 100
+        data_all = (data_all << 24) + (data << 16) + (data << 8) + op
+
+    bytes_val = data_all.to_bytes(768, 'big')
+    driver_queue.put(bytes_val)
+    pass
 
 
 def send_msg():
