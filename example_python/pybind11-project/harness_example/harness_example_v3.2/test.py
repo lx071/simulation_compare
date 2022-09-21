@@ -23,6 +23,7 @@ def do_clk_test():
 
     def b():
         gen_msg()
+        # gen_msg()
         print("func b()")
         pass
 

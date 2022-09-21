@@ -2,7 +2,7 @@ import os
 # import random
 import subprocess
 import re
-from queue import Queue
+import multiprocessing
 
 
 def do_python_api():
@@ -17,7 +17,8 @@ def add(a, b):
 def recv(data):
     print('recv_python:', data)
 
-driver_queue = Queue(maxsize=1)
+driver_queue = multiprocessing.Queue(maxsize=1)
+monitor_queue = multiprocessing.Queue(maxsize=0)
 
 def gen_msg():
     data_all = 0
@@ -30,22 +31,29 @@ def gen_msg():
         data_all = (data_all << 24) + (data << 16) + (data << 8) + op
 
     bytes_val = data_all.to_bytes(768, 'big')
+    print("put data begin")
     driver_queue.put(bytes_val)
+    print("put data end")
     pass
 
 
 def send_msg():
-    data_all = 0
-    # 256*3=768Byte=6144bit
-    op = 1
-    for i in range(256):
-        # data = random.randint(1, 100)
-        # print(data)
-        data = (i + 1) % 100
-        data_all = (data_all << 24) + (data << 16) + (data << 8) + op
+    print("get data begin")
+    data = driver_queue.get()
+    print("get data end")
+    print(data)
+    return data
+    # data_all = 0
+    # # 256*3=768Byte=6144bit
+    # op = 1
+    # for i in range(256):
+    #     # data = random.randint(1, 100)
+    #     # print(data)
+    #     data = (i + 1) % 100
+    #     data_all = (data_all << 24) + (data << 16) + (data << 8) + op
 
-    bytes_val = data_all.to_bytes(768, 'big')
-    return bytes_val
+    # bytes_val = data_all.to_bytes(768, 'big')
+    # return bytes_val
     pass
 
 
