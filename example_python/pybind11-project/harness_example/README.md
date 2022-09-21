@@ -15,7 +15,7 @@ v2.6：在框架里实现可综合Verilog的SPI例子
 
 v3.0：tinyalu例子,Verilog层不断取数据  
 v3.1：tinyalu例子,上层发送信号，Verilog层取数据  
-v3.1：tinyalu例子,多进程  
+v3.2：tinyalu例子,多进程  
 
 vtest：performance research
 
