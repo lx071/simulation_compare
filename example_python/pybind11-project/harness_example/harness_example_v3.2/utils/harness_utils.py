@@ -2,7 +2,7 @@ import os
 # import random
 import subprocess
 import re
-import multiprocessing
+from multiprocessing import Queue, Semaphore, Event
 
 
 def do_python_api():
@@ -13,47 +13,41 @@ def do_python_api():
 def add(a, b):
     return a + b
 
+driver_queue = Queue(maxsize=1)
+monitor_queue = Queue(maxsize=0)
+finish_condition = Event()
+
 
 def recv(data):
+    monitor_queue.put(data)
+    print("set finish_condition")
+    finish_condition.set()
     print('recv_python:', data)
 
-driver_queue = multiprocessing.Queue(maxsize=1)
-monitor_queue = multiprocessing.Queue(maxsize=0)
-
-def gen_msg():
+def gen_msg(item):
     data_all = 0
     # 256*3=768Byte=6144bit
     op = 1
     for i in range(256):
         # data = random.randint(1, 100)
         # print(data)
-        data = (i + 1) % 100
-        data_all = (data_all << 24) + (data << 16) + (data << 8) + op
+        tmp = (i + 1) % 100
+        data_all = (data_all << 24) + (tmp << 16) + (tmp << 8) + op
 
     bytes_val = data_all.to_bytes(768, 'big')
+    item.data = bytes_val
     print("put data begin")
-    driver_queue.put(bytes_val)
+    driver_queue.put(item)
     print("put data end")
     pass
 
 
 def send_msg():
     print("get data begin")
-    data = driver_queue.get()
+    item = driver_queue.get()
     print("get data end")
-    print(data)
-    return data
-    # data_all = 0
-    # # 256*3=768Byte=6144bit
-    # op = 1
-    # for i in range(256):
-    #     # data = random.randint(1, 100)
-    #     # print(data)
-    #     data = (i + 1) % 100
-    #     data_all = (data_all << 24) + (data << 16) + (data << 8) + op
-
-    # bytes_val = data_all.to_bytes(768, 'big')
-    # return bytes_val
+    print(item.data)
+    return item.data
     pass
 
 
