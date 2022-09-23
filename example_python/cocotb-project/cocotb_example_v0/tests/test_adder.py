@@ -9,20 +9,20 @@ from cocotb.triggers import FallingEdge, RisingEdge
 
 async def generate_clock(dut):
     """Generate clock pulses."""
-    dut.clk.value = 0
+    dut.clk_i.value = 0
     # for cycle in range(100):
     while True:
-        dut.clk.value = 0
+        dut.clk_i.value = 0
         await Timer(5, units="ps")
-        dut.clk.value = 1
+        dut.clk_i.value = 1
         await Timer(5, units="ps")
 
 
 async def generate_rst(dut):
-    dut.reset.value = 1
+    dut.reset_i.value = 1
     for cycle in range(10):
-        await RisingEdge(dut.clk)
-    dut.reset.value = 0
+        await RisingEdge(dut.clk_i)
+    dut.reset_i.value = 0
 
 
 @cocotb.test()
@@ -31,12 +31,12 @@ async def adder_basic_test(dut):
     # await cocotb.start(generate_clock(dut))  # run the clock "in the background"
     await cocotb.start(generate_rst(dut))  # run the clock "in the background"
 
-    await FallingEdge(dut.reset)
+    await FallingEdge(dut.reset_i)
 
     for i in range(100):
-        await RisingEdge(dut.clk)
-        dut.io_A.value = i % 200
-        dut.io_B.value = i % 200
+        await RisingEdge(dut.clk_i)
+        dut.A_s.value = i % 200
+        dut.B_s.value = i % 200
 
     # await Timer(2, units="ns")
 
