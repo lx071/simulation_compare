@@ -28,7 +28,7 @@ async def generate_rst(dut):
 @cocotb.test()
 async def adder_basic_test(dut):
     """Test for 5 + 10"""
-    await cocotb.start(generate_clock(dut))  # run the clock "in the background"
+    # await cocotb.start(generate_clock(dut))  # run the clock "in the background"
     await cocotb.start(generate_rst(dut))  # run the clock "in the background"
 
     await FallingEdge(dut.reset)

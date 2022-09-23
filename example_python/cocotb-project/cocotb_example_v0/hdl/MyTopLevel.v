@@ -8,7 +8,7 @@ module MyTopLevel (
   input      [7:0]    io_A,
   input      [7:0]    io_B,
   output     [7:0]    io_X,
-  input               clk,
+  //input               clk,
   input               reset
 );
 
@@ -18,6 +18,11 @@ module MyTopLevel (
 
   assign when_MyTopLevel_l36 = 1'b1;
   assign io_X = (a + b);
+  
+  bit clk;
+  initial clk = 0;
+	always #5 clk = ~clk;
+
   always @(posedge clk or posedge reset) begin
     if(reset) begin
       a <= 8'h0;
@@ -31,5 +36,9 @@ module MyTopLevel (
   end
 
 
+initial begin
+    $dumpfile("dump.vcd");
+    $dumpvars;
+end
 
 endmodule
