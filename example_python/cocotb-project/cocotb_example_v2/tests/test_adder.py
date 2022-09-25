@@ -20,6 +20,6 @@ async def adder_basic_test(dut):
             data_item = j % 200
             data_package = (data_package << 16) + (data_item << 8) + data_item
             pass
-        dut.data = data_package
+        dut.data.value = data_package
         dut.xmit_en.value = 1
         await FallingEdge(dut.xmit_en)
