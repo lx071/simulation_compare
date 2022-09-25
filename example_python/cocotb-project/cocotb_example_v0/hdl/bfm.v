@@ -12,7 +12,7 @@ reg [7:0] B_s;
 parameter TOTAL_WIDTH=256;
 
 bit clk_i;
-always #5 clk_i = ~clk_i;
+//always #5 clk_i = ~clk_i;
 
 initial begin
     clk_i = 0;

@@ -13,9 +13,9 @@ async def generate_clock(dut):
     # for cycle in range(100):
     while True:
         dut.clk_i.value = 0
-        await Timer(5, units="ps")
+        await Timer(5, units="ns")
         dut.clk_i.value = 1
-        await Timer(5, units="ps")
+        await Timer(5, units="ns")
 
 
 async def generate_rst(dut):
@@ -28,7 +28,7 @@ async def generate_rst(dut):
 @cocotb.test()
 async def adder_basic_test(dut):
     """Test for 5 + 10"""
-    # await cocotb.start(generate_clock(dut))  # run the clock "in the background"
+    await cocotb.start(generate_clock(dut))  # run the clock "in the background"
     await cocotb.start(generate_rst(dut))  # run the clock "in the background"
 
     await FallingEdge(dut.reset_i)
