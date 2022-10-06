@@ -32,7 +32,7 @@ async def adder_basic_test(dut):
     await FallingEdge(dut.reset_i)
 
     # 2000packages = 2000 * 100 data
-    for k in range(20):
+    for k in range(2000):
         data_package = 0
         # 2bytes * 100 = 200bytes = 1600bit 
         for j in range(100):
