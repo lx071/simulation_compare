@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
 
 module bfm(
-//input   clk_i,
+input   clk_i,
 //input   reset_i,
 output  reg [7:0] res_o
 );
@@ -11,9 +11,9 @@ reg [7:0] B_s;
 
 parameter TOTAL_WIDTH=256;
 
-bit clk_i, reset_i;
+bit reset_i;
 
-always #5 clk_i = ~clk_i;
+//always #5 clk_i = ~clk_i;
 
 reg xmit_en = 0;
 reg [3199:0] data;
@@ -21,7 +21,7 @@ int num = 0;
 int clk_num = 0;
 
 initial begin
-    clk_i = 0;
+    //clk_i = 0;
     reset_i = 1;
     A_s = 0;
     B_s = 0;
