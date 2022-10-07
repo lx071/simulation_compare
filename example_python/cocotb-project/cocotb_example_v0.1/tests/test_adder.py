@@ -33,12 +33,11 @@ async def adder_basic_test(dut):
 
     await FallingEdge(dut.reset_i)
 
-    # 2000 * 100 data
-    for k in range(2000):
-        for i in range(100):
+    # 20000 * 100 data
+    for k in range(2000000):
             await RisingEdge(dut.clk_i)
-            dut.A_s.value = i % 200
-            dut.B_s.value = i % 200
+            dut.A_s.value = k % 200
+            dut.B_s.value = k % 200
 
     # await Timer(2, units="ns")
 

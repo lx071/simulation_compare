@@ -2,6 +2,7 @@ SIM ?= verilator
 
 TOPLEVEL_LANG ?= verilog
 
+# EXTRA_ARGS += --trace
 
 PWD=$(shell pwd)
 
