@@ -14,8 +14,8 @@ vluint64_t main_time = 0;
 int num=0;
 void assign(VMyTopLevel *top)
 {
-    top->io_A = num % 100;
-    top->io_B = num % 100;
+    top->io_A = num % 200;
+    top->io_B = num % 200;
     num++;
 }
 #include "VMyTopLevel__Dpi.h"
@@ -34,14 +34,14 @@ int main(int argc, char **argv)
     top->clk = 0;
     top->reset = 1;
 
-    const svScope scope = svGetScopeFromName("TOP.MyTopLevel");
-    assert(scope);  // Check for nullptr if scope not found
-    svSetScope(scope);
-    sv_print();
+    //const svScope scope = svGetScopeFromName("TOP.MyTopLevel");
+    //assert(scope);  // Check for nullptr if scope not found
+    //svSetScope(scope);
+    //sv_print();
 
     while(!Verilated::gotFinish())
     {
-        if(num>=1000000) break;
+        if(num>=2000000) break;
         if(main_time==100) top->reset=0;
         if(top->reset ==0 && main_time%5==0)
         {

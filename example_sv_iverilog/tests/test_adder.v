@@ -13,8 +13,8 @@ reg [7:0] data2_i;
 wire [7:0] data_o;
 
 initial begin
-    $dumpfile("test.vcd");
-    $dumpvars;
+    //$dumpfile("test.vcd");
+    //$dumpvars;
 end
 
 initial begin
@@ -30,10 +30,10 @@ initial begin
     #100
     reset = 0;
 
-    repeat(1000000) begin
+    repeat(2000000) begin
         @(posedge clk) begin
-            data1_i <= (data1_i + 8'd1) % 100;
-            data2_i <= (data2_i + 8'd1) % 100;
+            data1_i <= (data1_i + 8'd1) % 200;
+            data2_i <= (data2_i + 8'd1) % 200;
         end
     end
 
