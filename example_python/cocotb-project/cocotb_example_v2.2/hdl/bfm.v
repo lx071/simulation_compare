@@ -64,9 +64,6 @@ always @(posedge clk_i) begin
             A_s <= data[15:8];
             B_s <= data[23:16];
             start <= 1;
-            $display("op_s: ",op_s);
-            $display("A_s: ",A_s);
-            $display("B_s: ",B_s);
             data = (data >> 24);
             num = num + 1;
         end    
@@ -74,13 +71,14 @@ always @(posedge clk_i) begin
             num = 0;
             xmit_en = xmit_en - 1;
         end 
+
     end
 end
 
 
 initial begin
-    $dumpfile("dump.vcd");
-    $dumpvars;
+    //$dumpfile("dump.vcd");
+    //$dumpvars;
 end
 
 endmodule

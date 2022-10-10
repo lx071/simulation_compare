@@ -14,7 +14,7 @@ async def adder_basic_test(dut):
     await RisingEdge(dut.reset_i)
 
     # 2000packages = 2000 * 100 data
-    for k in range(2):
+    for k in range(10000):
         data_package = 0
         # 3Bytes * 100 = 300Bytes = 2400bit 
         for j in range(100):
@@ -25,3 +25,4 @@ async def adder_basic_test(dut):
         dut.data.value = data_package
         dut.xmit_en.value = 1
         await FallingEdge(dut.xmit_en)
+
