@@ -1,4 +1,6 @@
-module tinyalu (input [7:0] A,
+module tinyalu (
+		input clk,
+		input [7:0] A,
 		input [7:0] B,
 		input [2:0] op,
 		input reset_n,
@@ -8,10 +10,10 @@ module tinyalu (input [7:0] A,
 
    wire [15:0] 		      result_aax, result_mult;
    wire 		      start_single, start_mult;
-	bit clk;
+	//bit clk;
 
-	initial clk = 0;
-	always #5 clk = ~clk;
+	//initial clk = 0;
+	//always #5 clk = ~clk;
 
        
    assign start_single = start & ~op[2];
