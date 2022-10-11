@@ -19,7 +19,7 @@ async def adder_basic_test(dut):
         # 3Bytes * 100 = 300Bytes = 2400bit 
         for j in range(100):
             data_item = j % 200
-            op_item = 4
+            op_item = 1
             data_package = (data_package << 24) + (data_item << 16) + (data_item << 8) + op_item
             pass
         dut.data.value = data_package

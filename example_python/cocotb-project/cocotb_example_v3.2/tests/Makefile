@@ -1,4 +1,6 @@
-SIM ?= icarus
+SIM ?= verilator
+
+# EXTRA_ARGS += --trace
 
 TOPLEVEL_LANG ?= verilog
 
