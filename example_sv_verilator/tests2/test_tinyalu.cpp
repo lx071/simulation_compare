@@ -14,8 +14,8 @@ vluint64_t main_time = 0;
 int num=0;
 void assign(Vtinyalu *top)
 {
-    top->start=1;
-    top->op=1;
+    top->start = 1;
+    top->op = 1;
     top->A = num%200;
     top->B = num%200;  
     num++;

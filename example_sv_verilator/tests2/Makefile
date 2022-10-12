@@ -6,7 +6,7 @@
 
 all: first compile second run end
 
-part: first run end
+exec: first run end
 
 first:
 	date +%M.%s.%N
