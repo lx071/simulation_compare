@@ -1,0 +1,2 @@
+./test_adder.v \
+./../hdl/tinyalu.sv

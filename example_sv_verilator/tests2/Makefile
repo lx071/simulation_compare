@@ -6,6 +6,8 @@
 
 all: first compile second run end
 
+part: first run end
+
 first:
 	date +%M.%s.%N
 
