@@ -8,7 +8,7 @@ from poseidon_python import finite_field as ff
 from poseidon_python import poseidon_ff, basic
 
 
-CASES_NUM = 2
+CASES_NUM = 10
 
 
 class PoseidonTopLevelTester:
