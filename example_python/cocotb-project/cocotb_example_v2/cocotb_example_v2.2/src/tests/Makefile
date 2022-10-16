@@ -10,6 +10,7 @@ PWD = $(shell pwd)
 export PYTHONPATH := $(PWD)/poseidon_python:$(PYTHONPATH)
 
 # add verilog sources
+VERILOG_SOURCES += ../main/verilog/bfm.v
 VERILOG_SOURCES += ../main/verilog/$(DUT).v
 
 #PLUSARGS += -fst
@@ -48,7 +49,7 @@ ifeq ($(DUT), PoseidonTopLevel)
 endif
 
 # TOPLEVEL is the name of the toplevel module in your Verilog or VHDL file
-TOPLEVEL = $(DUT)
+TOPLEVEL = bfm
 
 
 # MODULE is the basename of the Python test file

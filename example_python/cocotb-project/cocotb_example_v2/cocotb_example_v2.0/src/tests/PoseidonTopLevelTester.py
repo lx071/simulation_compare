@@ -75,6 +75,7 @@ class PoseidonTopLevelTester:
                 self.dut.io_output_ready.value & self.dut.io_output_valid.value
             ) == True:
                 dut_res = int(self.dut.io_output_payload.value)
+                print("dut_res: ", dut_res)
                 # dut_res = int(self.dut.io_output_payload_state_element.value)
                 ref_input = self.ref_inputs.get()
                 ref_output = self.ref_outputs.get()

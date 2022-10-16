@@ -2,10 +2,10 @@
 
 module PoseidonTester ();
 
-    //initial begin
-    //    $dumpfile("dump.vcd");
-    //    $dumpvars(1, PoseidonTester);
-    //end
+    initial begin
+        $dumpfile("dump.vcd");
+        $dumpvars(1, PoseidonTester);
+    end
 
     localparam ClockPeriod = 10;
     localparam StateSize   = 9;
@@ -246,6 +246,7 @@ module PoseidonTester ();
                     $display("cycles: %d", cycle_counter);
                     $finish();
                 end
+                $display("ref_outputs[output_counter]: %d",ref_outputs[output_counter]);
                 $display("res %d: %h correct",output_counter, io_output_payload);
                 output_counter <= output_counter + 1;
             end

@@ -10,12 +10,51 @@ from poseidon_python import poseidon_ff, basic
 
 CASES_NUM = 10
 
-
 class PoseidonTopLevelTester:
     def __init__(self, target):
         self.dut = target
-        self.ref_inputs = Queue(maxsize=500)
-        self.ref_outputs = Queue(maxsize=500)
+        # self.ref_inputs = Queue(maxsize=500)
+        # self.ref_outputs = Queue(maxsize=500)
+        self.ref_inputs_2 = [[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
+[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
+[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
+[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
+[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
+[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
+[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
+[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
+[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
+[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f]]
+        self.ref_outputs_2 = [0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
+0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
+0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
+0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
+0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
+0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
+0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
+0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
+0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
+0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797]
 
     async def reset_dut(self):
         """reset the dut reset active level: low"""
@@ -40,54 +79,69 @@ class PoseidonTopLevelTester:
     async def drive_input(self):
         """generate input signals"""
         cases_count = 0
+        data_package = 0
+        # state_elements_list = []
         while cases_count < CASES_NUM:
-            state_elements = self.get_random_values(cases_count)
+            # state_elements = self.get_random_values(cases_count)
             # print(state_elements)
             # assign random valuess to dut io port
-            for i in range(len(state_elements)):
-                self.dut.io_input_valid.value = True  # (random.random()>0.2)
-                self.dut.io_input_payload.value = state_elements[i].value
-                print(i, ':', state_elements[i].value)
-                self.dut.io_input_last.value = i == (len(state_elements) - 1)
-
-                await RisingEdge(self.dut.clk)
-
-                while (
-                    self.dut.io_input_valid.value & self.dut.io_input_ready.value
-                ) == False:
-                    self.dut.io_input_valid.value = True  # (random.random()>0.2)
-                    await RisingEdge(self.dut.clk)
+            
+            # self.ref_inputs.put(state_elements)
+            # self.ref_outputs.put(poseidon_ff.poseidon_hash_opt_ff(state_elements))
+            # self.ref_inputs_2.append(state_elements)
+            # self.ref_outputs_2.append(poseidon_ff.poseidon_hash_opt_ff(self.ref_inputs_2[cases_count]))
+            # state_elements_list.append(state_elements)
+            
+            # for i in range(3):
+                # print(i, ':', hex(self.ref_inputs_2[cases_count][i]))
+            # print('ref_output: ', hex(poseidon_ff.poseidon_hash_opt_ff(state_elements).value))
             print("input case {}".format(cases_count))
             cases_count += 1
-            self.ref_inputs.put(state_elements)
-            self.ref_outputs.put(poseidon_ff.poseidon_hash_opt_ff(state_elements))
-
-        self.dut.io_input_valid.value = False
+                
+        for i in range(9, -1, -1):
+            for j in range(2,-1,-1):
+                data_package = (data_package << 255) +  self.ref_inputs_2[i][j]
+            # self.ref_outputs.put(poseidon_ff.poseidon_hash_opt_ff(state_elements_list[i]))
+        self.dut.xmit_en.value = 1
+        self.dut.data.value = data_package
+        
 
     async def monitor_output(self):
         """compare output signals to reference model"""
         count_cases = 0
-
+        # for i in range(3):
+        #     await RisingEdge(self.dut.io_output_valid)
         while count_cases < CASES_NUM:
             self.dut.io_output_ready.value = True  # (random.random() > 0.3)
             await RisingEdge(self.dut.clk)
 
+            # await RisingEdge(self.dut.io_output_valid)
+
             if (
                 self.dut.io_output_ready.value & self.dut.io_output_valid.value
             ) == True:
+                
+                # print("self.dut.io_output_payload.value:", self.dut.io_output_payload.value)
                 dut_res = int(self.dut.io_output_payload.value)
+                
                 # dut_res = int(self.dut.io_output_payload_state_element.value)
-                ref_input = self.ref_inputs.get()
-                ref_output = self.ref_outputs.get()
+                ref_input = self.ref_inputs_2[count_cases]
+                ref_output = self.ref_outputs_2[count_cases]
 
-                if dut_res != ref_output.value:
+                # print("count_cases:", count_cases, "  dut_res:", dut_res)
+                # print("count_cases:", count_cases, "  ref_input[0]:", hex(ref_input[0]))
+                # print("count_cases:", count_cases, "  ref_input[1]:", hex(ref_input[1]))
+                # print("count_cases:", count_cases, "  ref_input[2]:", hex(ref_input[2]))
+                # print("count_cases:", count_cases, "  ref_output:", hex(ref_output))
+                
+                if dut_res != ref_output:
                     # print error info
                     print("test case {} failed: ".format(count_cases))
                     print("ref input:\n")
                     print("lenght of preimage:{}".format(len(ref_input)))
                     for element in ref_input:
-                        print(hex(element.value))
-                    print("ref output:\n{}".format(hex(ref_output.value)))
+                        print(hex(element))
+                    print("ref output:\n{}".format(hex(ref_output)))
                     print("dut res:\n{}".format(hex(dut_res)))
 
                     raise TestFailure(" test failed!!! ")
@@ -114,34 +168,34 @@ async def PoseidonTopLevelTest(dut):
     await tester.reset_dut()
     await cocotb.start(tester.drive_input())
     await cocotb.start(tester.monitor_output())
-    # round_max = -1
-    # cycle = 0
+    round_max = -1
+    cycle = 0
     while True:
         await RisingEdge(dut.clk)
 
-    #     cycle = cycle + 1
-    #     loop = dut.poseidonLoop_1
+        cycle = cycle + 1
+        loop = dut.poseidonInst.poseidonLoop_1
 
-    #     if (
-    #         loop.streamArbiter_2_io_output_valid.value
-    #         & loop.poseidonSerializer_1_io_input_ready.value
-    #     ):
-    #         roundp = (
-    #             int(loop.streamArbiter_2_io_output_payload_fullRound.value)
-    #             + int(loop.streamArbiter_2_io_output_payload_partialRound.value) % 63
-    #         )
-    #         if roundp > round_max:
-    #             round_max = roundp
-    #             print("ID: ", int(loop.streamArbiter_2_io_output_payload_stateID.value))
-    #             print(
-    #                 "isFull: ",
-    #                 bool(loop.streamArbiter_2_io_output_payload_isFull.value),
-    #             )
-    #             print(
-    #                 "fullRound: ",
-    #                 int(loop.streamArbiter_2_io_output_payload_fullRound.value),
-    #             )
-    #             print(
-    #                 "partialRound: ",
-    #                 int(loop.streamArbiter_2_io_output_payload_partialRound.value),
-    #             )
+        if (
+            loop.streamArbiter_2_io_output_valid.value
+            & loop.poseidonSerializer_1_io_input_ready.value
+        ):
+            roundp = (
+                int(loop.streamArbiter_2_io_output_payload_fullRound.value)
+                + int(loop.streamArbiter_2_io_output_payload_partialRound.value) % 63
+            )
+            if roundp > round_max:
+                round_max = roundp
+                print("ID: ", int(loop.streamArbiter_2_io_output_payload_stateID.value))
+                print(
+                    "isFull: ",
+                    bool(loop.streamArbiter_2_io_output_payload_isFull.value),
+                )
+                print(
+                    "fullRound: ",
+                    int(loop.streamArbiter_2_io_output_payload_fullRound.value),
+                )
+                print(
+                    "partialRound: ",
+                    int(loop.streamArbiter_2_io_output_payload_partialRound.value),
+                )

@@ -12,12 +12,9 @@ module PoseidonTopLevel (
   input               io_output_ready,
   output              io_output_last,
   output     [254:0]  io_output_payload,
-  //input               clk,
+  input               clk,
   input               resetn
 );
-
-  bit clk;
-  always #5 clk = ~clk;
 
   reg                 poseidonLoop_1_io_output_ready;
   wire                aXI4StreamReceiver_1_io_input_ready;

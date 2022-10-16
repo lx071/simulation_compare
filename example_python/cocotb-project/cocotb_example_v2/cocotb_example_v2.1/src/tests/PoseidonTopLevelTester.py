@@ -58,8 +58,14 @@ class PoseidonTopLevelTester:
                     await RisingEdge(self.dut.clk)
             print("input case {}".format(cases_count))
             cases_count += 1
+            
+            for i in range(3):
+                print(i, ':', hex(state_elements[i].value))
+
             self.ref_inputs.put(state_elements)
             self.ref_outputs.put(poseidon_ff.poseidon_hash_opt_ff(state_elements))
+
+            
 
         self.dut.io_input_valid.value = False
 
@@ -79,6 +85,13 @@ class PoseidonTopLevelTester:
                 ref_input = self.ref_inputs.get()
                 ref_output = self.ref_outputs.get()
 
+                print("count_cases:", count_cases, "  ref_input[0]:", hex(ref_input[0].value))
+                print("count_cases:", count_cases, "  ref_input[1]:", hex(ref_input[1].value))
+                print("count_cases:", count_cases, "  ref_input[2]:", hex(ref_input[2].value))
+
+                print("count_cases:", count_cases, "  ref_output:", hex(ref_output.value))
+                
+                
                 if dut_res != ref_output.value:
                     # print error info
                     print("test case {} failed: ".format(count_cases))
@@ -119,7 +132,7 @@ async def PoseidonTopLevelTest(dut):
         await RisingEdge(dut.clk)
 
         cycle = cycle + 1
-        loop = dut.poseidonLoop_1
+        loop = dut.poseidonInst.poseidonLoop_1
 
         if (
             loop.streamArbiter_2_io_output_valid.value
