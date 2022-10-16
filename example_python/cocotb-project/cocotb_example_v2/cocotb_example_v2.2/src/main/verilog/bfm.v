@@ -53,8 +53,8 @@ module bfm (
     end
 
     initial begin
-        $dumpfile("dump.vcd");
-        $dumpvars;
+        //$dumpfile("dump.vcd");
+        //$dumpvars;
     end
 
 

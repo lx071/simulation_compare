@@ -82,19 +82,6 @@ class PoseidonTopLevelTester:
         data_package = 0
         # state_elements_list = []
         while cases_count < CASES_NUM:
-            # state_elements = self.get_random_values(cases_count)
-            # print(state_elements)
-            # assign random valuess to dut io port
-            
-            # self.ref_inputs.put(state_elements)
-            # self.ref_outputs.put(poseidon_ff.poseidon_hash_opt_ff(state_elements))
-            # self.ref_inputs_2.append(state_elements)
-            # self.ref_outputs_2.append(poseidon_ff.poseidon_hash_opt_ff(self.ref_inputs_2[cases_count]))
-            # state_elements_list.append(state_elements)
-            
-            # for i in range(3):
-                # print(i, ':', hex(self.ref_inputs_2[cases_count][i]))
-            # print('ref_output: ', hex(poseidon_ff.poseidon_hash_opt_ff(state_elements).value))
             print("input case {}".format(cases_count))
             cases_count += 1
                 
@@ -109,31 +96,22 @@ class PoseidonTopLevelTester:
     async def monitor_output(self):
         """compare output signals to reference model"""
         count_cases = 0
-        # for i in range(3):
-        #     await RisingEdge(self.dut.io_output_valid)
+
         while count_cases < CASES_NUM:
             self.dut.io_output_ready.value = True  # (random.random() > 0.3)
-            await RisingEdge(self.dut.clk)
-
-            # await RisingEdge(self.dut.io_output_valid)
+            # await RisingEdge(self.dut.clk)
+            
+            await RisingEdge(self.dut.io_output_valid)
 
             if (
                 self.dut.io_output_ready.value & self.dut.io_output_valid.value
             ) == True:
                 
-                # print("self.dut.io_output_payload.value:", self.dut.io_output_payload.value)
                 dut_res = int(self.dut.io_output_payload.value)
                 
-                # dut_res = int(self.dut.io_output_payload_state_element.value)
                 ref_input = self.ref_inputs_2[count_cases]
                 ref_output = self.ref_outputs_2[count_cases]
 
-                # print("count_cases:", count_cases, "  dut_res:", dut_res)
-                # print("count_cases:", count_cases, "  ref_input[0]:", hex(ref_input[0]))
-                # print("count_cases:", count_cases, "  ref_input[1]:", hex(ref_input[1]))
-                # print("count_cases:", count_cases, "  ref_input[2]:", hex(ref_input[2]))
-                # print("count_cases:", count_cases, "  ref_output:", hex(ref_output))
-                
                 if dut_res != ref_output:
                     # print error info
                     print("test case {} failed: ".format(count_cases))
@@ -171,31 +149,32 @@ async def PoseidonTopLevelTest(dut):
     round_max = -1
     cycle = 0
     while True:
-        await RisingEdge(dut.clk)
+        await RisingEdge(dut.io_output_valid)
+        # await RisingEdge(dut.clk)
 
-        cycle = cycle + 1
-        loop = dut.poseidonInst.poseidonLoop_1
+        # cycle = cycle + 1
+        # loop = dut.poseidonInst.poseidonLoop_1
 
-        if (
-            loop.streamArbiter_2_io_output_valid.value
-            & loop.poseidonSerializer_1_io_input_ready.value
-        ):
-            roundp = (
-                int(loop.streamArbiter_2_io_output_payload_fullRound.value)
-                + int(loop.streamArbiter_2_io_output_payload_partialRound.value) % 63
-            )
-            if roundp > round_max:
-                round_max = roundp
-                print("ID: ", int(loop.streamArbiter_2_io_output_payload_stateID.value))
-                print(
-                    "isFull: ",
-                    bool(loop.streamArbiter_2_io_output_payload_isFull.value),
-                )
-                print(
-                    "fullRound: ",
-                    int(loop.streamArbiter_2_io_output_payload_fullRound.value),
-                )
-                print(
-                    "partialRound: ",
-                    int(loop.streamArbiter_2_io_output_payload_partialRound.value),
-                )
+        # if (
+        #     loop.streamArbiter_2_io_output_valid.value
+        #     & loop.poseidonSerializer_1_io_input_ready.value
+        # ):
+        #     roundp = (
+        #         int(loop.streamArbiter_2_io_output_payload_fullRound.value)
+        #         + int(loop.streamArbiter_2_io_output_payload_partialRound.value) % 63
+        #     )
+        #     if roundp > round_max:
+        #         round_max = roundp
+        #         print("ID: ", int(loop.streamArbiter_2_io_output_payload_stateID.value))
+        #         print(
+        #             "isFull: ",
+        #             bool(loop.streamArbiter_2_io_output_payload_isFull.value),
+        #         )
+        #         print(
+        #             "fullRound: ",
+        #             int(loop.streamArbiter_2_io_output_payload_fullRound.value),
+        #         )
+        #         print(
+        #             "partialRound: ",
+        #             int(loop.streamArbiter_2_io_output_payload_partialRound.value),
+        #         )

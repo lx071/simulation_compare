@@ -1,8 +1,9 @@
 module bfm (
+    input clk
     
 );
-    bit clk;
-    always #5 clk = ~clk;
+    //bit clk;
+    //always #5 clk = ~clk;
 
     reg io_input_valid, io_input_last, io_output_ready, resetn;
     reg [254:0] io_input_payload;

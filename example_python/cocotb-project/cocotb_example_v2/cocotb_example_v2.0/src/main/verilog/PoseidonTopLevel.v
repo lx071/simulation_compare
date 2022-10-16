@@ -15,11 +15,8 @@ module PoseidonTopLevel (
   input               clk,
   input               resetn
 );
-  //initial begin
-  //    $dumpfile("dump.vcd");
-  //    $dumpvars;
-  //end
-  
+
+
   reg                 poseidonLoop_1_io_output_ready;
   wire                aXI4StreamReceiver_1_io_input_ready;
   wire                aXI4StreamReceiver_1_io_output_valid;
