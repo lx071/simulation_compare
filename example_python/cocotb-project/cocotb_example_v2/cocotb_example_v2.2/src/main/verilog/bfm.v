@@ -41,13 +41,14 @@ module bfm (
             flag = 0;
         end    
 
-        if(!xmit_en && num >= 30) begin
-            io_input_valid = 0;
-            num = 0;
+        if(!xmit_en && flag == 0) begin
+            io_input_valid = 0;     
+            flag = 1;
         end
 
         if(xmit_en && num >= 30) begin
-            xmit_en = 0;        
+            xmit_en = 0;     
+            num = 0;   
         end
         
     end

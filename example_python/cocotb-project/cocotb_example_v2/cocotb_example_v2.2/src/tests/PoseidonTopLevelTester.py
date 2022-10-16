@@ -2,13 +2,13 @@ import cocotb
 import random
 from cocotb.clock import Clock
 from cocotb.result import TestSuccess, TestFailure
-from cocotb.triggers import RisingEdge
+from cocotb.triggers import RisingEdge, FallingEdge
 from queue import Queue
 from poseidon_python import finite_field as ff
 from poseidon_python import poseidon_ff, basic
 
 
-CASES_NUM = 10
+CASES_NUM = 100
 
 class PoseidonTopLevelTester:
     def __init__(self, target):
@@ -17,44 +17,8 @@ class PoseidonTopLevelTester:
         # self.ref_outputs = Queue(maxsize=500)
         self.ref_inputs_2 = [[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
 0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
-[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
-[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
-[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
-[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
-[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
-[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
-[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
-[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f],
-[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f]]
-        self.ref_outputs_2 = [0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
-0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
-0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
-0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
-0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
-0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
-0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
-0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
-0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797,
-0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797]
+0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f] for i in range(CASES_NUM)]
+        self.ref_outputs_2 = [0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797 for i in range(CASES_NUM)]
 
     async def reset_dut(self):
         """reset the dut reset active level: low"""
@@ -84,13 +48,15 @@ class PoseidonTopLevelTester:
         while cases_count < CASES_NUM:
             print("input case {}".format(cases_count))
             cases_count += 1
-                
-        for i in range(9, -1, -1):
-            for j in range(2,-1,-1):
-                data_package = (data_package << 255) +  self.ref_inputs_2[i][j]
-            # self.ref_outputs.put(poseidon_ff.poseidon_hash_opt_ff(state_elements_list[i]))
-        self.dut.xmit_en.value = 1
-        self.dut.data.value = data_package
+        for k in range(10):
+            data_package = 0
+            for i in range(10-1, -1, -1):
+                for j in range(2,-1,-1):
+                    data_package = (data_package << 255) +  self.ref_inputs_2[i][j]
+                # self.ref_outputs.put(poseidon_ff.poseidon_hash_opt_ff(state_elements_list[i]))
+            self.dut.xmit_en.value = 1
+            self.dut.data.value = data_package
+            await FallingEdge(self.dut.xmit_en)
         
 
     async def monitor_output(self):
