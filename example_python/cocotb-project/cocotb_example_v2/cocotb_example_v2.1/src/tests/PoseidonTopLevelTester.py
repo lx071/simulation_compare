@@ -73,9 +73,8 @@ class PoseidonTopLevelTester:
 
         while count_cases < CASES_NUM:
             self.dut.io_output_ready.value = True  # (random.random() > 0.3)
-            # await RisingEdge(self.dut.clk)
-
-            await RisingEdge(self.dut.io_output_valid)
+            
+            await RisingEdge(self.dut.clk)
 
             if (
                 self.dut.io_output_ready.value & self.dut.io_output_valid.value
@@ -122,9 +121,7 @@ async def PoseidonTopLevelTest(dut):
     round_max = -1
     cycle = 0
     while True:
-        await RisingEdge(dut.io_output_valid)
-
-        # await RisingEdge(dut.clk)
+        await RisingEdge(dut.clk)
 
         # cycle = cycle + 1
         # loop = dut.poseidonInst.poseidonLoop_1
