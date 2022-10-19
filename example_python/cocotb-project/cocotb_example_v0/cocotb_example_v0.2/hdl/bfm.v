@@ -55,7 +55,7 @@ always @(posedge clk_i) begin
             data = (data >> 16);
             num = num + 1;
         end    
-        if(num >= 200) begin
+        if(num >= 100) begin
             num = 0;
             xmit_en = xmit_en - 1;
         end 
