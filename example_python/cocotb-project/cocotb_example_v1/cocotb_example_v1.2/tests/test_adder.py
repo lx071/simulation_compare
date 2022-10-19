@@ -14,10 +14,10 @@ async def adder_basic_test(dut):
     await RisingEdge(dut.reset_i)
 
     # 2000packages = 2000 * 100 data
-    for k in range(10000):
+    for k in range(100000):
         data_package = 0
         # 3Bytes * 100 = 300Bytes = 2400bit 
-        for j in range(100):
+        for j in range(20):
             data_item = j % 200
             op_item = 1
             data_package = (data_package << 24) + (data_item << 16) + (data_item << 8) + op_item
