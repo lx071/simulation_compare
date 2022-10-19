@@ -17,7 +17,7 @@ bit clk_i, reset_i;
 always #5 clk_i = ~clk_i;
 
 reg xmit_en = 0;
-reg [319:0] data;
+reg [479:0] data;
 int num = 0;
 int clk_num = 0;
 reg start;

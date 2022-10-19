@@ -9,7 +9,7 @@ import random
 @cocotb.test()
 async def adder_basic_test(dut):
     """Test for 5 + 10"""
-    # 2000000times = 20000 * 100(1600bit) = 100000 * 20(320bit) = 40000 * 50(800bit) = 10000 * 200(3200bit)
+    # 2000000times = 20000 * 100(2400bit) = 100000 * 20(480bit) = 40000 * 50(1200bit) = 10000 * 200(4800bit)
 
     await RisingEdge(dut.reset_i)
 
