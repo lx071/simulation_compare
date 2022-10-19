@@ -39,7 +39,7 @@ initial begin
     #100
     reset_i = 1;
 
-    repeat(1000000) begin
+    repeat(2000000) begin
         @(posedge clk) begin
             op_s <= 1;
             start <= 1;

@@ -34,7 +34,7 @@ async def adder_basic_test(dut):
 
     await RisingEdge(dut.reset_n)
 
-    for k in range(1000000):
+    for k in range(2000000):
         await RisingEdge(dut.clk)
         dut.start.value = 1
         dut.A.value = k % 200

@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 
     while(!Verilated::gotFinish())
     {
-        if(num>=1000000) break;
+        if(num>=2000000) break;
         if(main_time==100)
         {
             top->reset_n=1;       
