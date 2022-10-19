@@ -16,7 +16,7 @@ bit clk_i, reset_i;
 always #5 clk_i = ~clk_i;
 
 reg xmit_en = 0;
-reg [3199:0] data;
+reg [1599:0] data;
 int num = 0;
 int clk_num = 0;
 
@@ -55,7 +55,7 @@ always @(posedge clk_i) begin
             data = (data >> 16);
             num = num + 1;
         end    
-        if(num >= 200) begin
+        if(num >= 100) begin
             num = 0;
             xmit_en = xmit_en - 1;
         end 
