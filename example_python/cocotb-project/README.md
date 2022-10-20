@@ -12,5 +12,10 @@ v1.3：tinyalu加法, Python层, verilator
 v1.4：tinyalu加法, clk下沉, verilator
 v1.5：tinyalu加法, bfm下沉, verilator
 
+v2.0：hash, Python层, iverilog
+v2.1：hash, clk下沉, iverilog
+v2.2：hash, bfm下沉, iverilog
+v2.3：hash, sv, iverilog
+
 
 
