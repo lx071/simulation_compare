@@ -1,8 +1,0 @@
-<testsuites name="results">
-  <testsuite name="all" package="all">
-    <property name="random_seed" value="1666099247" />
-    <testcase name="PoseidonTopLevelTest" classname="PoseidonTopLevelTester" file="/home/linx/.local/lib/python3.8/site-packages/cocotb/decorators.py" lineno="107" time="4797.331285953522" sim_time_ns="7600.0" ratio_time="1.584214128020016">
-      <failure />
-    </testcase>
-  </testsuite>
-</testsuites>
