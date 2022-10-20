@@ -71,7 +71,7 @@ module bfm (
     end
     
     wire output_handshake = io_output_valid & io_output_ready;
-    reg [4:0] output_counter;
+    reg [6:0] output_counter;
 
     //assign io_output_ready = 1'b1;
     always@(posedge clk) begin
@@ -86,8 +86,9 @@ module bfm (
                     //$display("cycles: %d", cycle_counter);
                     $finish();
                 end
-                $display("ref_outputs[output_counter]: %d",ref_output);
-                $display("res %d: %h correct",output_counter, io_output_payload);
+                //$display("ref_outputs[output_counter]: %d",ref_output);
+                //$display("res %d: %h correct",output_counter, io_output_payload);
+                $display("res %d: correct",output_counter);
                 output_counter <= output_counter + 1;
             end
 
