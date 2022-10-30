@@ -58,5 +58,5 @@ iverilog_dump.v:
 	echo 'endmodule' >> $@
 
 clean::
-	@rm -rf iverilog_dump.v __pycache__ results.xml
+	@rm -rf iverilog_dump.v __pycache__ results.xml dump*
 	@rm -rf dump.fst $(TOPLEVEL).fst
