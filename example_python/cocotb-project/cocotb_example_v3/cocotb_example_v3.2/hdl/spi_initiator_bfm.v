@@ -3,7 +3,7 @@ module spi_initiator_bfm(
 input   reset_i
 );
     parameter DAT_WIDTH = 8;
-    parameter TOTAL_WIDTH = 8;
+    parameter TOTAL_WIDTH = 256;
 
 	bit clk_i;
 	always #5 clk_i = ~clk_i;

@@ -3,7 +3,7 @@ input   clk_i,
 input   reset_i
 );
     parameter DAT_WIDTH = 8;
-    parameter TOTAL_WIDTH = 256;
+    parameter TOTAL_WIDTH = 8;
 
 	wire sck;
 	reg sdo;

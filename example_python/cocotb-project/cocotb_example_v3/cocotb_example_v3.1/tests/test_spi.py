@@ -25,20 +25,6 @@ async def generate_rst(dut):
     dut.reset_i.value = 0
 
 
-def send_msg():
-    data_all = 0
-    # 01 02 03 ... 20
-    for i in range(32):
-        # data = random.randint(1, 100)
-        # print(data)
-        data = (i + 1) % 100
-        data_all = (data_all << 8) + data
-    # print('data_all:', data_all)
-    # bytes_val = data_all.to_bytes(32, 'big')
-    return data_all
-    pass
-
-
 @cocotb.test()
 async def spi_test(dut):
     """Test for 5 + 10"""
@@ -50,5 +36,5 @@ async def spi_test(dut):
     for k in range(2000):
         await RisingEdge(dut.clk_i)
         dut.xmit_en.value = 1
-        dut.dat_out_v.value = send_msg()
+        dut.dat_out_v.value = (k + 1) % 100
         await FallingEdge(dut.xmit_en)
