@@ -20,4 +20,4 @@ MODULE   := test_spi
 
 
 include $(shell cocotb-config --makefiles)/Makefile.sim
-include ../cleanall.mk
+include ../../cleanall.mk

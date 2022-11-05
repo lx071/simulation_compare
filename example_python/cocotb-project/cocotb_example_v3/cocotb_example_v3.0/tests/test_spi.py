@@ -47,15 +47,8 @@ async def spi_test(dut):
 
     await FallingEdge(dut.reset_i)
 
-    # 20000 * 100 data
-    for k in range(20):
+    for k in range(2000):
         await RisingEdge(dut.clk_i)
         dut.xmit_en.value = 1
         dut.dat_out_v.value = send_msg()
         await FallingEdge(dut.xmit_en)
-
-    # await Timer(2, units="ns")
-
-    # assert dut.X.value == adder_model(
-    #     A, B
-    # ), f"Adder result is incorrect: {dut.X.value} != 15"
