@@ -17,6 +17,8 @@ v2.1：hash, clk下沉, iverilog
 v2.2：hash, bfm下沉, iverilog  
 v2.3：hash, sv, iverilog  
 
-v3：spi  
-
+v3.0：spi, Python层, iverilog  
+v3.1：spi, clk下沉, iverilog  
+v3.2：spi, bfm下沉, iverilog  
+v3.3：spi, sv, iverilog  
 
