@@ -10,8 +10,8 @@ PWD = $(shell pwd)
 export PYTHONPATH := $(PWD)/poseidon_python:$(PYTHONPATH)
 
 # add verilog sources
-VERILOG_SOURCES += ../main/verilog/bfm.v
-VERILOG_SOURCES += ../main/verilog/$(DUT).v
+VERILOG_SOURCES += $(PWD)/../main/verilog/bfm.v
+VERILOG_SOURCES += $(PWD)/../main/verilog/$(DUT).v
 
 #PLUSARGS += -fst
 ifeq ($(WAVES), 1)
@@ -43,9 +43,9 @@ ifeq ($(DUT), PoseidonThread)
 endif
 
 ifeq ($(DUT), PoseidonTopLevel)
-		VERILOG_SOURCES += ../main/verilog/ModAdder.v
-		VERILOG_SOURCES += ../main/verilog/MontMultiplierBasics.v
-		VERILOG_SOURCES += ../main/verilog/ModMultiplier.v
+		VERILOG_SOURCES += $(PWD)/../main/verilog/ModAdder.v
+		VERILOG_SOURCES += $(PWD)/../main/verilog/MontMultiplierBasics.v
+		VERILOG_SOURCES += $(PWD)/../main/verilog/ModMultiplier.v
 endif
 
 # TOPLEVEL is the name of the toplevel module in your Verilog or VHDL file

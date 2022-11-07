@@ -29,8 +29,8 @@ COCOTB_HDL_TIMEPRECISION = 1ps
 DUT      = test_ptp_clock_sim_time
 TOPLEVEL = bfm
 MODULE   = test_ptp_clock_sim_time
-VERILOG_SOURCES += bfm.v
-VERILOG_SOURCES += test_ptp_clock_sim_time.v
+VERILOG_SOURCES += $(PWD)/bfm.v
+VERILOG_SOURCES += $(PWD)/test_ptp_clock_sim_time.v
 
 ifeq ($(SIM), icarus)
 	PLUSARGS += -fst

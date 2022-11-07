@@ -29,7 +29,7 @@ COCOTB_HDL_TIMEPRECISION = 1ns
 DUT      = test_eth_mac
 TOPLEVEL = $(DUT)
 MODULE   = $(DUT)
-VERILOG_SOURCES += $(DUT).v
+VERILOG_SOURCES += $(PWD)/$(DUT).v
 
 ifeq ($(SIM), icarus)
 	PLUSARGS += -fst

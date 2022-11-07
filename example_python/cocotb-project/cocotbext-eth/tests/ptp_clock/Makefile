@@ -29,7 +29,7 @@ COCOTB_HDL_TIMEPRECISION = 1ps
 DUT      = test_ptp_clock
 TOPLEVEL = $(DUT)
 MODULE   = $(DUT)
-VERILOG_SOURCES += $(DUT).v
+VERILOG_SOURCES += $(PWD)/$(DUT).v
 
 ifeq ($(SIM), icarus)
 	PLUSARGS += -fst

@@ -29,8 +29,8 @@ COCOTB_HDL_TIMEPRECISION = 1ns
 DUT      = test_gmii_phy
 TOPLEVEL = bfm
 MODULE   = test_gmii_phy
-VERILOG_SOURCES += bfm.v
-VERILOG_SOURCES += test_gmii_phy.v
+VERILOG_SOURCES += $(PWD)/bfm.v
+VERILOG_SOURCES += $(PWD)/test_gmii_phy.v
 
 ifeq ($(SIM), icarus)
 	PLUSARGS += -fst

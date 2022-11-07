@@ -29,8 +29,8 @@ COCOTB_HDL_TIMEPRECISION = 1ns
 DUT      = test_xgmii
 TOPLEVEL = bfm
 MODULE   = test_xgmii
-VERILOG_SOURCES += bfm.v
-VERILOG_SOURCES += test_xgmii.v
+VERILOG_SOURCES += $(PWD)/bfm.v
+VERILOG_SOURCES += $(PWD)/test_xgmii.v
 
 # module parameters
 export PARAM_DATA_WIDTH ?= 64
