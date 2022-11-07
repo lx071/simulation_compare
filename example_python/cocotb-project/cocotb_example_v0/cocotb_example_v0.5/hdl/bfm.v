@@ -9,14 +9,15 @@ output  reg [7:0] res_o
 reg [7:0] A_s;
 reg [7:0] B_s;
 
-parameter TOTAL_WIDTH=256;
+parameter PACKAGE_WIDTH=1600;
+parameter NUM=100;
 
 bit reset_i;
 
 //always #5 clk_i = ~clk_i;
 
 reg xmit_en = 0;
-reg [3199:0] data;
+reg [PACKAGE_WIDTH-1:0] data;
 int num = 0;
 int clk_num = 0;
 
@@ -55,7 +56,7 @@ always @(posedge clk_i) begin
             data = (data >> 16);
             num = num + 1;
         end    
-        if(num >= 200) begin
+        if(num >= NUM) begin
             num = 0;
             xmit_en = xmit_en - 1;
         end 
