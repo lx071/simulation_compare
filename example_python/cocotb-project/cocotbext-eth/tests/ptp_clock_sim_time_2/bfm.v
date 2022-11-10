@@ -49,8 +49,8 @@ test_ptp_clock_sim_time test_ptp_clock_sim_time(
 );
 
 initial begin
-    $dumpfile("dump.vcd");
-    $dumpvars;
+    //$dumpfile("dump.vcd");
+    //$dumpvars;
 end
 
 endmodule

@@ -62,8 +62,8 @@ test_mii_phy test_mii_phy(
 );
 
 initial begin
-    $dumpfile("dump.vcd");
-    $dumpvars;
+    //$dumpfile("dump.vcd");
+    //$dumpvars;
 end
 
 endmodule

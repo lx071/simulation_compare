@@ -44,7 +44,7 @@ class TB:
         self.log = logging.getLogger("cocotb.tb")
         self.log.setLevel(logging.DEBUG)
 
-        cocotb.start_soon(Clock(dut.phy_gtx_clk, 8, units="ns").start())
+        # cocotb.start_soon(Clock(dut.phy_gtx_clk, 8, units="ns").start())
 
         self.gmii_phy = GmiiPhy(dut.phy_txd, dut.phy_tx_er, dut.phy_tx_en, dut.phy_tx_clk, dut.phy_gtx_clk,
             dut.phy_rxd, dut.phy_rx_er, dut.phy_rx_dv, dut.phy_rx_clk, dut.phy_rst, speed=speed)
@@ -129,8 +129,9 @@ async def run_test_rx(dut, payload_lengths=None, payload_data=None, ifg=12, spee
 
 
 def size_list():
-    return list(range(60, 128)) + [512, 1514] + [60]*10
-
+    # return list(range(60, 128)) + [512, 1514] + [60]*10
+    return [100]*1000
+    
 
 def incrementing_payload(length):
     return bytearray(itertools.islice(itertools.cycle(range(256)), length))

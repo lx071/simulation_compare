@@ -129,7 +129,8 @@ async def run_test_rx(dut, payload_lengths=None, payload_data=None, ifg=12, spee
 
 
 def size_list():
-    return list(range(60, 128)) + [512, 1514] + [60]*10
+    # return list(range(60, 128)) + [512, 1514] + [60]*10
+    return [100]*1000
 
 
 def incrementing_payload(length):
@@ -147,7 +148,8 @@ if cocotb.SIM_NAME:
         factory = TestFactory(test)
         factory.add_option("payload_lengths", [size_list])
         factory.add_option("payload_data", [incrementing_payload])
-        factory.add_option("speed", [1000e6, 100e6, 10e6])
+        # factory.add_option("speed", [1000e6, 100e6, 10e6])
+        factory.add_option("speed", [100e6])
         factory.generate_tests()
 
 

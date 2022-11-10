@@ -38,7 +38,7 @@ module bfm
     inout  wire        phy_tx_en,
     //inout  wire        phy_tx_clk,
 
-    inout  wire        phy_gtx_clk,
+    //inout  wire        phy_gtx_clk,
     
     inout  wire [7:0]  phy_rxd,
     inout  wire        phy_rx_er,
@@ -48,8 +48,10 @@ module bfm
 
 bit phy_tx_clk;
 bit phy_rx_clk;
+bit phy_gtx_clk;
 always #20 phy_tx_clk = ~phy_tx_clk;
 always #20 phy_rx_clk = ~phy_rx_clk;
+always #4  phy_gtx_clk = ~phy_gtx_clk;
 
 test_gmii_phy test_gmii_phy(
     .phy_rst(phy_rst),
@@ -67,8 +69,8 @@ test_gmii_phy test_gmii_phy(
 );
 
 initial begin
-    $dumpfile("dump.vcd");
-    $dumpvars;
+    //$dumpfile("dump.vcd");
+    //$dumpvars;
 end
 
 endmodule

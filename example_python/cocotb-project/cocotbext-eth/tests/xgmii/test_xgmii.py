@@ -197,8 +197,9 @@ async def run_test_alignment(dut, payload_data=None, ifg=12, enable_dic=True,
 
 
 def size_list():
-    return list(range(60, 128)) + [512, 1514, 9214] + [60]*10 + [61]*10 + [62]*10 + [63]*10
-
+    # return list(range(60, 128)) + [512, 1514, 9214] + [60]*10 + [61]*10 + [62]*10 + [63]*10
+    return [100]*1000
+    
 
 def incrementing_payload(length):
     return bytearray(itertools.islice(itertools.cycle(range(256)), length))

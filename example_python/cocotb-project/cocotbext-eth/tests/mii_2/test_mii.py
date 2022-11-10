@@ -124,8 +124,9 @@ async def run_test(dut, payload_lengths=None, payload_data=None, ifg=12, enable_
 
 # 一个frame至少存60个字节的数据
 def size_list():
-    return list(range(60, 128)) + [512, 1514, 9214] + [60]*10
-
+    # return list(range(60, 128)) + [512, 1514, 9214] + [60]*10
+    return [100]*1000
+    
 
 def incrementing_payload(length):
     return bytearray(itertools.islice(itertools.cycle(range(256)), length))

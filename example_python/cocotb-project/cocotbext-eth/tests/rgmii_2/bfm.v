@@ -57,8 +57,8 @@ test_rgmii test_rgmii(
 );
 
 initial begin
-    $dumpfile("dump.vcd");
-    $dumpvars;
+    //$dumpfile("dump.vcd");
+    //$dumpvars;
 end
 
 endmodule

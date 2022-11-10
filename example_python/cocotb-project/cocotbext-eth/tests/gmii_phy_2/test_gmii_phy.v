@@ -39,7 +39,8 @@ module test_gmii_phy
     //inout  wire        phy_tx_clk,
     input  wire        phy_tx_clk,
 
-    inout  wire        phy_gtx_clk,
+    //inout  wire        phy_gtx_clk,
+    input  wire        phy_gtx_clk,
     
     inout  wire [7:0]  phy_rxd,
     inout  wire        phy_rx_er,
