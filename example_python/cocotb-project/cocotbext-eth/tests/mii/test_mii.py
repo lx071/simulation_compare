@@ -99,9 +99,11 @@ async def run_test(dut, payload_lengths=None, payload_data=None, ifg=12, enable_
 
     await tb.reset()
 
+    # payload_data(x)返回一个新字节数组
     test_frames = [payload_data(x) for x in payload_lengths()]
 
     for test_data in test_frames:
+        # 帧开头和结尾会添加一些字节, 开头会添加85,85,85,85,85,85,85,213       十进制85,字符U   十进制213,字节\xd5
         test_frame = GmiiFrame.from_payload(test_data)
         await tb.source.send(test_frame)    # MiiSource发送数据
 

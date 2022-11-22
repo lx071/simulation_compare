@@ -194,8 +194,9 @@ class MiiSource(Reset):
                     frame_data = []
                     frame_error = []
                     for b, e in zip(frame.data, frame.error):
-                        frame_data.append(b & 0x0F)
-                        frame_data.append(b >> 4)
+                        # b --从frame中取一个字节
+                        frame_data.append(b & 0x0F) # 低4位
+                        frame_data.append(b >> 4)   # 高4位
                         frame_error.append(e)
                         frame_error.append(e)
 
@@ -206,7 +207,7 @@ class MiiSource(Reset):
                     d = frame_data[frame_offset]
                     if frame.sim_time_sfd is None and d == 0xD:
                         frame.sim_time_sfd = get_sim_time()
-                    self.data.value = d             # 给端口赋值
+                    self.data.value = d             # 给端口赋值     # 先发低4位,再发高4位,再取下一个frame
                     if self.er is not None:
                         self.er.value = frame_error[frame_offset]
                     self.dv.value = 1
@@ -349,13 +350,13 @@ class MiiSink(Reset):
                         error = []
                         for n, e in zip(frame.data, frame.error):
                             odd = not odd
-                            b = (n & 0x0F) << 4 | b >> 4
+                            b = (n & 0x0F) << 4 | b >> 4    # 执行两次之后就得到1个字节
                             be |= e
-                            if not sync and b == EthPre.SFD:
+                            if not sync and b == EthPre.SFD:    # 0xD5
                                 odd = True
                                 sync = True
                             if odd:
-                                data.append(b)
+                                data.append(b)  # 每拿到1个字节就放入data
                                 error.append(be)
                                 be = 0
                         frame.data = data
@@ -377,7 +378,7 @@ class MiiSink(Reset):
                     if frame.sim_time_sfd is None and d_val == 0xD:
                         frame.sim_time_sfd = get_sim_time()
 
-                    frame.data.append(d_val)
+                    frame.data.append(d_val)    # 先将数据全部存入frame.data
                     frame.error.append(er_val)
 
 
