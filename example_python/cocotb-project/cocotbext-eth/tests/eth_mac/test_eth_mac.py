@@ -101,9 +101,13 @@ async def run_test_tx(dut, payload_lengths=None, payload_data=None, ifg=12, spee
     await tb.reset()
 
     test_frames = [payload_data(x) for x in payload_lengths()]
-
+    # print("test_frames:", test_frames)
+    # print()
     for test_data in test_frames:
+        # 帧结尾会添加一些字节
+        # EthMacFrame(data=bytearray(b'\x00...'), sim_time_start=None, sim_time_sfd=None, sim_time_end=None, ptp_timestamp=None, ptp_tag=None)
         test_frame = EthMacFrame.from_payload(test_data)
+        # print("test_frame:", test_frame)
         await tb.source.send(test_frame)
 
     for test_data in test_frames:
@@ -149,7 +153,7 @@ async def run_test_rx(dut, payload_lengths=None, payload_data=None, ifg=12, spee
 
 def size_list():
     # return list(range(60, 128)) + [512, 1514, 9214] + [60]*10
-    return [100]*10000
+    return [60, 61, 62]
 
 
 def incrementing_payload(length):
@@ -158,12 +162,13 @@ def incrementing_payload(length):
 
 if cocotb.SIM_NAME:
 
-    for test in [run_test_tx, run_test_rx]:
+    for test in [run_test_tx]:
 
         factory = TestFactory(test)
         factory.add_option("payload_lengths", [size_list])
         factory.add_option("payload_data", [incrementing_payload])
-        factory.add_option("speed", [10e9, 1e9])
+        # factory.add_option("speed", [10e9, 1e9])
+        factory.add_option("speed", [10e9])
         factory.generate_tests()
 
 
