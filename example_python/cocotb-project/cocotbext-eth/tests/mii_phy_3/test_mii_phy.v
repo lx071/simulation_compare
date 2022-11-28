@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2021 Alex Forencich
+Copyright (c) 2020 Alex Forencich
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,39 +24,25 @@ THE SOFTWARE.
 
 // Language: Verilog 2001
 
-`timescale 1ns / 1ps
+`timescale 1ns / 1ns
 
 /*
- * Ethernet MAC model test
+ * MII PHY test
  */
-module test_eth_mac
+module test_mii_phy
 (
-    inout  wire        tx_clk,
-    inout  wire        tx_rst,
-    inout  wire [63:0] tx_axis_tdata,
-    inout  wire [7:0]  tx_axis_tkeep,
-    inout  wire        tx_axis_tlast,
-    inout  wire [16:0] tx_axis_tuser,
-    inout  wire        tx_axis_tvalid,
-    inout  wire        tx_axis_tready,
-    inout  wire [95:0] tx_ptp_time,
-    inout  wire [95:0] tx_ptp_ts,
-    inout  wire [15:0] tx_ptp_ts_tag,
-    inout  wire        tx_ptp_ts_valid,
-
-    inout  wire        rx_clk,
-    inout  wire        rx_rst,
-    inout  wire [63:0] rx_axis_tdata,
-    inout  wire [7:0]  rx_axis_tkeep,
-    inout  wire        rx_axis_tlast,
-    inout  wire [96:0] rx_axis_tuser,
-    inout  wire        rx_axis_tvalid,
-    inout  wire [95:0] rx_ptp_time
+    inout  wire        phy_rst,
+    input  wire [3:0]  phy_txd,         //发送数据
+    inout  wire        phy_tx_er,       //发送错误
+    inout  wire        phy_tx_en,       //发送使能
+    //inout  wire        phy_tx_clk,      //发送时钟
+    input  wire        phy_tx_clk,      //发送时钟
+    
+    inout  wire [3:0]  phy_rxd,         //接收数据
+    inout  wire        phy_rx_er,       //接收错误
+    inout  wire        phy_rx_dv,       //接收数据有效
+    //inout  wire        phy_rx_clk       //接收时钟
+    input  wire        phy_rx_clk       //接收时钟
 );
-
-initial begin
-    $dumpfile("dump.vcd");
-    $dumpvars;
-end
 
 endmodule

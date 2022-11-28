@@ -30,11 +30,12 @@ import os
 import cocotb_test.simulator
 
 import cocotb
-from cocotb.triggers import RisingEdge
+from cocotb.triggers import RisingEdge, FallingEdge
 from cocotb.regression import TestFactory
 
 from cocotbext.eth import GmiiFrame, MiiSource, MiiSink, MiiPhy
 
+from scapy.all import *
 
 class TB:
     def __init__(self, dut, speed=100e6):
@@ -65,27 +66,47 @@ class TB:
 
 async def run_test_tx(dut, payload_lengths=None, payload_data=None, ifg=12, speed=100e6):
 
-    tb = TB(dut.test_mii_phy, speed)
+    # tb = TB(dut.test_mii_phy, speed)
 
-    tb.mii_phy.rx.ifg = ifg
-    tb.source.ifg = ifg
+    # tb.mii_phy.rx.ifg = ifg
+    # tb.source.ifg = ifg
 
-    await tb.reset()
+    # await tb.reset()
 
     test_frames = [payload_data(x) for x in payload_lengths()]
 
-    for test_data in test_frames:
-        test_frame = GmiiFrame.from_payload(test_data)
-        await tb.source.send(test_frame)
+    pkg = Ether()/IP(dst="www.baidu.com")/TCP()/"11111111110001111111"
+    data = hexdump(pkg)
+    print(data)
+    test_frame = raw(pkg)   # 74Byte = 592bit   (54 for head)
+    print("test_frame:", test_frame)
+    print("len:", len(test_frame))
+    res = int.from_bytes(test_frame, byteorder='big', signed=False)
+    dut.payload_data.value = res
+    dut.xmit_en = 1
+    await FallingEdge(dut.xmit_en)
 
-    for test_data in test_frames:
-        rx_frame = await tb.mii_phy.tx.recv()
+    # FF FF FF FF FF FF 00 0C 29 B6 35 E0 08 00 45 00
+    # 00 3C 00 01 00 00 40 06 B5 4D C0 A8 86 81 B6 3D
+    # C8 06 00 14 00 50 00 00 00 00 00 00 00 00 50 02
+    # 20 00 E0 11 00 00 31 31 31 31 31 31 31 31 31 31
+    # 30 30 30 31 31 31 31 31 31 31
+    # 'hffffffffffff000c29b635e008004500003c000100004006b54dc0a88681b63dc80600140050000000000000000050022000e01100003131313131313131313130303031313131313131
+    
+    # for test_data in test_frames:
+    #     test_frame = GmiiFrame.from_payload(test_data)
 
-        assert rx_frame.get_payload() == test_data
-        assert rx_frame.check_fcs()
-        assert rx_frame.error is None
+    #     await tb.source.send(test_frame)
 
-    assert tb.mii_phy.tx.empty()
+
+    # for test_data in test_frames:
+    #     rx_frame = await tb.mii_phy.tx.recv()
+
+    #     assert rx_frame.get_payload() == test_data
+    #     assert rx_frame.check_fcs()
+    #     assert rx_frame.error is None
+    
+    # assert tb.mii_phy.tx.empty()
 
     await RisingEdge(dut.phy_tx_clk)
     await RisingEdge(dut.phy_tx_clk)
@@ -121,7 +142,7 @@ async def run_test_rx(dut, payload_lengths=None, payload_data=None, ifg=12, spee
 
 def size_list():
     # return list(range(60, 128)) + [512, 1514] + [60]*10
-    return [61]
+    return [60, 61, 62]
     
 
 def incrementing_payload(length):

@@ -278,6 +278,7 @@ class GmiiSource(Reset):
                 elif frame is None and not self.queue.empty():
                     # send frame
                     frame = self.queue.get_nowait()     # 从GmiiSource的队列中取数据
+                    print("frame:", frame)
                     self.dequeue_event.set()
                     self.queue_occupancy_bytes -= len(frame)
                     self.queue_occupancy_frames -= 1

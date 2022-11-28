@@ -162,7 +162,7 @@ def incrementing_payload(length):
 
 if cocotb.SIM_NAME:
 
-    for test in [run_test_tx]:
+    for test in [run_test_rx]:
 
         factory = TestFactory(test)
         factory.add_option("payload_lengths", [size_list])

@@ -208,6 +208,7 @@ class MiiSource(Reset):
                     if frame.sim_time_sfd is None and d == 0xD:
                         frame.sim_time_sfd = get_sim_time()
                     self.data.value = d             # 给端口赋值     # 先发低4位,再发高4位,再取下一个frame
+                    # print("send:", d)
                     if self.er is not None:
                         self.er.value = frame_error[frame_offset]
                     self.dv.value = 1

@@ -272,8 +272,9 @@ class EthMacTx(Reset):
 
         while True:
             # wait for data
-            cycle = await self.stream.recv()        # 从AxiStreamSink中取数据
-
+            cycle = await self.stream.recv()        # 从AxiStreamSink中取frame的开头数据--8Bytes    AxiStreamTransaction
+            # print("begin_cycle:", cycle)
+            # print("begin_cycle:%#x"%cycle.tdata)
             frame = EthMacFrame(bytearray())
             frame.sim_time_start = get_sim_time()
 
@@ -290,10 +291,13 @@ class EthMacTx(Reset):
             # process frame data
             while True:
                 byte_count = 0
-
-                for offset in range(self.byte_lanes):
+                # print("self.stream.queue:", self.stream.queue)
+                # print("cycle:%#x"%cycle.tdata)
+                for offset in range(self.byte_lanes):   # 循环8次，拼接8个字节
                     if not hasattr(self.bus, "tkeep") or (cycle.tkeep.integer >> offset) & 1:
                         frame.data.append((cycle.tdata.integer >> (offset * self.byte_size)) & self.byte_mask)
+                        # print("offset:", offset)
+                        # print("frame:", frame.data)
                         byte_count += 1
 
                 # wait for serialization time
@@ -316,7 +320,7 @@ class EthMacTx(Reset):
                 # get next cycle
                 # TODO improve underflow handling
                 assert not self.stream.empty(), "underflow"
-                cycle = await self.stream.recv()
+                cycle = await self.stream.recv()        # 从AxiStreamSink中取frame的剩余字节--每次取8Bytes  AxiStreamTransaction
 
             # wait for IFG
             await Timer(self.time_scale*self.ifg*8//self.speed, 'step')

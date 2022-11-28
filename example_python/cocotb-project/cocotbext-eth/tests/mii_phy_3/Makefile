@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Alex Forencich
+# Copyright (c) 2020 Alex Forencich
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +26,11 @@ WAVES ?= 0
 COCOTB_HDL_TIMEUNIT = 1ns
 COCOTB_HDL_TIMEPRECISION = 1ns
 
-DUT      = test_eth_mac
-TOPLEVEL = $(DUT)
-MODULE   = $(DUT)
-VERILOG_SOURCES += $(PWD)/$(DUT).v
+DUT      = test_mii_phy
+TOPLEVEL = bfm
+MODULE   = test_mii_phy
+VERILOG_SOURCES += $(PWD)/bfm.v
+VERILOG_SOURCES += $(PWD)/test_mii_phy.v
 
 ifeq ($(SIM), icarus)
 	PLUSARGS += -fst
@@ -57,5 +58,5 @@ iverilog_dump.v:
 	echo 'endmodule' >> $@
 
 clean::
-	@rm -rf iverilog_dump.v results.xml __pycache__ dump.vcd
+	@rm -rf iverilog_dump.v __pycache__ results.xml sim_build dump*
 	@rm -rf dump.fst $(TOPLEVEL).fst
