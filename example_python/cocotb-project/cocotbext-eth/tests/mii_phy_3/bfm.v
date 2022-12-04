@@ -47,11 +47,15 @@ bit        phy_rx_clk;       //接收时钟
 
 // 74Byte = 592bit
 parameter TOTAL_WIDTH = 592;
-parameter TX_NUM = 148;
+parameter TX_NUM = 74;
 bit[TOTAL_WIDTH-1:0]    payload_data;
-reg[7:0]    item;
-reg[3:0]    low_item;
-reg[3:0]    high_item;
+bit[TOTAL_WIDTH-1:0]    recv_data;
+reg[7:0]    tx_item;
+reg[3:0]    tx_low_item;
+reg[3:0]    tx_high_item;
+reg[7:0]    rx_item;
+reg[3:0]    rx_low_item;
+reg[3:0]    rx_high_item;
 reg xmit_en = 0;
 
 //bit phy_tx_clk;
@@ -73,10 +77,15 @@ test_mii_phy test_mii_phy(
 );
 
 initial begin   
-    item = 0;
-    high_item = 0;
-    low_item = 0;
+    tx_item = 0;
+    tx_high_item = 0;
+    tx_low_item = 0;
+    rx_item = 0;
+    rx_high_item = 0;
+    rx_low_item = 0;
     phy_txd = 0;
+    recv_data = 0;
+
     $dumpfile("dump.vcd");
     $dumpvars;
 end
@@ -86,34 +95,61 @@ always @(posedge xmit_en) begin
     $display("get data ='h%h",payload_data[TOTAL_WIDTH-1:0]);
 end
 
-assign sck = (xmit_en)?phy_tx_clk:1'b0;
+assign tck = (xmit_en)?phy_tx_clk:1'b0;
+assign rck = (xmit_en)?phy_rx_clk:1'b0;
+
 reg xmit_state = 0;
-int num = 0;
-always @(posedge sck) begin
-    item = payload_data[TOTAL_WIDTH-1:TOTAL_WIDTH-8];
+int tx_num = 0;
+reg tx_en = 0;
+always @(posedge tck) begin
+    tx_item = payload_data[TOTAL_WIDTH-1:TOTAL_WIDTH-8];
     
-    //$display("get item ='h%h", item); 
+    //$display("get tx_item ='h%h", tx_item); 
     
     case (xmit_state)
         0: begin
-            low_item = payload_data[TOTAL_WIDTH-5:TOTAL_WIDTH-8];
-            phy_txd = low_item;
-            //$display("get low_item ='h%h", low_item);
+            tx_low_item = payload_data[TOTAL_WIDTH-5:TOTAL_WIDTH-8];
+            phy_txd = tx_low_item;
+            //$display("get tx_low_item ='h%h", tx_low_item);
             xmit_state <= 1;
+            tx_en = 1;
         end
         1: begin
-            high_item = payload_data[TOTAL_WIDTH-1:TOTAL_WIDTH-4];
-            phy_txd = high_item;
-            //$display("get high_item ='h%h", high_item);
+            tx_high_item = payload_data[TOTAL_WIDTH-1:TOTAL_WIDTH-4];
+            phy_txd = tx_high_item;
+            //$display("get tx_high_item ='h%h", tx_high_item);
             payload_data <= (payload_data<<8);
             xmit_state <= 0;
         end
     endcase
 
-    num = num + 1;
-    if(num>=TX_NUM) begin
-        xmit_en = xmit_en - 1;
+end
+
+reg recv_state = 0;
+always @(negedge rck) begin
+    if (tx_en == 1) begin
+        case (recv_state)
+            0: begin
+                rx_low_item = phy_txd;
+                //$display("get rx_low_item ='h%h", rx_low_item);
+                recv_state <= 1;
+            end
+            1: begin
+                rx_high_item = phy_txd;
+                //$display("get rx_high_item ='h%h", rx_high_item);           
+                recv_data = {recv_data[TOTAL_WIDTH-1-8:0], rx_high_item, rx_low_item};
+                //$display("get recv_data ='h%h", recv_data); 
+                recv_state <= 0;
+                tx_num = tx_num + 1;
+                if(tx_num>=TX_NUM) begin
+                    xmit_en = 0;
+                    tx_num = 0;
+                    tx_en = 0;
+                end
+            end
+        endcase
     end
+    
 
 end
 

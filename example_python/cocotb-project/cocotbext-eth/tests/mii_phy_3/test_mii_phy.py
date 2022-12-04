@@ -75,24 +75,28 @@ async def run_test_tx(dut, payload_lengths=None, payload_data=None, ifg=12, spee
 
     test_frames = [payload_data(x) for x in payload_lengths()]
 
-    pkg = Ether()/IP(dst="www.baidu.com")/TCP()/"11111111110001111111"
+    # pkg = Ether()/IP(dst="www.baidu.com")/TCP()/"11111111110001111111"
+    pkg = Ether()/IP(dst="www.baidu.com")/TCP()/"01234567890123456789"
+    
     data = hexdump(pkg)
     print(data)
     test_frame = raw(pkg)   # 74Byte = 592bit   (54 for head)
     print("test_frame:", test_frame)
     print("len:", len(test_frame))
     res = int.from_bytes(test_frame, byteorder='big', signed=False)
-    dut.payload_data.value = res
-    dut.xmit_en = 1
-    await FallingEdge(dut.xmit_en)
+    
+    for i in range(3):
+        dut.payload_data.value = res
+        dut.xmit_en = 1
+        await FallingEdge(dut.xmit_en)
+        print('recv_data:%#x'% dut.recv_data.value)
 
     # FF FF FF FF FF FF 00 0C 29 B6 35 E0 08 00 45 00
     # 00 3C 00 01 00 00 40 06 B5 4D C0 A8 86 81 B6 3D
     # C8 06 00 14 00 50 00 00 00 00 00 00 00 00 50 02
-    # 20 00 E0 11 00 00 31 31 31 31 31 31 31 31 31 31
-    # 30 30 30 31 31 31 31 31 31 31
-    # 'hffffffffffff000c29b635e008004500003c000100004006b54dc0a88681b63dc80600140050000000000000000050022000e01100003131313131313131313130303031313131313131
-    
+    # 20 00 E0 11 00 00 30 31 32 33 34 35 36 37 38 39
+    # 30 31 32 33 34 35 36 37 38 39
+    # 'hffffffffffff000c29b635e008004500003c0001000040064e1ec0a88681b465310e0014005000000000000000005002200058b900003031323334353637383930313233343536373839
     # for test_data in test_frames:
     #     test_frame = GmiiFrame.from_payload(test_data)
 
