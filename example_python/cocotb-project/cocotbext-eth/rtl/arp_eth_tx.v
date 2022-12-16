@@ -125,6 +125,7 @@ reg store_frame;
 reg send_arp_header_reg = 1'b0, send_arp_header_next;
 reg [PTR_WIDTH-1:0] ptr_reg = 0, ptr_next;
 
+//ARP包字段
 reg [15:0] arp_htype_reg = 16'd0;
 reg [15:0] arp_ptype_reg = 16'd0;
 reg [15:0] arp_oper_reg = 16'd0;
@@ -153,6 +154,8 @@ wire                 m_eth_payload_axis_tready_int_early;
 
 assign s_frame_ready = s_frame_ready_reg;
 
+
+//以太网帧输出
 assign m_eth_hdr_valid = m_eth_hdr_valid_reg;
 assign m_eth_dest_mac = m_eth_dest_mac_reg;
 assign m_eth_src_mac = m_eth_src_mac_reg;
@@ -166,9 +169,9 @@ always @* begin
 
     s_frame_ready_next = 1'b0;
 
-    store_frame = 1'b0;
+    store_frame = 1'b0;		//帧输入存储到reg
 
-    m_eth_hdr_valid_next = m_eth_hdr_valid_reg && !m_eth_hdr_ready;
+    m_eth_hdr_valid_next = m_eth_hdr_valid_reg && !m_eth_hdr_ready;	//ready没拉高, valid就要保持为高
 
     m_eth_payload_axis_tdata_int = {DATA_WIDTH{1'b0}};
     m_eth_payload_axis_tkeep_int = {KEEP_WIDTH{1'b0}};
@@ -177,12 +180,13 @@ always @* begin
     m_eth_payload_axis_tuser_int = 1'b0;
 
     if (s_frame_ready && s_frame_valid) begin
-        store_frame = 1'b1;
-        m_eth_hdr_valid_next = 1'b1;
+        store_frame = 1'b1;		//帧输入存储到reg
+        m_eth_hdr_valid_next = 1'b1;	//帧输出的valid拉高
         ptr_next = 0;
         send_arp_header_next = 1'b1;
     end
 
+	//输出帧
     if (m_eth_payload_axis_tready_int_reg) begin
         if (send_arp_header_reg) begin
             ptr_next = ptr_reg + 1;
@@ -240,6 +244,7 @@ always @* begin
     s_frame_ready_next = !m_eth_hdr_valid_next && !send_arp_header_next;
 end
 
+//处理输入
 always @(posedge clk) begin
     send_arp_header_reg <= send_arp_header_next;
     ptr_reg <= ptr_next;
@@ -250,10 +255,13 @@ always @(posedge clk) begin
 
     busy_reg <= send_arp_header_next;
 
+	//帧输入存储到reg
     if (store_frame) begin
+		//以太网帧头
         m_eth_dest_mac_reg <= s_eth_dest_mac;
         m_eth_src_mac_reg <= s_eth_src_mac;
         m_eth_type_reg <= s_eth_type;
+		//ARP包输入到reg存储
         arp_htype_reg <= s_arp_htype;
         arp_ptype_reg <= s_arp_ptype;
         arp_oper_reg <= s_arp_oper;
@@ -290,11 +298,13 @@ reg store_eth_payload_int_to_output;
 reg store_eth_payload_int_to_temp;
 reg store_eth_payload_axis_temp_to_output;
 
+//以太网帧输出
 assign m_eth_payload_axis_tdata = m_eth_payload_axis_tdata_reg;
 assign m_eth_payload_axis_tkeep = KEEP_ENABLE ? m_eth_payload_axis_tkeep_reg : {KEEP_WIDTH{1'b1}};
 assign m_eth_payload_axis_tvalid = m_eth_payload_axis_tvalid_reg;
 assign m_eth_payload_axis_tlast = m_eth_payload_axis_tlast_reg;
 assign m_eth_payload_axis_tuser = m_eth_payload_axis_tuser_reg;
+
 
 // enable ready input next cycle if output is ready or the temp reg will not be filled on the next cycle (output reg empty or no input)
 assign m_eth_payload_axis_tready_int_early = m_eth_payload_axis_tready || (!temp_m_eth_payload_axis_tvalid_reg && (!m_eth_payload_axis_tvalid_reg || !m_eth_payload_axis_tvalid_int));
@@ -310,23 +320,24 @@ always @* begin
 
     if (m_eth_payload_axis_tready_int_reg) begin
         // input is ready
-        if (m_eth_payload_axis_tready || !m_eth_payload_axis_tvalid_reg) begin
+        if (m_eth_payload_axis_tready || !m_eth_payload_axis_tvalid_reg) begin	//input和output都准备好了
             // output is ready or currently not valid, transfer data to output
             m_eth_payload_axis_tvalid_next = m_eth_payload_axis_tvalid_int;
-            store_eth_payload_int_to_output = 1'b1;
-        end else begin
-            // output is not ready, store input in temp
+            store_eth_payload_int_to_output = 1'b1;	//数据从int传到output
+        end else begin		//input准备好了,output还没准备好
+            // output is not ready, store input in temp			
             temp_m_eth_payload_axis_tvalid_next = m_eth_payload_axis_tvalid_int;
-            store_eth_payload_int_to_temp = 1'b1;
+            store_eth_payload_int_to_temp = 1'b1;	//数据从int传到temp
         end
-    end else if (m_eth_payload_axis_tready) begin
+    end else if (m_eth_payload_axis_tready) begin	//input没准备好,output准备好了
         // input is not ready, but output is ready
         m_eth_payload_axis_tvalid_next = temp_m_eth_payload_axis_tvalid_reg;
         temp_m_eth_payload_axis_tvalid_next = 1'b0;
-        store_eth_payload_axis_temp_to_output = 1'b1;
+        store_eth_payload_axis_temp_to_output = 1'b1;	//数据从temp传到output
     end
 end
 
+//处理输出
 always @(posedge clk) begin
     if (rst) begin
         m_eth_payload_axis_tvalid_reg <= 1'b0;
@@ -339,19 +350,19 @@ always @(posedge clk) begin
     end
 
     // datapath
-    if (store_eth_payload_int_to_output) begin
+    if (store_eth_payload_int_to_output) begin		//int_to_output
         m_eth_payload_axis_tdata_reg <= m_eth_payload_axis_tdata_int;
         m_eth_payload_axis_tkeep_reg <= m_eth_payload_axis_tkeep_int;
         m_eth_payload_axis_tlast_reg <= m_eth_payload_axis_tlast_int;
         m_eth_payload_axis_tuser_reg <= m_eth_payload_axis_tuser_int;
-    end else if (store_eth_payload_axis_temp_to_output) begin
+    end else if (store_eth_payload_axis_temp_to_output) begin		//temp_to_output
         m_eth_payload_axis_tdata_reg <= temp_m_eth_payload_axis_tdata_reg;
         m_eth_payload_axis_tkeep_reg <= temp_m_eth_payload_axis_tkeep_reg;
         m_eth_payload_axis_tlast_reg <= temp_m_eth_payload_axis_tlast_reg;
         m_eth_payload_axis_tuser_reg <= temp_m_eth_payload_axis_tuser_reg;
     end
 
-    if (store_eth_payload_int_to_temp) begin
+    if (store_eth_payload_int_to_temp) begin		//int_to_temp
         temp_m_eth_payload_axis_tdata_reg <= m_eth_payload_axis_tdata_int;
         temp_m_eth_payload_axis_tkeep_reg <= m_eth_payload_axis_tkeep_int;
         temp_m_eth_payload_axis_tlast_reg <= m_eth_payload_axis_tlast_int;
