@@ -136,8 +136,63 @@ arp_eth_tx_inst
 
 
 initial begin   
+    s_frame_valid = 1'b0;
+    //s_frame_ready = 1'b0;
+    s_eth_dest_mac = 48'd0;
+    s_eth_src_mac = 48'd0;
+    s_eth_type = 16'd0;
+    s_arp_htype = 16'd0;
+    s_arp_ptype = 16'd0;
+    s_arp_oper = 16'd0;
+    s_arp_sha = 48'd0;
+    s_arp_spa = 32'd0;
+    s_arp_tha = 48'd0;
+    s_arp_tpa = 32'd0;
+    $display("get s_arp_tpa ='h%h", s_arp_tpa);
+
     $dumpfile("dump.vcd");
     $dumpvars;
+end
+
+reg xmit_en = 0;
+
+assign tck = (xmit_en)?clk:1'b0;
+assign rck = (xmit_en)?clk:1'b0;
+
+reg xmit_state = 0;
+int tx_num = 0;
+reg tx_en = 0;
+always @(posedge tck) begin
+    case (xmit_state)
+        0: begin
+            s_eth_dest_mac = payload_data[TOTAL_WIDTH-1:TOTAL_WIDTH-48];
+            s_eth_src_mac = payload_data[TOTAL_WIDTH-49:TOTAL_WIDTH-96];
+            s_eth_type = payload_data[TOTAL_WIDTH-97:TOTAL_WIDTH-112];
+            s_arp_htype = payload_data[TOTAL_WIDTH-113:TOTAL_WIDTH-128];
+            s_arp_ptype = payload_data[TOTAL_WIDTH-129:TOTAL_WIDTH-144];
+            
+            s_arp_oper = payload_data[TOTAL_WIDTH-161:TOTAL_WIDTH-176];
+            s_arp_sha = payload_data[TOTAL_WIDTH-177:TOTAL_WIDTH-224];
+            s_arp_spa = payload_data[TOTAL_WIDTH-225:TOTAL_WIDTH-256];
+            s_arp_tha = payload_data[TOTAL_WIDTH-257:TOTAL_WIDTH-304];
+            s_arp_tpa = payload_data[TOTAL_WIDTH-305:TOTAL_WIDTH-336];
+
+            s_frame_valid = 1;
+            
+            xmit_state <= 1;
+            
+        end
+        1: begin
+            
+            xmit_state <= 0;
+            xmit_en <= 0;
+        end
+    endcase
+    
+
+    //$display("get tx_item ='h%h", tx_item); 
+
+
 end
 
 endmodule

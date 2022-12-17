@@ -35,7 +35,7 @@ import cocotb_test.simulator
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge
+from cocotb.triggers import RisingEdge, FallingEdge
 from cocotb.regression import TestFactory
 
 from cocotbext.axi import AxiStreamBus, AxiStreamSink
@@ -125,28 +125,75 @@ async def run_test(dut, idle_inserter=None, backpressure_inserter=None):
 
     await tb.reset()
 
-    tb.set_idle_generator(idle_inserter)
-    tb.set_backpressure_generator(backpressure_inserter)
+    # tb.set_idle_generator(idle_inserter)
+    # tb.set_backpressure_generator(backpressure_inserter)
 
     eth = Ether(src='5A:51:52:53:54:55', dst='DA:D1:D2:D3:D4:D5')
     arp = ARP(hwtype=1, ptype=0x0800, hwlen=6, plen=4, op=2,
         hwsrc='5A:51:52:53:54:55', psrc='192.168.1.100',
         hwdst='DA:D1:D2:D3:D4:D5', pdst='192.168.1.101')
-    test_pkt = eth / arp
+    pkt = eth / arp
 
-    await tb.send(test_pkt)
+    # 0000  DA D1 D2 D3 D4 D5 5A 51 52 53 54 55 08 06 00 01  ......ZQRSTU....
+    # 0010  08 00 06 04 00 02 5A 51 52 53 54 55 C0 A8 01 64  ......ZQRSTU...d
+    # 0020  DA D1 D2 D3 D4 D5 C0 A8 01 65                    .........e
+    # None
 
-    rx_pkt = await tb.recv()
+    # dad1d2d3d4d55a5152535455080600010800060400025a5152535455c0a80164dad1d2d3d4d5c0a80165
+    
+    # DA D1 D2 D3 D4 D5            目的MAC
+    # 5A 51 52 53 54 55            源MAC
+    # 08 06                        帧类型,0806代表ARP协议帧
+    # 注：后面是arp应答包
+    # 00 01                        硬件类型，指链路层的网络类型，1为以太网
+    # 08 00                        协议类型指要转换的地址类型，0x0800为IP地址 
+    # 06                           硬件地址长度对于以太网地址为6字节，因为MAC地址是48位的
+    # 04                           协议地址长度对于IP地址为4字节，因为IP地址是32位的
+    # 00 02                        操作类型字段，op字段为1表示ARP请求，op字段为2表示ARP应答；值为3，表示进行RARP请求；值为4，表示进行RARP应答。InARP请求报文的操作码0x08，InARP回复报文的操作码0x09
+    # 5A 51 52 53 54 55            源MAC
+    # C0 A8 01 64                  源ip
+    # DA D1 D2 D3 D4 D5            目的MAC
+    # C0 A8 01 65                  目的ip
 
-    tb.log.info("RX packet: %s", repr(rx_pkt))
+    data = hexdump(pkt)
+    print(data)
+    # pkt = raw(pkt)   # 42Byte = 336bit   (14Byte for head)
+    print("pkt:", pkt)
+    print("len:", len(pkt))
+    res = int.from_bytes(pkt, byteorder='big', signed=False)
 
-    assert bytes(rx_pkt) == bytes(test_pkt)
+    print("pkt[Ether].dst:", pkt[Ether].dst)
+    print("mac2str(pkt[Ether].dst):", mac2str(pkt[Ether].dst))
+    # dut.s_eth_dest_mac.value = int.from_bytes(mac2str(pkt[Ether].dst), 'big')
+    # dut.s_eth_src_mac.value = int.from_bytes(mac2str(pkt[Ether].src), 'big')
+    # dut.s_eth_type.value = pkt[Ether].type
+    # dut.s_arp_htype.value = pkt[ARP].hwtype
+    # dut.s_arp_ptype.value = pkt[ARP].ptype
+    # # dut.s_arp_hlen.value = pkt[ARP].hwlen
+    # # dut.s_arp_plen.value = pkt[ARP].plen
+    # dut.s_arp_oper.value = pkt[ARP].op
+    # dut.s_arp_sha.value = int.from_bytes(mac2str(pkt[ARP].hwsrc), 'big')
+    # dut.s_arp_spa.value = atol(pkt[ARP].psrc)
+    # dut.s_arp_tha.value = int.from_bytes(mac2str(pkt[ARP].hwdst), 'big')
+    # dut.s_arp_tpa.value = atol(pkt[ARP].pdst)
 
-    assert tb.header_sink.empty()
-    assert tb.payload_sink.empty()
+    dut.payload_data.value = res
+    dut.xmit_en.value = 1
 
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
+    # await tb.send(test_pkt)
+
+    # rx_pkt = await tb.recv()
+
+    # tb.log.info("RX packet: %s", repr(rx_pkt))
+
+    # assert bytes(rx_pkt) == bytes(test_pkt)
+
+    # assert tb.header_sink.empty()
+    # assert tb.payload_sink.empty()
+
+    await FallingEdge(dut.xmit_en)
+    for i in range(20):
+        await RisingEdge(dut.clk)
 
 
 def cycle_pause():
