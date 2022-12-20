@@ -63,7 +63,7 @@ class TB:
         self.log = logging.getLogger("cocotb.tb")
         self.log.setLevel(logging.DEBUG)
 
-        cocotb.start_soon(Clock(dut.clk, 8, units="ns").start())
+        # cocotb.start_soon(Clock(dut.clk, 8, units="ns").start())
 
         self.header_source = EthHdrSource(EthHdrBus.from_prefix(dut, "s_eth"), dut.clk, dut.rst)
         self.payload_source = AxiStreamSource(AxiStreamBus.from_prefix(dut, "s_eth_payload_axis"), dut.clk, dut.rst)
@@ -184,174 +184,6 @@ async def run_test(dut, idle_inserter=None, backpressure_inserter=None):
 
     print("===============================")
 
-    tb.log.info("Cached read")
-
-    await tb.arp_req_source.send(ArpReqTransaction(ip=atol('192.168.1.100')))
-
-    print("ArpReqTransaction:", ArpReqTransaction(ip=atol('192.168.1.100')))
-
-    resp = await tb.arp_resp_sink.recv()
-
-    tb.log.info("Read value: %s", resp)
-
-    assert not resp.error
-    assert resp.mac == int.from_bytes(mac2str(test_pkt[Ether].src), 'big')
-
-    print("===============================")
-
-    tb.log.info("Uncached read, inside subnet")
-
-    await tb.arp_req_source.send(ArpReqTransaction(ip=atol('192.168.1.102')))
-
-    print("ArpReqTransaction:", ArpReqTransaction(ip=atol('192.168.1.102')))
-
-    # wait for ARP request
-    rx_pkt = await tb.recv()
-
-    tb.log.info("RX packet: %s", repr(rx_pkt))
-
-    assert rx_pkt[Ether].dst.casefold() == "ff:ff:ff:ff:ff:ff".casefold()
-    assert rx_pkt[Ether].src.casefold() == local_mac.casefold()
-    assert rx_pkt[Ether].type == 0x0806
-    assert rx_pkt[ARP].hwtype == 0x0001
-    assert rx_pkt[ARP].ptype == 0x0800
-    assert rx_pkt[ARP].hwlen == 6
-    assert rx_pkt[ARP].plen == 4
-    assert rx_pkt[ARP].op == 1
-    assert rx_pkt[ARP].hwsrc.casefold() == local_mac.casefold()
-    assert rx_pkt[ARP].psrc == local_ip
-    assert rx_pkt[ARP].hwdst.casefold() == "00:00:00:00:00:00".casefold()
-    assert rx_pkt[ARP].pdst == '192.168.1.102'
-
-    print("===============================")
-
-    # generate response
-    eth = Ether(src='6A:61:62:63:64:65', dst=local_mac)
-    arp = ARP(hwtype=1, ptype=0x0800, hwlen=6, plen=4, op=2,
-        hwsrc='6A:61:62:63:64:65', psrc='192.168.1.102',
-        hwdst=local_mac, pdst=local_ip)
-    test_pkt = eth / arp
-
-    await tb.send(test_pkt)
-
-    print("test_pkt:", test_pkt)
-
-    resp = await tb.arp_resp_sink.recv()
-
-    tb.log.info("Read value: %s", resp)
-
-    assert not resp.error
-    assert resp.mac == int.from_bytes(mac2str(test_pkt[Ether].src), 'big')
-
-    print("===============================")
-
-    tb.log.info("Uncached read, outside of subnet")
-
-    await tb.arp_req_source.send(ArpReqTransaction(ip=atol('8.8.8.8')))
-
-    print("ArpReqTransaction:", ArpReqTransaction(ip=atol('8.8.8.8')))
-
-    # wait for ARP request
-    rx_pkt = await tb.recv()
-
-    tb.log.info("RX packet: %s", repr(rx_pkt))
-
-    assert rx_pkt[Ether].dst.casefold() == "ff:ff:ff:ff:ff:ff".casefold()
-    assert rx_pkt[Ether].src.casefold() == local_mac.casefold()
-    assert rx_pkt[Ether].type == 0x0806
-    assert rx_pkt[ARP].hwtype == 0x0001
-    assert rx_pkt[ARP].ptype == 0x0800
-    assert rx_pkt[ARP].hwlen == 6
-    assert rx_pkt[ARP].plen == 4
-    assert rx_pkt[ARP].op == 1
-    assert rx_pkt[ARP].hwsrc.casefold() == local_mac.casefold()
-    assert rx_pkt[ARP].psrc == local_ip
-    assert rx_pkt[ARP].hwdst.casefold() == "00:00:00:00:00:00".casefold()
-    assert rx_pkt[ARP].pdst == gateway_ip
-
-    print("===============================")
-
-    # generate response
-    eth = Ether(src='AA:BB:CC:DD:EE:FF', dst=local_mac)
-    arp = ARP(hwtype=1, ptype=0x0800, hwlen=6, plen=4, op=2,
-        hwsrc='AA:BB:CC:DD:EE:FF', psrc='192.168.1.1',
-        hwdst=local_mac, pdst=local_ip)
-    test_pkt = eth / arp
-
-    await tb.send(test_pkt)
-    
-    print("test_pkt:", test_pkt)
-
-    resp = await tb.arp_resp_sink.recv()
-
-    tb.log.info("Read value: %s", resp)
-
-    assert not resp.error
-    assert resp.mac == int.from_bytes(mac2str(test_pkt[Ether].src), 'big')
-
-    print("===============================")
-
-    tb.log.info("Uncached read, timeout")
-
-    await tb.arp_req_source.send(ArpReqTransaction(ip=atol('192.168.1.103')))
-
-    print("ArpReqTransaction:", ArpReqTransaction(ip=atol('192.168.1.103')))
-
-    # wait for ARP request
-    for k in range(4):
-        rx_pkt = await tb.recv()
-
-        print("rx_pkt:", rx_pkt)
-
-        tb.log.info("RX packet: %s", repr(rx_pkt))
-
-        assert rx_pkt[Ether].dst.casefold() == "ff:ff:ff:ff:ff:ff".casefold()
-        assert rx_pkt[Ether].src.casefold() == local_mac.casefold()
-        assert rx_pkt[Ether].type == 0x0806
-        assert rx_pkt[ARP].hwtype == 0x0001
-        assert rx_pkt[ARP].ptype == 0x0800
-        assert rx_pkt[ARP].hwlen == 6
-        assert rx_pkt[ARP].plen == 4
-        assert rx_pkt[ARP].op == 1
-        assert rx_pkt[ARP].hwsrc.casefold() == local_mac.casefold()
-        assert rx_pkt[ARP].psrc == local_ip
-        assert rx_pkt[ARP].hwdst.casefold() == "00:00:00:00:00:00".casefold()
-        assert rx_pkt[ARP].pdst == '192.168.1.103'
-
-    resp = await tb.arp_resp_sink.recv()
-
-    tb.log.info("Read value: %s", resp)
-
-    assert resp.error
-
-    print("===============================")
-
-    tb.log.info("Broadcast")
-
-    await tb.arp_req_source.send(ArpReqTransaction(ip=atol('192.168.1.255')))
-
-    print("ArpReqTransaction:", ArpReqTransaction(ip=atol('192.168.1.255')))
-
-    resp = await tb.arp_resp_sink.recv()
-
-    tb.log.info("Read value: %s", resp)
-
-    assert not resp.error
-    assert resp.mac == int.from_bytes(mac2str('FF:FF:FF:FF:FF:FF'), 'big')
-
-    print("===============================")
-
-    await tb.arp_req_source.send(ArpReqTransaction(ip=atol('255.255.255.255')))
-
-    print("ArpReqTransaction:", ArpReqTransaction(ip=atol('255.255.255.255')))
-
-    resp = await tb.arp_resp_sink.recv()
-
-    tb.log.info("Read value: %s", resp)
-
-    assert not resp.error
-    assert resp.mac == int.from_bytes(mac2str('FF:FF:FF:FF:FF:FF'), 'big')
-
     print("===============end================")
 
     assert tb.header_sink.empty()
@@ -368,8 +200,8 @@ def cycle_pause():
 if cocotb.SIM_NAME:
 
     factory = TestFactory(run_test)
-    factory.add_option("idle_inserter", [None, cycle_pause])
-    factory.add_option("backpressure_inserter", [None, cycle_pause])
+    # factory.add_option("idle_inserter", [None, cycle_pause])
+    # factory.add_option("backpressure_inserter", [None, cycle_pause])
     factory.generate_tests()
 
 

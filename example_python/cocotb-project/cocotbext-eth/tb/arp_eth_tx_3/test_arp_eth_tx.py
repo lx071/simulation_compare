@@ -191,8 +191,9 @@ async def run_test(dut, idle_inserter=None, backpressure_inserter=None):
     # assert tb.header_sink.empty()
     # assert tb.payload_sink.empty()
 
-    await FallingEdge(dut.xmit_en)
-    for i in range(20):
+    await FallingEdge(dut.m_eth_payload_axis_tlast)
+
+    for i in range(2):
         await RisingEdge(dut.clk)
 
 
