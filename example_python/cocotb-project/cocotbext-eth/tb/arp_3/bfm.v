@@ -201,8 +201,8 @@ initial begin
     subnet_mask = 0;
     clear_cache = 0;
 
-    $dumpfile("dump.vcd");
-    $dumpvars;
+    //$dumpfile("dump.vcd");
+    //$dumpvars;
 end
 
 reg tx_en = 0;
@@ -239,6 +239,7 @@ always @(posedge tck) begin
 
             s_eth_payload_axis_tkeep = 1;
             s_eth_payload_axis_tvalid = 1;
+            s_eth_payload_axis_tdata = 0;
 
             xmit_state <= 1;
 

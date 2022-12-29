@@ -147,50 +147,50 @@ async def run_test(dut, idle_inserter=None, backpressure_inserter=None):
     for k in range(10):
         await RisingEdge(dut.clk)
 
-    print("==============start=================")
+    # print("==============start=================")
+    
+    for i in range(50):
 
-    tb.log.info("test ARP request")
+        # tb.log.info("test ARP request")
 
-    eth = Ether(src='5A:51:52:53:54:55', dst='FF:FF:FF:FF:FF:FF')
-    arp = ARP(hwtype=1, ptype=0x0800, hwlen=6, plen=4, op=1,
-        hwsrc='5A:51:52:53:54:55', psrc='192.168.1.100',
-        hwdst='00:00:00:00:00:00', pdst='192.168.1.101')
-    test_pkt = eth / arp
+        eth = Ether(src='5A:51:52:53:54:55', dst='FF:FF:FF:FF:FF:FF')
+        arp = ARP(hwtype=1, ptype=0x0800, hwlen=6, plen=4, op=1,
+            hwsrc='5A:51:52:53:54:55', psrc='192.168.1.100',
+            hwdst='00:00:00:00:00:00', pdst='192.168.1.101')
+        test_pkt = eth / arp
 
-    await tb.send(test_pkt)
+        await tb.send(test_pkt)
 
-    print("test_pkt:", test_pkt)
+        # print("test_pkt:", test_pkt)
 
-    print("send:\n", hexdump(test_pkt))
+        # print("send:\n", hexdump(test_pkt))
 
-    rx_pkt = await tb.recv()
+        rx_pkt = await tb.recv()
 
-    print("receive:\n", hexdump(rx_pkt))
+        # print("receive:\n", hexdump(rx_pkt))
 
-    tb.log.info("RX packet: %s", repr(rx_pkt))
+        # tb.log.info("RX packet: %s", repr(rx_pkt))
 
-    assert rx_pkt[Ether].dst.casefold() == test_pkt[Ether].src.casefold()
-    assert rx_pkt[Ether].src.casefold() == local_mac.casefold()
-    assert rx_pkt[Ether].type == test_pkt[Ether].type
-    assert rx_pkt[ARP].hwtype == test_pkt[Ether].hwtype
-    assert rx_pkt[ARP].ptype == test_pkt[Ether].ptype
-    assert rx_pkt[ARP].hwlen == test_pkt[Ether].hwlen
-    assert rx_pkt[ARP].plen == test_pkt[Ether].plen
-    assert rx_pkt[ARP].op == 2
-    assert rx_pkt[ARP].hwsrc.casefold() == local_mac.casefold()
-    assert rx_pkt[ARP].psrc == local_ip
-    assert rx_pkt[ARP].hwdst.casefold() == test_pkt[ARP].hwsrc.casefold()
-    assert rx_pkt[ARP].pdst == test_pkt[ARP].psrc
+        assert rx_pkt[Ether].dst.casefold() == test_pkt[Ether].src.casefold()
+        assert rx_pkt[Ether].src.casefold() == local_mac.casefold()
+        assert rx_pkt[Ether].type == test_pkt[Ether].type
+        assert rx_pkt[ARP].hwtype == test_pkt[Ether].hwtype
+        assert rx_pkt[ARP].ptype == test_pkt[Ether].ptype
+        assert rx_pkt[ARP].hwlen == test_pkt[Ether].hwlen
+        assert rx_pkt[ARP].plen == test_pkt[Ether].plen
+        assert rx_pkt[ARP].op == 2
+        assert rx_pkt[ARP].hwsrc.casefold() == local_mac.casefold()
+        assert rx_pkt[ARP].psrc == local_ip
+        assert rx_pkt[ARP].hwdst.casefold() == test_pkt[ARP].hwsrc.casefold()
+        assert rx_pkt[ARP].pdst == test_pkt[ARP].psrc
 
-    print("===============================")
+        for j in range(2):
+            await RisingEdge(dut.clk)
 
-    print("===============end================")
+    # print("===============================")
 
-    assert tb.header_sink.empty()
-    assert tb.payload_sink.empty()
+    # print("===============end================")
 
-    await RisingEdge(dut.clk)
-    await RisingEdge(dut.clk)
 
 
 def cycle_pause():
