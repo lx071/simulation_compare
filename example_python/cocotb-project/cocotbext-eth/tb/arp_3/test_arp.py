@@ -206,6 +206,9 @@ async def run_test(dut, idle_inserter=None, backpressure_inserter=None):
         rx_pkt = rx_eth / bytes(dut.rx_arp_payload_data.value.integer.to_bytes(28, 'big'))
         rx_pkt = Ether(bytes(rx_pkt))
 
+        # data = hexdump(rx_pkt)
+        # print(data)
+
         # casefold可以将字符串中的大写字符转换为小写字符
 
         assert rx_pkt[Ether].dst.casefold() == tx_pkt[Ether].src.casefold()
