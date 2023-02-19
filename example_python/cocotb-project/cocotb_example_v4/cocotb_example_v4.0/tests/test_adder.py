@@ -25,12 +25,11 @@ async def adder_basic_test(dut):
     item_bit_width = [8, 8]
     package = data_package(item_attr_name, item_bit_width)
     # 2000packages = 2000 * 100 data
-    for k in range(200):
+    for k in range(20000):
         package.data = []
-        # 2bytes * 100 = 200bytes = 1600bit 
-        for j in range(100):
-            package.data.append([j, j])
-            pass
+        # 2bytes * 100 = 200bytes = 1600bit
+        package.data = [[i, i] for i in range(100)] 
+        
         value = join(package)
         dut.data.value = value
         dut.xmit_en.value = 1
