@@ -6,7 +6,7 @@ import cocotb
 from cocotb.triggers import FallingEdge, RisingEdge
 import random
 # from utils import join
-import numpy as np
+
 
 @cocotb.test()
 async def adder_basic_test(dut):
@@ -14,11 +14,13 @@ async def adder_basic_test(dut):
     # 2000000times = 20000 * 100(1600bit) = 100000 * 20(320bit) = 40000 * 50(800bit) = 10000 * 200(3200bit)
 
     await FallingEdge(dut.reset_i)
-    li = np.array([[i, i] for i in range(100)]).flatten().tolist()
 
     for k in range(20000):
         # 2bytes * 100 = 200bytes = 1600bit 
-        dut.data.value = li
+        dut.A1.value = [i for i in range(50)]
+        dut.B1.value = [i for i in range(50)]
+        dut.A2.value = [i for i in range(50, 100)]
+        dut.B2.value = [i for i in range(50, 100)]
         
         dut.xmit_en.value = 1
         await FallingEdge(dut.xmit_en)

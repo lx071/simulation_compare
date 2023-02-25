@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
 
 module wrapper#(
-    parameter int NUMS = 200
+    parameter int NUMS = 100
 )(
 //input   clk_i,
 //input   reset_i,
@@ -16,7 +16,7 @@ int clk_num = 0;
 int num = 0;
 reg xmit_en = 0;
 
-reg [7:0] data[NUMS];
+reg [15:0] data[NUMS];
 
 reg [7:0] A_s;
 reg [7:0] B_s;
@@ -53,8 +53,8 @@ always @(posedge clk_i) begin
         B_s <= 8'h0;
     end else begin   
         if(xmit_en) begin
-            A_s <= data[num*2];
-            B_s <= data[num*2+1];
+            A_s <= data[num][7:0];
+            B_s <= data[num][15:8];
 
             num = num + 1;
         end
