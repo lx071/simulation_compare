@@ -1,13 +1,15 @@
 `timescale 1ns/1ps
 
-module wrapper(
+module wrapper#(
+    parameter integer ITEM_WIDTH=16,
+    parameter integer NUM=100,
+    parameter integer RESET_DELAY=5
+)
+(
 //input   clk_i,
 //input   reset_i,
 output  reg [7:0] res_o
 );
-
-parameter ITEM_WIDTH=16;
-parameter NUM=100;
 
 bit clk_i, reset_i;
 int clk_num = 0;
@@ -26,6 +28,8 @@ always #5 clk_i = ~clk_i;
 initial begin
     clk_i = 0;
     reset_i = 1;
+    repeat(RESET_DELAY) @(posedge clk_i);
+    reset_i = 0;
     
 end
 
@@ -38,13 +42,6 @@ bfm inst_bfm(
 );
 
 always @(posedge clk_i) begin
-
-    if(clk_num<=10) begin
-        clk_num = clk_num + 1;
-    end 
-    if(clk_num==10) begin
-        reset_i = 0;
-    end
 
     if(reset_i) begin
         A_s <= 8'h0;
