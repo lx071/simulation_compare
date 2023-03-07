@@ -28,8 +28,10 @@ async def adder_basic_test(dut):
     # 2000packages = 2000 * 100 data
     t = 0
 
+    repeat_n = 20000
+    joint_n = 100
     
-    for k in range(20000):
+    for k in range(repeat_n):
 
         # read handshake signals
         tready_sample = dut.tready.value
@@ -42,7 +44,7 @@ async def adder_basic_test(dut):
             
             package.data = []
             # 2bytes * 100 = 200bytes = 1600bit
-            package.data = [[i, i] for i in range(100)] 
+            package.data = [[i, i] for i in range(joint_n)] 
             
             value = join(package)
             t2 = time.time()
