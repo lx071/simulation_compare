@@ -10,7 +10,7 @@ target_link_libraries(test_adder PRIVATE pybind11::embed)
 
 set(SHARED_LIB_EXT ".so")
 
-add_definitions(-DPYTHON_LIBRARY="/usr/lib/x86_64-linux-gnu/libpython3.10.so")
+add_definitions(-DPYTHON_LIBRARY="/usr/lib/x86_64-linux-gnu/libpython3.8.so")
 
 set_target_properties(test_adder PROPERTIES PREFIX ""
         SUFFIX ${SHARED_LIB_EXT})

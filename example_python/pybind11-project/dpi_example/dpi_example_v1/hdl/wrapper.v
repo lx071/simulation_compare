@@ -1,29 +1,33 @@
 `timescale 1ns/1ps
 
-module wrapper(
+module wrapper#(
+    parameter integer RESET_DELAY=5,
+    parameter int LENGTH = 2000000
+)(
 //input   clk_i,
 //input   reset_i,
-output  reg [7:0] res_o
+output  reg [15:0] res_o
 );
 
-parameter PACKAGE_WIDTH=2400;
-parameter NUM=100;
-
+import "DPI-C" function void gen_rand_arr(output bit [7:0] nums []);
 
 bit clk_i, reset_i;
 
 always #5 clk_i = ~clk_i;
 
-reg xmit_en = 0;
-reg [PACKAGE_WIDTH-1:0] data;
-int num = 0;
-int clk_num = 0;
 reg start;
 //reg [15:0] result;
 
 reg [7:0] A_s;
 reg [7:0] B_s;
 reg [2:0] op_s;
+reg done;
+
+bit [7:0] data[LENGTH*3-1:0]; 
+
+initial begin
+    gen_rand_arr(data);
+end
 
 initial begin
     clk_i = 0;
@@ -33,6 +37,8 @@ initial begin
     op_s = 0;
     start = 0;
     data = 0;
+    repeat(RESET_DELAY) @(posedge clk_i);
+    reset_i = 1;
 end
 
 bfm inst_bfm(
@@ -41,39 +47,32 @@ bfm inst_bfm(
     .A_s(A_s),
     .B_s(B_s),
     .op_s(op_s),
+    .start(start),
+    .done(done),
     .res_o(res_o)
 );
 
+int pointer = 0;
 
 always @(posedge clk_i) begin
-
-    if(clk_num<=10) begin
-        clk_num = clk_num + 1;
-    end 
-    if(clk_num==10) begin
-        reset_i = 1;
-    end
 
     if(!reset_i) begin
         A_s <= 8'h0;
         B_s <= 8'h0;
         op_s <= 3'h0;
-        start <= 0;
     end else begin   
-        if(xmit_en) begin
-            op_s <= data[2:0];
-            A_s <= data[15:8];
-            B_s <= data[23:16];
-            start <= 1;
-            data = (data >> 24);
-            num = num + 1;
-        end    
-        if(num >= NUM) begin
-            num = 0;
-            xmit_en = xmit_en - 1;
-        end 
+        
+        op_s <= data[pointer*3+0][2:0];
+        A_s <= data[pointer*3+1];
+        B_s <= data[pointer*3+2];
+        start <= 1;
+        pointer = pointer + 1;
+    end    
 
-    end
+    if(pointer >= LENGTH) begin
+        pointer = 0;
+        #2 $finish;
+    end 
 end
 
 

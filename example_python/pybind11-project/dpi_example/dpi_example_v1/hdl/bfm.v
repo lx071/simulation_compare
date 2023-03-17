@@ -6,6 +6,8 @@ input   reset_i,
 input   [7:0] A_s,
 input   [7:0] B_s,
 input   [2:0] op_s,
+input   start,
+output  done,
 output  reg [15:0] res_o
 );
 

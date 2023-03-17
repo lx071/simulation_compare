@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 module tinyalu (
 		input clk,
 		input [7:0] A,
@@ -14,6 +15,9 @@ module tinyalu (
 
 	//initial clk = 0;
 	//always #5 clk = ~clk;
+
+	reg done_aax;
+	reg done_mult;
 
        
    assign start_single = start & ~op[2];
@@ -47,9 +51,10 @@ module single_cycle(input [7:0] A,
       result <= 0;
     else
       case(op)
-		3'b001 : result <= A + B;
-		3'b010 : result <= A & B;
-		3'b011 : result <= A ^ B;
+		3'b001 : result <= {8'b0, A + B};
+		3'b010 : result <= {8'b0, A & B};
+		3'b011 : result <= {8'b0, A ^ B};
+		default: result <= 16'b0;
       endcase // case (op)
 
    always @(posedge clk)

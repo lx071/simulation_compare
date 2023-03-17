@@ -22,11 +22,21 @@ extern "C" __attribute__((visibility("default")))
         auto np = py::module::import("numpy");
 
         // or change to be exec
-        auto from_arr = np.attr("random")
-                        .attr("randint")(0, 127, len, "byte").cast<py::array_t<uint8_t>>();
+        auto op = np.attr("random")
+                        .attr("randint")(1, 2, len/3, "byte").cast<py::array_t<uint8_t>>();
+        
+        auto a = np.attr("random")
+                        .attr("randint")(0, 127, len/3, "byte").cast<py::array_t<uint8_t>>();
+        
+        auto b = np.attr("random")
+                        .attr("randint")(0, 127, len/3, "byte").cast<py::array_t<uint8_t>>();
 
-        for(int i = 0; i<len; ++i){
-            *(uint8_t*)svGetArrElemPtr1(arr, i) = from_arr.at(i);
+        for(int i = 0; i<len/3; ++i){
+        
+            *(uint8_t*)svGetArrElemPtr1(arr, i*3) = op.at(i);
+            *(uint8_t*)svGetArrElemPtr1(arr, i*3+1) = a.at(i);
+            *(uint8_t*)svGetArrElemPtr1(arr, i*3+2) = b.at(i);
+            
         }
         gettimeofday(&t2, NULL);
 
