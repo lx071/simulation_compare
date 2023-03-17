@@ -5,6 +5,6 @@ def join(data_package):
     res = 0
     for i in range(len(data)):
         for j in range(len(item_bit_width)):
-            res = (res << item_bit_width[j]) + data[i][j]
+            res = (res << item_bit_width[j]) | data[i][j]
         pass
     return res

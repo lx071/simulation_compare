@@ -11,6 +11,7 @@ reg [7:0] B_s;
 
 parameter PACKAGE_WIDTH=1600;
 parameter NUM=100;
+parameter RESET_DELAY=10;
 
 bit clk_i, reset_i;
 
@@ -19,7 +20,6 @@ always #5 clk_i = ~clk_i;
 reg xmit_en = 0;
 reg [PACKAGE_WIDTH-1:0] data;
 int num = 0;
-int clk_num = 0;
 
 initial begin
     clk_i = 0;
@@ -27,6 +27,8 @@ initial begin
     A_s = 0;
     B_s = 0;
     data = 0;
+    repeat(RESET_DELAY) @(posedge clk_i);
+    reset_i = 0;
 end
 
 MyTopLevel inst_add(
@@ -38,13 +40,6 @@ MyTopLevel inst_add(
 );
 
 always @(posedge clk_i) begin
-
-    if(clk_num<=10) begin
-        clk_num = clk_num + 1;
-    end 
-    if(clk_num==10) begin
-        reset_i = 0;
-    end
 
     if(reset_i) begin
         A_s <= 8'h0;

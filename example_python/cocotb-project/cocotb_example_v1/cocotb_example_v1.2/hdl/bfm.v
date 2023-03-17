@@ -12,6 +12,7 @@ reg [2:0] op_s;
 
 parameter PACKAGE_WIDTH=2400;
 parameter NUM=100;
+parameter RESET_DELAY=10;
 
 bit clk_i, reset_i;
 
@@ -32,6 +33,8 @@ initial begin
     op_s = 0;
     start = 0;
     data = 0;
+    repeat(RESET_DELAY) @(posedge clk_i);
+    reset_i = 0;
 end
 
 tinyalu inst_tinyalu(
@@ -46,13 +49,6 @@ tinyalu inst_tinyalu(
 );
 
 always @(posedge clk_i) begin
-
-    if(clk_num<=10) begin
-        clk_num = clk_num + 1;
-    end 
-    if(clk_num==10) begin
-        reset_i = 1;
-    end
 
     if(!reset_i) begin
         A_s <= 8'h0;

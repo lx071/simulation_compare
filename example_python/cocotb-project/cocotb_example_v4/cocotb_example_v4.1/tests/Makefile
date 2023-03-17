@@ -7,7 +7,7 @@ PWD=$(shell pwd)
 
 ifeq ($(TOPLEVEL_LANG),verilog)
     # VERILOG_SOURCES = $(PWD)/../hdl/adder.sv
-    VERILOG_SOURCES += $(PWD)/../hdl/tinyalu.sv
+    VERILOG_SOURCES += $(PWD)/../hdl/MyTopLevel.v
     VERILOG_SOURCES += $(PWD)/../hdl/bfm.v
     VERILOG_SOURCES += $(PWD)/../hdl/wrapper.v
 else ifeq ($(TOPLEVEL_LANG),vhdl)
