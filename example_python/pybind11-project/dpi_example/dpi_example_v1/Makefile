@@ -6,7 +6,7 @@ compile:
 
 exec:
 	verilator --cc --exe --sv --timing --build hdl/tinyalu.sv hdl/bfm.v hdl/wrapper.v sim_main.cpp ../test_adder.so
-	//verilator --cc --trace --exe --sv --timing --build hdl/MyTopLevel.v hdl/bfm.v hdl/wrapper.sv sim_main.cpp ../test_adder.so
+	# verilator --cc --trace --exe --sv --timing --build hdl/tinyalu.sv hdl/bfm.v hdl/wrapper.v sim_main.cpp ../test_adder.so
 
 run:
 	cd obj_dir&&./VMyTopLevel&&cd ..

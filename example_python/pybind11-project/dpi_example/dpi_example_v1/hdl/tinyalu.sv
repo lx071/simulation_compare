@@ -61,7 +61,7 @@ module single_cycle(input [7:0] A,
      if (!reset_n)
        done <= 0;
      else
-       done =  ((start == 1'b1) && (op != 3'b000));
+       done <=  ((start == 1'b1) && (op != 3'b000));
 
 endmodule : single_cycle
 
