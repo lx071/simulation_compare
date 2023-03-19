@@ -1,20 +1,8 @@
-# This is a Makefile
-
-# 编译、elaboration、仿真
-
-# 编译: 就是识别Verilog文件，转成内部的数据库。经过编译后，各个Verilog文件在库里是独立的.
-
-# elaboration: 就是把库里的数据，有机的组织成一个树型结构，树的顶端是root，往下是tb或者设计顶层，然后是例化的子模块.
-# 经过处理后，这个树型结构就可以准确的表达整个设计（包括testbench）。elaboration最终会输出一个类似汇编的vvp文件.
-
-# 仿真
-# 仿真时读入vvp文件，送进vvp虚拟机执行.
-
+VERILOG_SOURCES += $(PWD)/../hdl/PoseidonTopLevel.v
+VERILOG_SOURCES += $(PWD)/../hdl/PoseidonTopLevelTestbench.v
 VERILOG_SOURCES += $(PWD)/../hdl/ModAdder.v
 VERILOG_SOURCES += $(PWD)/../hdl/MontMultiplierBasics.v
 VERILOG_SOURCES += $(PWD)/../hdl/ModMultiplier.v
-VERILOG_SOURCES += $(PWD)/../hdl/PoseidonTopLevel.v
-VERILOG_SOURCES += $(PWD)/../hdl/PoseidonTopLevelTestbench.v
 
 all: first compile second
 
@@ -32,17 +20,14 @@ end:
 
 # only make compile
 compile:
-	verilator --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
-
-	
+	# verilator --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
+	galaxsim ${VERILOG_SOURCES}
+        
 # only make visual ( make .elf file to the .vcd file )
-
-visual:
-	vvp -n run.out
-
 
 exec:
 	python test.py
 
 clean:
-	rm -rf dump.vcd run.out
+	rm -rf xsim* dump.vcd run.out
+	
