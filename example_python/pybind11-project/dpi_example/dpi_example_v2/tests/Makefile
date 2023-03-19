@@ -10,7 +10,13 @@
 # 仿真
 # 仿真时读入vvp文件，送进vvp虚拟机执行.
 
-all: first compile second visual end
+VERILOG_SOURCES += $(PWD)/../hdl/ModAdder.v
+VERILOG_SOURCES += $(PWD)/../hdl/MontMultiplierBasics.v
+VERILOG_SOURCES += $(PWD)/../hdl/ModMultiplier.v
+VERILOG_SOURCES += $(PWD)/../hdl/PoseidonTopLevel.v
+VERILOG_SOURCES += $(PWD)/../hdl/PoseidonTopLevelTestbench.v
+
+all: first compile second
 
 first:
 	date +%M.%s.%N
@@ -26,8 +32,9 @@ end:
 
 # only make compile
 compile:
-	iverilog -o run.out ./../hdl/*.v
+	verilator --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
 
+	
 # only make visual ( make .elf file to the .vcd file )
 
 visual:
