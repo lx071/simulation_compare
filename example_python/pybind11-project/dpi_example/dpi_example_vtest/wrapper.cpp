@@ -71,20 +71,14 @@ void c_py_gen_packet(svBitVecVal* data)
     py::module_ utils = py::module_::import("harness_utils");
 
     std::cout<<"c_py_gen_packet_cpp"<<std::endl;
-    static unsigned char tmp[32] = {{0}};
-    //py::module_ utils = py::module_::import("utils.harness_utils");
+    //static unsigned char tmp[32] = {{0}};
     py::bytes result = utils.attr("send_msg")();
     Py_ssize_t size = PyBytes_GET_SIZE(result.ptr());
     char * ptr = PyBytes_AsString(result.ptr());    //# low bit 01 02 03 ... 20 high bit
     std::cout<<"size:"<<size<<std::endl;
     // std::cout<<ptr<<std::endl;
-    int i;
-    for(i = 0; i < size; i++)
-    {
-        // tmp[254-i] = ptr[i];    
-        std::cout<<std::hex<<ptr[i];  
-    }
-    memcpy(data, ptr, 32);
+    
+    memcpy(data, ptr, 957);
 }
 
 extern "C" __attribute__((visibility("default")))

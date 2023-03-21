@@ -20,10 +20,18 @@ def recv(data):
 
 def send_msg():
 
-    ref_input = 0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f
+    ref_input_0 = 0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f
+    ref_input_1 = 0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f
+    ref_input_2 = 0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f
     ref_output = 0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797
-    print('%#x'%ref_input)
-    bytes_val = ref_input.to_bytes(32, 'big')
+
+    # ref_input = (ref_input_0 << 510) + (ref_input_1 << 255) + ref_input_2
+    ref_input = 0
+    for i in range(30):
+        ref_input = (ref_input << 255) + ref_input_0
+
+    # print('%#x'%ref_input)
+    bytes_val = ref_input.to_bytes(957, 'little')
     return bytes_val
     pass
 
