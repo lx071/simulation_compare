@@ -1,6 +1,6 @@
 import "DPI-C" function void gen_rand_arr(output bit [7:0] nums []);
 import "DPI-C" function void recv (input int data);
-import "DPI-C" function void c_py_gen_packet(output bit[9:0][2:0][254:0] pkt);
+import "DPI-C" function void c_py_gen_packet(output bit[99:0][2:0][254:0] pkt);
 //import "DPI-C" function void c_py_gen_packet(output bit[764:0] pkt);
 
 
@@ -22,7 +22,7 @@ module bfm (
     reg flag = 1;
     reg [8:0] num = 0;
 
-    bit[9:0][2:0][254:0] data;
+    bit[99:0][2:0][254:0] data;
 
     initial begin
         clk = 0;
@@ -83,7 +83,7 @@ module bfm (
             flag = 1;
         end
 
-        if(xmit_en && num >= 10) begin
+        if(xmit_en && num >= 100) begin
             xmit_en = 0;     
             num = 0;   
         end

@@ -27,11 +27,11 @@ def send_msg():
 
     # ref_input = (ref_input_0 << 510) + (ref_input_1 << 255) + ref_input_2
     ref_input = 0
-    for i in range(30):
+    for i in range(300):
         ref_input = (ref_input << 255) + ref_input_0
 
     # print('%#x'%ref_input)
-    bytes_val = ref_input.to_bytes(957, 'little')
+    bytes_val = ref_input.to_bytes(9563, 'little')
     return bytes_val
     pass
 
