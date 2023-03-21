@@ -78,7 +78,7 @@ void c_py_gen_packet(svBitVecVal* data)
     std::cout<<"size:"<<size<<std::endl;
     // std::cout<<ptr<<std::endl;
     
-    memcpy(data, ptr, 957);
+    memcpy(data, ptr, size);
 }
 
 extern "C" __attribute__((visibility("default")))

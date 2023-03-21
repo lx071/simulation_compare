@@ -1,3 +1,9 @@
+import "DPI-C" function void gen_rand_arr(output bit [7:0] nums []);
+import "DPI-C" function void recv (input int data);
+import "DPI-C" function void c_py_gen_packet(output bit[9:0][2:0][254:0] pkt);
+//import "DPI-C" function void c_py_gen_packet(output bit[764:0] pkt);
+
+
 module bfm (
     
 );
@@ -16,12 +22,31 @@ module bfm (
     reg flag = 1;
     reg [8:0] num = 0;
 
+    bit[9:0][2:0][254:0] data;
+
     initial begin
         clk = 0;
         forever #5 clk = ~clk;
     end
 
     initial begin
+        c_py_gen_packet(data);
+    
+        //$display("get data ='h%h",data[254:0]);
+        //$display("get data ='h%h",data[509:255]);
+        //$display("get data ='h%h",data[764:510]);
+        $display("get data ='h%h",data[0][0]);
+        $display("get data ='h%h",data[0][1]);
+        $display("get data ='h%h",data[0][2]);
+        $display("get data ='h%h",data[1][0]);
+        $display("get data ='h%h",data[1][1]);
+        $display("get data ='h%h",data[1][2]);
+        $display("get data ='h%h",data[2][0]);
+        $display("get data ='h%h",data[2][1]);
+        $display("get data ='h%h",data[2][2]);
+        
+        recv(321);
+
         io_input_payload = 0;
         io_input_valid = 0;
         io_input_last = 0;

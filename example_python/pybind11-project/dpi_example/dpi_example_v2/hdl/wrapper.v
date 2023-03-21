@@ -10,6 +10,10 @@ output  reg [15:0] res_o
 );
 
 import "DPI-C" function void gen_rand_arr(output bit [7:0] nums []);
+import "DPI-C" function void recv (input int data);
+import "DPI-C" function void c_py_gen_packet(output bit[9:0][2:0][254:0] pkt);
+//import "DPI-C" function void c_py_gen_packet(output bit[764:0] pkt);
+
 
 bit clk_i, reset_i;
 
