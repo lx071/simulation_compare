@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.4)
 set(CMAKE_CXX_STANDARD 11)
-project(test_adder)
+project(test_hash)
 
 find_package(pybind11 REQUIRED)
 
