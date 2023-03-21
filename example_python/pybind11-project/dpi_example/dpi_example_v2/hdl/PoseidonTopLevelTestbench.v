@@ -32,18 +32,9 @@ module bfm (
     initial begin
         c_py_gen_packet(data);
     
-        //$display("get data ='h%h",data[254:0]);
-        //$display("get data ='h%h",data[509:255]);
-        //$display("get data ='h%h",data[764:510]);
         $display("get data ='h%h",data[0][0]);
         $display("get data ='h%h",data[0][1]);
         $display("get data ='h%h",data[0][2]);
-        $display("get data ='h%h",data[1][0]);
-        $display("get data ='h%h",data[1][1]);
-        $display("get data ='h%h",data[1][2]);
-        $display("get data ='h%h",data[2][0]);
-        $display("get data ='h%h",data[2][1]);
-        $display("get data ='h%h",data[2][2]);
         
         recv(321);
 
@@ -66,14 +57,18 @@ module bfm (
         end
 
         if(xmit_en && flag) begin
-            num = num + 1;
-            io_input_valid = 1;
-            io_input_payload = ref_input;
             
+            io_input_valid = 1;
+            //io_input_payload = ref_input;
+            io_input_payload = data[num][i];
+            
+            $display("get data =[%d][%d]'h%h", num, i, io_input_payload);
+
             i = i + 1;
             if(i == 3) begin
                 io_input_last = 1;
                 i = 0;
+                num = num + 1;
             end else begin
                 io_input_last = 0;
             end
@@ -88,7 +83,7 @@ module bfm (
             flag = 1;
         end
 
-        if(xmit_en && num >= 300) begin
+        if(xmit_en && num >= 10) begin
             xmit_en = 0;     
             num = 0;   
         end
