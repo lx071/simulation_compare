@@ -14,6 +14,7 @@ def add(a, b):
 
 
 def recv(data):
+    print("recv_python")
     print('recv_python:', data)
 
 

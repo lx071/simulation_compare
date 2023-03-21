@@ -60,14 +60,13 @@ extern "C" __attribute__((visibility("default")))
         // delete guard;
 }
 
-extern void c_py_gen_packet(svBitVecVal* data);
-extern void recv(int data);
 
+extern "C" __attribute__((visibility("default")))
 void c_py_gen_packet(svBitVecVal* data) 
 {
     static unsigned char tmp[256] = {{0}};
     py::module_ utils = py::module_::import("utils.harness_utils");
-    py::bytes result = utils.attr(func_name)();
+    py::bytes result = utils.attr("send_msg")();
     Py_ssize_t size = PyBytes_GET_SIZE(result.ptr());
     char * ptr = PyBytes_AsString(result.ptr());    //# low bit 01 02 03 ... 20 high bit
     int i;
@@ -78,8 +77,20 @@ void c_py_gen_packet(svBitVecVal* data)
     memcpy(data, ptr, 256);
 }
 
+extern "C" __attribute__((visibility("default")))
 void recv(int data) 
 {
-    py::module_ utils = py::module_::import("utils.harness_utils");
+    py::scoped_interpreter guard;
+
+    py::module_ sys = py::module_::import("sys");
+    py::list path = sys.attr("path");
+
+    path.attr("append")("../utils");
+    
+    py::print(sys.attr("path"));
+
+    std::cout << "recv_cpp" << std::endl;
+    py::module_ utils = py::module_::import("harness_utils");
+
     utils.attr("recv")(data);
 }

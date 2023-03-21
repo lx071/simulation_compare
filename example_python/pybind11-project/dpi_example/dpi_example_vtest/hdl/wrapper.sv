@@ -1,4 +1,7 @@
 import "DPI-C" function void gen_rand_arr(output bit [7:0] nums []);
+import "DPI-C" function void recv (input int data);
+import "DPI-C" function void c_py_gen_packet(output bit[2047:0] pkt);
+//import "DPI-C" function void c_py_gen_packet(output bit[4095:0] pkt);
 
 `timescale 1ns/1ps
 
@@ -27,7 +30,9 @@ always #1 clk_i = ~clk_i;
 initial begin
     clk_i = 0;
     reset_i = 0;
+    $display("XXX");
     recv(321);
+    $display("YYY");
 end
 
 bfm inst_bfm(
