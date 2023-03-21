@@ -19,15 +19,11 @@ def recv(data):
 
 
 def send_msg():
-    data_all = 0
-    # 01 02 03 ... 20
-    for i in range(512):
-        # data = random.randint(1, 100)
-        # print(data)
-        data = i % 100
-        data_all = (data_all << 8) + data
 
-    bytes_val = data_all.to_bytes(512, 'big')
+    ref_input = 0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f
+    ref_output = 0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797
+    print('%#x'%ref_input)
+    bytes_val = ref_input.to_bytes(32, 'big')
     return bytes_val
     pass
 
