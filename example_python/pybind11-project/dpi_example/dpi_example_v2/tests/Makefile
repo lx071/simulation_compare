@@ -21,7 +21,7 @@ end:
 # only make compile
 compile:
 	# verilator --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
-	galaxsim test_hash.so ${VERILOG_SOURCES}
+	galaxsim ../test_hash.so ${VERILOG_SOURCES} -Xutil=1
         
 # only make visual ( make .elf file to the .vcd file )
 
