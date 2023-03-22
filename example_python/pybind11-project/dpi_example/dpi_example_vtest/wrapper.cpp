@@ -16,11 +16,7 @@
 
 namespace py=pybind11;
 
-//ref_inputs_2 = [[0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-//0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f,
-//0x5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f] for i in range(CASES_NUM)]
-//ref_outputs_2 = [0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797 for i in range(CASES_NUM)]
-
+py::scoped_interpreter guard;
 
 extern "C" __attribute__((visibility("default")))
  void gen_rand_arr(/* output */ svOpenArrayHandle arr)
@@ -28,7 +24,7 @@ extern "C" __attribute__((visibility("default")))
 
         timeval t1, t2;
         gettimeofday(&t1, NULL);
-        py::scoped_interpreter guard;
+        //py::scoped_interpreter guard;
 
         int len = svSize(arr, 1);
 
@@ -64,7 +60,7 @@ extern "C" __attribute__((visibility("default")))
 extern "C" __attribute__((visibility("default")))
 void c_py_gen_packet(svBitVecVal* data) 
 {
-    py::scoped_interpreter guard;
+    //py::scoped_interpreter guard;
     py::module_ sys = py::module_::import("sys");
     py::list path = sys.attr("path");
     path.attr("append")("../utils");
@@ -84,8 +80,7 @@ void c_py_gen_packet(svBitVecVal* data)
 extern "C" __attribute__((visibility("default")))
 void recv_res(svBitVecVal* data) 
 {
-    py::scoped_interpreter guard;
-
+    
     py::module_ sys = py::module_::import("sys");
     py::list path = sys.attr("path");
     path.attr("append")("../utils");
@@ -105,6 +100,7 @@ void recv_res(svBitVecVal* data)
     ));
     */
     size_t size_data = sizeof(data);
+
     auto res = py::array(py::buffer_info(
         data,                                       // 数据指针
         sizeof(svBitVecVal),                        // 元素大小
@@ -113,7 +109,7 @@ void recv_res(svBitVecVal* data)
         { size_data },                              // 形状
         { sizeof(svBitVecVal) }                    // 每个维度的字节数
     ));
-    
+
     utils.attr("recv")(res);
 
 }

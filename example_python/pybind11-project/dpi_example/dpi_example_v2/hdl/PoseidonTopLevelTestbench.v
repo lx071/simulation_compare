@@ -37,7 +37,7 @@ module bfm (
         $display("get data ='h%h",data[0][1]);
         $display("get data ='h%h",data[0][2]);
         
-        recv(321);
+        //recv(321);
 
         io_input_payload = 0;
         io_input_valid = 0;

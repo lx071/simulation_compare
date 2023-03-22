@@ -27,11 +27,12 @@ initial begin
     c_py_gen_packet(data);
     
     $display("get data ='h%h",data[0][0]);
-    //$display("get data ='h%h",data[0][1]);
+    $display("get data ='h%h",data[0][1]);
     //$display("get data ='h%h",data[0][2]);
     //$display("get data ='h%h",data[1][0]);
     
     recv_res(data[0][0]);
+    recv_res(data[0][1]);
     
 end
 
