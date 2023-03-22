@@ -14,8 +14,22 @@ def add(a, b):
 
 
 def recv(data):
-    print("recv_python")
-    print('recv_python:', data)
+    # print("type(data):", type(data))
+    # print("type(data):", type(data[0]))
+    res = 0
+    for i in range(8):
+        res = res + (int(data[i]) << (32 * i))
+    print('recv_python:%#x'%res)
+
+    # print('recv_python:%#x'%data[0])
+    # print('recv_python:%#x'%data[1])
+    # print('recv_python:%#x'%data[2])
+    # print('recv_python:%#x'%data[3])
+    # print('recv_python:%#x'%data[4])
+    # print('recv_python:%#x'%data[5])
+    # print('recv_python:%#x'%data[6])
+    # print('recv_python:%#x'%data[7])
+
 
 
 def send_msg():
@@ -29,8 +43,8 @@ def send_msg():
     ref_input = 0
     for i in range(30):
         ref_input = (ref_input << 255) + ref_input_0
-
-    # print('%#x'%ref_input)
+        
+    print('send:%#x'%ref_input_0)
     bytes_val = ref_input.to_bytes(957, 'little')
     return bytes_val
     pass

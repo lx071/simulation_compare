@@ -82,19 +82,38 @@ void c_py_gen_packet(svBitVecVal* data)
 }
 
 extern "C" __attribute__((visibility("default")))
-void recv(int data) 
+void recv_res(svBitVecVal* data) 
 {
     py::scoped_interpreter guard;
 
     py::module_ sys = py::module_::import("sys");
     py::list path = sys.attr("path");
-
     path.attr("append")("../utils");
-    
     //py::print(sys.attr("path"));
-
-    //std::cout << "recv_cpp" << std::endl;
     py::module_ utils = py::module_::import("harness_utils");
+    /*
+    static unsigned char tmp[32] = {{0}};
+    memcpy(tmp, data, 32);
+    size_t size = sizeof(tmp);
+    auto result = py::array(py::buffer_info(
+        tmp,                              // 数据指针
+        sizeof(char),                      // 元素大小
+        py::format_descriptor<char>::value, // 格式化描述符
+        1,                                  // 维度
+        { size },                           // 形状
+        { sizeof(char) }                    // 每个维度的字节数
+    ));
+    */
+    size_t size_data = sizeof(data);
+    auto res = py::array(py::buffer_info(
+        data,                                       // 数据指针
+        sizeof(svBitVecVal),                        // 元素大小
+        py::format_descriptor<svBitVecVal>::value, // 格式化描述符
+        1,                                          // 维度
+        { size_data },                              // 形状
+        { sizeof(svBitVecVal) }                    // 每个维度的字节数
+    ));
+    
+    utils.attr("recv")(res);
 
-    utils.attr("recv")(data);
 }

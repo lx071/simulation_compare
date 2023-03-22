@@ -82,19 +82,9 @@ void c_py_gen_packet(svBitVecVal* data)
 }
 
 extern "C" __attribute__((visibility("default")))
-void recv(int data) 
+void recv(svBitVecVal* data) 
 {
     py::scoped_interpreter guard;
-
-    py::module_ sys = py::module_::import("sys");
-    py::list path = sys.attr("path");
-
-    path.attr("append")("../utils");
-    
-    //py::print(sys.attr("path"));
-
-    //std::cout << "recv_cpp" << std::endl;
-    py::module_ utils = py::module_::import("harness_utils");
-
+    std::cout<<data<<std::endl;
     utils.attr("recv")(data);
 }
