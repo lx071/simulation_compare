@@ -1,6 +1,6 @@
 import "DPI-C" function void gen_rand_arr(output bit [7:0] nums []);
 //import "DPI-C" function void recv(input int data);
-import "DPI-C" function void recv(input [254:0] data);
+import "DPI-C" function void recv_res (input bit[254:0] data);
 import "DPI-C" function void c_py_gen_packet(output bit[99:0][2:0][254:0] pkt);
 //import "DPI-C" function void c_py_gen_packet(output bit[764:0] pkt);
 
@@ -101,6 +101,7 @@ module bfm (
         end
         else begin
             if(output_handshake) begin
+                recv_res(io_output_payload);
                 if( io_output_payload != ref_output) begin
                     $display("error output %d: %h",output_counter, io_output_payload);
                     $display(" test fail !!!");

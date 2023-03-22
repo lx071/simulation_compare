@@ -14,8 +14,12 @@ def add(a, b):
 
 
 def recv(data):
-    print("recv_python")
-    print('recv_python:', data)
+    # print("type(data):", type(data))
+    # print("type(data):", type(data[0]))
+    res = 0
+    for i in range(8):
+        res = res + (int(data[i]) << (32 * i))
+    print('recv_python:%#x'%res)
 
 
 def send_msg():
