@@ -111,6 +111,8 @@ bit[TOTAL_WIDTH-1-112:0]    tx_arp_payload_data;
 bit[TOTAL_WIDTH-1:TOTAL_WIDTH-112]  rx_hdr_data;
 bit[TOTAL_WIDTH-113:0]    rx_arp_payload_data;
 
+//import "DPI-C" function void c_py_gen_data(output bit[TOTAL_WIDTH-1:0] pkt);
+
 arp #(
     .DATA_WIDTH(DATA_WIDTH),
     .KEEP_ENABLE(KEEP_ENABLE),
@@ -201,6 +203,9 @@ initial begin
     subnet_mask = 0;
     clear_cache = 0;
 
+    //c_py_gen_data(tx_payload_data);   
+    //$display("get data ='h%h", tx_payload_data); 
+    
     //$dumpfile("dump.vcd");
     //$dumpvars;
 end
