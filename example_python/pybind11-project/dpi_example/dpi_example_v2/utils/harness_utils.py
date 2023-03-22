@@ -17,9 +17,11 @@ def recv(data):
     # print("type(data):", type(data))
     # print("type(data):", type(data[0]))
     res = 0
+    ref_output = 0x132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797
     for i in range(8):
         res = res + (int(data[i]) << (32 * i))
-    print('recv_python:%#x'%res)
+    if(res != ref_output):
+        print("test fail !!!")
 
 
 def send_msg():
