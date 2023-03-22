@@ -7,4 +7,6 @@ cocotb + iverilog
 cocotb + verilator  
 spinalhdl + verilator   (Scala--Cpp--Verilog)  
 pybind11 + verilator    (Python--Cpp--Verilog)  
+pybind11 + verilator    (Verilog--Cpp--Python)(DPI+pybind11)  
+
 
