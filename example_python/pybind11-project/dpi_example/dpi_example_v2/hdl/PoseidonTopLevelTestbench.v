@@ -33,9 +33,9 @@ module bfm (
     initial begin
         c_py_gen_packet(data);
     
-        $display("get data ='h%h",data[0][0]);
-        $display("get data ='h%h",data[0][1]);
-        $display("get data ='h%h",data[0][2]);
+        //$display("get data ='h%h",data[0][0]);
+        //$display("get data ='h%h",data[0][1]);
+        //$display("get data ='h%h",data[0][2]);
         
         //recv(321);
 
@@ -63,7 +63,7 @@ module bfm (
             //io_input_payload = ref_input;
             io_input_payload = data[num][i];
             
-            $display("get data =[%d][%d]'h%h", num, i, io_input_payload);
+            //$display("get data =[%d][%d]'h%h", num, i, io_input_payload);
 
             i = i + 1;
             if(i == 3) begin
