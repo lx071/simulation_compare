@@ -20,11 +20,11 @@
 
 TOPLEVEL_LANG = verilog
 
-SIM ?= verilator
-WAVES ?= 0
+# SIM ?= verilator
+# WAVES ?= 0
 
-COCOTB_HDL_TIMEUNIT = 1ns
-COCOTB_HDL_TIMEPRECISION = 1ps
+# COCOTB_HDL_TIMEUNIT = 1ns
+# COCOTB_HDL_TIMEPRECISION = 1ps
 
 DUT      = arp
 TOPLEVEL = bfm
@@ -36,18 +36,20 @@ VERILOG_SOURCES += ../../rtl/arp_eth_tx.v
 VERILOG_SOURCES += ../../rtl/arp_cache.v
 VERILOG_SOURCES += ../../rtl/lfsr.v
 
-EXTRA_ARGS += --timing
+# EXTRA_ARGS += --timing
 
 # compile:
 # 	mkdir build
 # 	cd build&&cmake ..&&make&&cp test_adder.so ..&&cd ..
 
-# exec:
-# 	verilator --cc --exe --sv --timing --build hdl/MyTopLevel.v hdl/bfm.v hdl/wrapper.sv sim_main.cpp ../test_adder.so
+# the -Wall option enables all warning messages
+# the -Wno-WIDTH option disables the WIDTH warning message specifically.
+exec:
+	verilator -Wno-WIDTH --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
 # 	# verilator --cc --trace --exe --sv --timing --build hdl/MyTopLevel.v hdl/bfm.v hdl/wrapper.sv sim_main.cpp ../test_adder.so
 
-include $(shell cocotb-config --makefiles)/Makefile.sim
+# include $(shell cocotb-config --makefiles)/Makefile.sim
 
 clean::
-	@rm -rf iverilog_dump.v sim_build results.xml __pycache__ dump.vcd*
+	@rm -rf iverilog_dump.v sim_build results.xml __pycache__ dump.vcd* obj_dir
 	@rm -rf dump.fst $(TOPLEVEL).fst

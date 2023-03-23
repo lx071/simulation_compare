@@ -24,6 +24,8 @@ THE SOFTWARE.
 
 // Language: Verilog 2001
 
+`timescale 1ns / 1ps
+
 /*
  * ARP block for IPv4, ethernet frame interface
  */
