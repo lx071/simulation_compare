@@ -20,7 +20,7 @@
 
 TOPLEVEL_LANG = verilog
 
-SIM ?= icarus
+SIM ?= verilator
 WAVES ?= 0
 
 COCOTB_HDL_TIMEUNIT = 1ns
@@ -35,6 +35,8 @@ VERILOG_SOURCES += ../../rtl/arp_eth_rx.v
 VERILOG_SOURCES += ../../rtl/arp_eth_tx.v
 VERILOG_SOURCES += ../../rtl/arp_cache.v
 VERILOG_SOURCES += ../../rtl/lfsr.v
+
+EXTRA_ARGS += --timing
 
 # compile:
 # 	mkdir build

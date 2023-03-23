@@ -213,6 +213,9 @@ end
 reg tx_en = 0;
 reg rx_en = 0;
 
+wire tck;
+wire rck;
+
 assign tck = (tx_en)?clk:1'b0;
 assign rck = (rx_en)?clk:1'b0;
 
