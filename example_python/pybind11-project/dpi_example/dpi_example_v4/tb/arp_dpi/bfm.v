@@ -113,7 +113,7 @@ bit[TOTAL_WIDTH-1-112:0]    tx_arp_payload_data;
 bit[TOTAL_WIDTH-1:TOTAL_WIDTH-112]  rx_hdr_data;
 bit[TOTAL_WIDTH-113:0]    rx_arp_payload_data;
 
-//import "DPI-C" function void c_py_gen_data(output bit[TOTAL_WIDTH-1:0] pkt);
+import "DPI-C" function void c_py_gen_data(output bit[TOTAL_WIDTH-1:0] pkt);
 
 arp #(
     .DATA_WIDTH(DATA_WIDTH),
@@ -180,7 +180,21 @@ arp_inst
     .clear_cache(clear_cache)
 );
 
+
+
+reg tx_en;
+reg rx_en;
+
+wire tck;
+wire rck;
+
+assign tck = (tx_en)?clk:1'b0;
+assign rck = (rx_en)?clk:1'b0;
+
 initial begin   
+    tx_en = 0;
+    rx_en = 0;
+
     subnet_mask = 0;
     s_eth_hdr_valid = 0;
     s_eth_dest_mac = 0;
@@ -205,21 +219,26 @@ initial begin
     subnet_mask = 0;
     clear_cache = 0;
 
-    //c_py_gen_data(tx_payload_data);   
-    //$display("get data ='h%h", tx_payload_data); 
+    $dumpfile("dump.vcd");
+    $dumpvars;
     
-    //$dumpfile("dump.vcd");
-    //$dumpvars;
+    local_mac = 48'hdad1d2d3d4d5;
+    local_ip = 32'hc0a80165;
+    gateway_ip = 32'hc0a80101;
+    subnet_mask = 32'hffffff00;
+     
+    rst = 0;
+    repeat(2) @(posedge clk);
+    rst = 1;
+    repeat(2) @(posedge clk);
+    rst = 0;
+    repeat(2) @(posedge clk);
+    repeat(10) @(posedge clk);
+
+    tx_en = 1;
+    @(negedge tx_en);
+    rx_en = 1;
 end
-
-reg tx_en = 0;
-reg rx_en = 0;
-
-wire tck;
-wire rck;
-
-assign tck = (tx_en)?clk:1'b0;
-assign rck = (rx_en)?clk:1'b0;
 
 reg[2:0] xmit_state = 0;
 int tx_num = 0;
@@ -227,6 +246,9 @@ always @(posedge tck) begin
     case (xmit_state)
         0: begin
 
+            c_py_gen_data(tx_payload_data);   
+            $display("get tx_payload_data ='h%h", tx_payload_data); 
+    
             //$display("s_eth_dest_mac ='h%h", tx_payload_data[TOTAL_WIDTH-1:TOTAL_WIDTH-48]);
             //$display("s_eth_src_mac ='h%h", tx_payload_data[TOTAL_WIDTH-49:TOTAL_WIDTH-96]);
             //$display("s_eth_type ='h%h", tx_payload_data[TOTAL_WIDTH-97:TOTAL_WIDTH-112]);
@@ -274,6 +296,7 @@ always @(posedge tck) begin
                 tx_num = 0;
                 xmit_state <= 0;
                 tx_en <= 0;
+                
             end
 
         end
@@ -301,9 +324,18 @@ always @(posedge rck) begin
                 //recv_state <= 1;
                 rx_arp_payload_data = {rx_arp_payload_data, m_eth_payload_axis_tdata};
                 //$display("rx_arp_payload_data ='h%h", rx_arp_payload_data);
+            
                 if(m_eth_payload_axis_tlast == 1) begin
                     recv_state <= 0;
+                    
                     rx_en <= 0;
+
+                    $display("m_eth_dest_mac ='h%h", m_eth_dest_mac);
+                    $display("m_eth_src_mac ='h%h", m_eth_src_mac);
+                    $display("m_eth_type ='h%h", m_eth_type);
+                    $display("rx_arp_payload_data ='h%h", rx_arp_payload_data);
+
+                    $finish;
                 end
             end
            

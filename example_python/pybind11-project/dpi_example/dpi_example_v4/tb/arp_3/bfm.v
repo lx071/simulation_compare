@@ -201,8 +201,8 @@ initial begin
     subnet_mask = 0;
     clear_cache = 0;
 
-    //$dumpfile("dump.vcd");
-    //$dumpvars;
+    $dumpfile("dump.vcd");
+    $dumpvars;
 end
 
 reg tx_en = 0;
@@ -216,6 +216,13 @@ int tx_num = 0;
 always @(posedge tck) begin
     case (xmit_state)
         0: begin
+
+            //$display("local_mac ='h%h", local_mac);
+            //$display("local_ip ='h%h", local_ip);
+            //$display("gateway_ip ='h%h", gateway_ip);
+            //$display("subnet_mask ='h%h", subnet_mask);
+
+            //$display("tx_payload_data ='h%h", tx_payload_data);
 
             //$display("s_eth_dest_mac ='h%h", tx_payload_data[TOTAL_WIDTH-1:TOTAL_WIDTH-48]);
             //$display("s_eth_src_mac ='h%h", tx_payload_data[TOTAL_WIDTH-49:TOTAL_WIDTH-96]);

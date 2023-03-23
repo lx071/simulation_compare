@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.4)
 set(CMAKE_CXX_STANDARD 11)
-project(test_adder)
+project(test_arp)
 
 find_package(pybind11 REQUIRED)
 
@@ -15,5 +15,5 @@ set(SHARED_LIB_EXT ".so")
 
 add_definitions(-DPYTHON_LIBRARY="/usr/lib/x86_64-linux-gnu/libpython3.8.so")
 
-set_target_properties(test_adder PROPERTIES PREFIX ""
+set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX ""
         SUFFIX ${SHARED_LIB_EXT})

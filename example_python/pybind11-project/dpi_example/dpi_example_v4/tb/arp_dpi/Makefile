@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+all: compile
+
 TOPLEVEL_LANG = verilog
 
 # SIM ?= verilator
@@ -38,18 +40,18 @@ VERILOG_SOURCES += ../../rtl/lfsr.v
 
 # EXTRA_ARGS += --timing
 
-# compile:
-# 	mkdir build
-# 	cd build&&cmake ..&&make&&cp test_adder.so ..&&cd ..
+compile:
+	mkdir build
+	cd build&&cmake ..&&make&&cp test_arp.so ..&&cd ..
 
 # the -Wall option enables all warning messages
 # the -Wno-WIDTH option disables the WIDTH warning message specifically.
 exec:
-	verilator -Wno-WIDTH --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
-# 	# verilator --cc --trace --exe --sv --timing --build hdl/MyTopLevel.v hdl/bfm.v hdl/wrapper.sv sim_main.cpp ../test_adder.so
+# 	verilator -Wno-WIDTH --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
+	verilator -Wno-WIDTH --trace --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp ../test_arp.so
 
 # include $(shell cocotb-config --makefiles)/Makefile.sim
 
 clean::
-	@rm -rf iverilog_dump.v sim_build results.xml __pycache__ dump.vcd* obj_dir
+	@rm -rf iverilog_dump.v sim_build results.xml __pycache__ dump.vcd* obj_dir build utils/__pycache__
 	@rm -rf dump.fst $(TOPLEVEL).fst
