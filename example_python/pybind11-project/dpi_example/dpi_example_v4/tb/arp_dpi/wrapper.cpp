@@ -89,15 +89,6 @@ void recv_res(svBitVecVal* data)
     /*
     static unsigned char tmp[32] = {{0}};
     memcpy(tmp, data, 32);
-    size_t size = sizeof(tmp);
-    auto result = py::array(py::buffer_info(
-        tmp,                              // 数据指针
-        sizeof(char),                      // 元素大小
-        py::format_descriptor<char>::value, // 格式化描述符
-        1,                                  // 维度
-        { size },                           // 形状
-        { sizeof(char) }                    // 每个维度的字节数
-    ));
     */
     size_t size_data = sizeof(data);
 
@@ -114,6 +105,34 @@ void recv_res(svBitVecVal* data)
 
 }
 
+
+extern "C" __attribute__((visibility("default")))
+void recv_data(svBitVecVal* data) 
+{
+    
+    py::module_ sys = py::module_::import("sys");
+    py::list path = sys.attr("path");
+    path.attr("append")("../utils");
+    //py::print(sys.attr("path"));
+    py::module_ utils = py::module_::import("harness_utils");
+   
+    size_t size_data = sizeof(data);
+    // std::cout<<"size_data:"<<size_data<<std::endl;
+    // std::cout<<"sizeof(svBitVecVal)"<<sizeof(svBitVecVal)<<std::endl;
+    
+    auto res = py::array(py::buffer_info(
+        data,                              // 数据指针
+        sizeof(char),                      // 元素大小
+        py::format_descriptor<char>::value, // 格式化描述符
+        1,                                  // 维度
+        { 42 },                           // 形状
+        { sizeof(char) }                    // 每个维度的字节数
+    ));
+    
+    utils.attr("recv_res")(res);
+
+}
+
 extern "C" __attribute__((visibility("default")))
 void c_py_gen_data(svBitVecVal* data) 
 {
@@ -123,12 +142,12 @@ void c_py_gen_data(svBitVecVal* data)
     path.attr("append")("../utils");
     py::module_ utils = py::module_::import("harness_utils");
 
-    std::cout<<"send_data"<<std::endl;
+    // std::cout<<"send_data"<<std::endl;
     //static unsigned char tmp[32] = {{0}};
     py::bytes result = utils.attr("send_data")();
     Py_ssize_t size = PyBytes_GET_SIZE(result.ptr());
     char * ptr = PyBytes_AsString(result.ptr());    //# low bit 01 02 03 ... 20 high bit
-    std::cout<<"size:"<<size<<std::endl;
+    // std::cout<<"size:"<<size<<std::endl;
     // std::cout<<ptr<<std::endl;
     
     memcpy(data, ptr, size);

@@ -110,10 +110,12 @@ parameter TOTAL_WIDTH = 336;
 parameter TX_NUM = 28;
 bit[TOTAL_WIDTH-1:0]    tx_payload_data;
 bit[TOTAL_WIDTH-1-112:0]    tx_arp_payload_data;
+bit[TOTAL_WIDTH-1:0]    rx_payload_data;
 bit[TOTAL_WIDTH-1:TOTAL_WIDTH-112]  rx_hdr_data;
 bit[TOTAL_WIDTH-113:0]    rx_arp_payload_data;
 
 import "DPI-C" function void c_py_gen_data(output bit[TOTAL_WIDTH-1:0] pkt);
+import "DPI-C" function void recv_data (input bit[TOTAL_WIDTH-1:0] data);
 
 arp #(
     .DATA_WIDTH(DATA_WIDTH),
@@ -312,7 +314,7 @@ always @(posedge rck) begin
                 //$display("m_eth_dest_mac ='h%h", m_eth_dest_mac);
                 //$display("m_eth_src_mac ='h%h", m_eth_src_mac);
                 //$display("m_eth_type ='h%h", m_eth_type);
-                //rx_hdr_data = {m_eth_dest_mac, m_eth_src_mac, m_eth_type};
+                rx_hdr_data = {m_eth_dest_mac, m_eth_src_mac, m_eth_type};
                 //$display("rx_hdr_data ='h%h", rx_hdr_data);
                 recv_state <= 1;
             end
@@ -324,17 +326,15 @@ always @(posedge rck) begin
                 //recv_state <= 1;
                 rx_arp_payload_data = {rx_arp_payload_data, m_eth_payload_axis_tdata};
                 //$display("rx_arp_payload_data ='h%h", rx_arp_payload_data);
-            
+
                 if(m_eth_payload_axis_tlast == 1) begin
-                    recv_state <= 0;
-                    
+            
+                    recv_state <= 0;                    
                     rx_en <= 0;
-
-                    $display("m_eth_dest_mac ='h%h", m_eth_dest_mac);
-                    $display("m_eth_src_mac ='h%h", m_eth_src_mac);
-                    $display("m_eth_type ='h%h", m_eth_type);
-                    $display("rx_arp_payload_data ='h%h", rx_arp_payload_data);
-
+                    rx_payload_data = {rx_hdr_data, rx_arp_payload_data};
+                    //$display("rx_payload_data ='h%h", rx_payload_data);
+                    recv_data(rx_payload_data);
+                    
                     $finish;
                 end
             end

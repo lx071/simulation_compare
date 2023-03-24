@@ -2,6 +2,7 @@ import os
 # import random
 import subprocess
 import re
+import numpy as np
 
 
 def do_python_api():
@@ -18,18 +19,17 @@ def recv(data):
     # print("type(data):", type(data[0]))
     res = 0
     for i in range(8):
+        print('recv_python:%#x'%data[i])
         res = res + (int(data[i]) << (32 * i))
     print('recv_python:%#x'%res)
 
-    # print('recv_python:%#x'%data[0])
-    # print('recv_python:%#x'%data[1])
-    # print('recv_python:%#x'%data[2])
-    # print('recv_python:%#x'%data[3])
-    # print('recv_python:%#x'%data[4])
-    # print('recv_python:%#x'%data[5])
-    # print('recv_python:%#x'%data[6])
-    # print('recv_python:%#x'%data[7])
 
+def recv_res(data):
+    print("type(data):", type(data))
+
+    res_byte = data.tobytes()[::-1]
+    print(type(res_byte))
+    print('recv_python:', res_byte)
 
 
 def send_msg():

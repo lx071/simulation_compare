@@ -25,6 +25,7 @@ bit[9:0][2:0][254:0] data;
 parameter TOTAL_WIDTH = 336;
 bit[TOTAL_WIDTH-1:0]    tx_payload_data;
 import "DPI-C" function void c_py_gen_data(output bit[TOTAL_WIDTH-1:0] pkt);
+import "DPI-C" function void recv_data (input bit[TOTAL_WIDTH-1:0] data);
 
 initial begin
     //gen_rand_arr(data);
@@ -40,6 +41,8 @@ initial begin
 
     c_py_gen_data(tx_payload_data);   
     $display("get data ='h%h", tx_payload_data); 
+    
+    recv_data(tx_payload_data);
     
 end
 
