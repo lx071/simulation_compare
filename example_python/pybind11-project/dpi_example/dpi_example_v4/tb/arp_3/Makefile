@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-all: exec
+all: compile_v
 
 TOPLEVEL_LANG = verilog
 
@@ -42,11 +42,24 @@ VERILOG_SOURCES += ../../rtl/lfsr.v
 
 # the -Wall option enables all warning messages
 # the -Wno-WIDTH option disables the WIDTH warning message specifically.
-exec:
+compile_v:
 # 	verilator -Wno-WIDTH --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
 	verilator -Wno-WIDTH --trace --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
 
-# include $(shell cocotb-config --makefiles)/Makefile.sim
+exec_v:
+	cd obj_dir&&./Vbfm&&cd ..
+
+compile_i:
+	iverilog -o run.out test.v add.v
+
+exec_i:
+	vvp -n run.out
+
+compile_g:
+	galaxsim ${VERILOG_SOURCES}
+
+exec_g:
+	./xsim
 
 clean::
 	@rm -rf iverilog_dump.v sim_build results.xml __pycache__ dump.vcd* obj_dir build utils/__pycache__

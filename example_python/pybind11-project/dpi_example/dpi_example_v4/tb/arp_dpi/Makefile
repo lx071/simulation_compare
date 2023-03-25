@@ -46,9 +46,20 @@ compile:
 
 # the -Wall option enables all warning messages
 # the -Wno-WIDTH option disables the WIDTH warning message specifically.
-exec:
+
+compile_v:
 # 	verilator -Wno-WIDTH --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
 	verilator -Wno-WIDTH --trace --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp ../test_arp.so
+
+exec_v:
+	cd obj_dir&&./Vbfm&&cd ..
+
+
+compile_g:
+	galaxsim ../test_arp.so ${VERILOG_SOURCES} -Xutil=1
+
+exec_g:
+	./xsim
 
 # include $(shell cocotb-config --makefiles)/Makefile.sim
 
