@@ -50,7 +50,7 @@ exec_v:
 	cd obj_dir&&./Vbfm&&cd ..
 
 compile_i:
-	iverilog -o run.out test.v add.v
+	iverilog -o run.out ${VERILOG_SOURCES}
 
 exec_i:
 	vvp -n run.out
@@ -62,5 +62,5 @@ exec_g:
 	./xsim
 
 clean::
-	@rm -rf iverilog_dump.v sim_build results.xml __pycache__ dump.vcd* obj_dir build utils/__pycache__
+	@rm -rf iverilog_dump.v sim_build results.xml __pycache__ dump.vcd* obj_dir build utils/__pycache__ xsim*
 	@rm -rf dump.fst $(TOPLEVEL).fst

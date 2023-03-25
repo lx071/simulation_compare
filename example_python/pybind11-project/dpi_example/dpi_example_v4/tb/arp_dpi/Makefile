@@ -56,7 +56,7 @@ exec_v:
 
 
 compile_g:
-	galaxsim ../test_arp.so ${VERILOG_SOURCES} -Xutil=1
+	galaxsim test_arp.so ${VERILOG_SOURCES} -Xutil=1
 
 exec_g:
 	./xsim
@@ -64,5 +64,5 @@ exec_g:
 # include $(shell cocotb-config --makefiles)/Makefile.sim
 
 clean::
-	@rm -rf iverilog_dump.v sim_build results.xml __pycache__ dump.vcd* obj_dir build utils/__pycache__
+	@rm -rf iverilog_dump.v sim_build results.xml __pycache__ dump.vcd* obj_dir build utils/__pycache__ xsim*
 	@rm -rf dump.fst $(TOPLEVEL).fst

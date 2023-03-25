@@ -54,7 +54,7 @@ def recv_res(data):
 
     res_byte = data.tobytes()[::-1]
     # print(type(res_byte))
-    print('recv_python:', res_byte)
+    # print('recv_python:', res_byte)
 
     m_eth_dest_mac = res_byte[0:6]
     m_eth_src_mac = res_byte[6:12]
