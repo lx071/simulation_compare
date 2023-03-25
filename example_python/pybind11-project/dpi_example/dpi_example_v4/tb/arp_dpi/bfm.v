@@ -115,7 +115,7 @@ bit[TOTAL_WIDTH-1:TOTAL_WIDTH-112]  rx_hdr_data;
 bit[TOTAL_WIDTH-113:0]    rx_arp_payload_data;
 
 import "DPI-C" function void c_py_gen_data(output bit[TOTAL_WIDTH-1:0] pkt);
-import "DPI-C" function void recv_data (input bit[TOTAL_WIDTH-1:0] data);
+import "DPI-C" function void recv_data (input bit[TOTAL_WIDTH-1:0] data, int num);
 
 arp #(
     .DATA_WIDTH(DATA_WIDTH),
@@ -221,8 +221,8 @@ initial begin
     subnet_mask = 0;
     clear_cache = 0;
 
-    $dumpfile("dump.vcd");
-    $dumpvars;
+    //$dumpfile("dump.vcd");
+    //$dumpvars;
     
     local_mac = 48'hdad1d2d3d4d5;
     local_ip = 32'hc0a80165;
@@ -237,9 +237,14 @@ initial begin
     repeat(2) @(posedge clk);
     repeat(10) @(posedge clk);
 
-    tx_en = 1;
-    @(negedge tx_en);
-    rx_en = 1;
+    repeat(10) begin
+        tx_en = 1;
+        @(negedge tx_en);
+        rx_en = 1;
+        @(negedge rx_en);
+    end
+
+    $finish;
 end
 
 reg[2:0] xmit_state = 0;
@@ -332,10 +337,10 @@ always @(posedge rck) begin
                     recv_state <= 0;                    
                     rx_en <= 0;
                     rx_payload_data = {rx_hdr_data, rx_arp_payload_data};
-                    //$display("rx_payload_data ='h%h", rx_payload_data);
-                    recv_data(rx_payload_data);
+                    $display("rx_payload_data ='h%h", rx_payload_data);
+                    recv_data(rx_payload_data, 42);
                     
-                    $finish;
+                    //$finish;
                 end
             end
            

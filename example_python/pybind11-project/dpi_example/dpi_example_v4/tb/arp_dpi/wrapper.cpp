@@ -107,7 +107,7 @@ void recv_res(svBitVecVal* data)
 
 
 extern "C" __attribute__((visibility("default")))
-void recv_data(svBitVecVal* data) 
+void recv_data(svBitVecVal* data, int n) 
 {
     
     py::module_ sys = py::module_::import("sys");
@@ -119,13 +119,14 @@ void recv_data(svBitVecVal* data)
     size_t size_data = sizeof(data);
     // std::cout<<"size_data:"<<size_data<<std::endl;
     // std::cout<<"sizeof(svBitVecVal)"<<sizeof(svBitVecVal)<<std::endl;
-    
+    //std::cout<<"n:"<<n<<std::endl;
+
     auto res = py::array(py::buffer_info(
         data,                              // 数据指针
         sizeof(char),                      // 元素大小
         py::format_descriptor<char>::value, // 格式化描述符
         1,                                  // 维度
-        { 42 },                           // 形状
+        { n },                           // 形状
         { sizeof(char) }                    // 每个维度的字节数
     ));
     

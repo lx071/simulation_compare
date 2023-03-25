@@ -18,13 +18,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+all: exec
+
 TOPLEVEL_LANG = verilog
 
-SIM ?= icarus
-WAVES ?= 0
+# SIM ?= verilator
+# WAVES ?= 0
 
-COCOTB_HDL_TIMEUNIT = 1ns
-COCOTB_HDL_TIMEPRECISION = 1ps
+# COCOTB_HDL_TIMEUNIT = 1ns
+# COCOTB_HDL_TIMEPRECISION = 1ps
 
 DUT      = arp
 TOPLEVEL = bfm
@@ -36,56 +38,16 @@ VERILOG_SOURCES += ../../rtl/arp_eth_tx.v
 VERILOG_SOURCES += ../../rtl/arp_cache.v
 VERILOG_SOURCES += ../../rtl/lfsr.v
 
-# module parameters
-export PARAM_DATA_WIDTH ?= 8
-export PARAM_KEEP_ENABLE ?= $(shell expr $(PARAM_DATA_WIDTH) \> 8 )
-export PARAM_KEEP_WIDTH ?= $(shell expr $(PARAM_DATA_WIDTH) / 8 )
-export PARAM_CACHE_ADDR_WIDTH ?= 2
-export PARAM_REQUEST_RETRY_COUNT ?= 4
-export PARAM_REQUEST_RETRY_INTERVAL ?= 300
-export PARAM_REQUEST_TIMEOUT ?= 800
+# EXTRA_ARGS += --timing
 
-ifeq ($(SIM), icarus)
-	PLUSARGS += -fst
+# the -Wall option enables all warning messages
+# the -Wno-WIDTH option disables the WIDTH warning message specifically.
+exec:
+# 	verilator -Wno-WIDTH --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
+	verilator -Wno-WIDTH --trace --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
 
-	COMPILE_ARGS += -P $(TOPLEVEL).DATA_WIDTH=$(PARAM_DATA_WIDTH)
-	COMPILE_ARGS += -P $(TOPLEVEL).KEEP_ENABLE=$(PARAM_KEEP_ENABLE)
-	COMPILE_ARGS += -P $(TOPLEVEL).KEEP_WIDTH=$(PARAM_KEEP_WIDTH)
-	COMPILE_ARGS += -P $(TOPLEVEL).CACHE_ADDR_WIDTH=$(PARAM_CACHE_ADDR_WIDTH)
-	COMPILE_ARGS += -P $(TOPLEVEL).REQUEST_RETRY_COUNT=$(PARAM_REQUEST_RETRY_COUNT)
-	COMPILE_ARGS += -P $(TOPLEVEL).REQUEST_RETRY_INTERVAL=$(PARAM_REQUEST_RETRY_INTERVAL)
-	COMPILE_ARGS += -P $(TOPLEVEL).REQUEST_TIMEOUT=$(PARAM_REQUEST_TIMEOUT)
-
-	ifeq ($(WAVES), 1)
-		VERILOG_SOURCES += iverilog_dump.v
-		COMPILE_ARGS += -s iverilog_dump
-	endif
-else ifeq ($(SIM), verilator)
-	COMPILE_ARGS += -Wno-SELRANGE -Wno-WIDTH
-
-	COMPILE_ARGS += -GDATA_WIDTH=$(PARAM_DATA_WIDTH)
-	COMPILE_ARGS += -GKEEP_ENABLE=$(PARAM_KEEP_ENABLE)
-	COMPILE_ARGS += -GKEEP_WIDTH=$(PARAM_KEEP_WIDTH)
-	COMPILE_ARGS += -GCACHE_ADDR_WIDTH=$(PARAM_CACHE_ADDR_WIDTH)
-	COMPILE_ARGS += -GREQUEST_RETRY_COUNT=$(PARAM_REQUEST_RETRY_COUNT)
-	COMPILE_ARGS += -GREQUEST_RETRY_INTERVAL=$(PARAM_REQUEST_RETRY_INTERVAL)
-	COMPILE_ARGS += -GREQUEST_TIMEOUT=$(PARAM_REQUEST_TIMEOUT)
-
-	ifeq ($(WAVES), 1)
-		COMPILE_ARGS += --trace-fst
-	endif
-endif
-
-include $(shell cocotb-config --makefiles)/Makefile.sim
-
-iverilog_dump.v:
-	echo 'module iverilog_dump();' > $@
-	echo 'initial begin' >> $@
-	echo '    $$dumpfile("$(TOPLEVEL).fst");' >> $@
-	echo '    $$dumpvars(0, $(TOPLEVEL));' >> $@
-	echo 'end' >> $@
-	echo 'endmodule' >> $@
+# include $(shell cocotb-config --makefiles)/Makefile.sim
 
 clean::
-	@rm -rf iverilog_dump.v sim_build results.xml __pycache__ dump.vcd*
+	@rm -rf iverilog_dump.v sim_build results.xml __pycache__ dump.vcd* obj_dir build utils/__pycache__
 	@rm -rf dump.fst $(TOPLEVEL).fst

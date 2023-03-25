@@ -104,13 +104,6 @@ reg                   clear_cache;
 bit clk;
 always #4 clk = ~clk;
 
-parameter TOTAL_WIDTH = 336;
-parameter TX_NUM = 28;
-bit[TOTAL_WIDTH-1:0]    tx_payload_data;
-bit[TOTAL_WIDTH-1-112:0]    tx_arp_payload_data;
-bit[TOTAL_WIDTH-1:TOTAL_WIDTH-112]  rx_hdr_data;
-bit[TOTAL_WIDTH-113:0]    rx_arp_payload_data;
-
 arp #(
     .DATA_WIDTH(DATA_WIDTH),
     .KEEP_ENABLE(KEEP_ENABLE),
@@ -177,137 +170,8 @@ arp_inst
 );
 
 initial begin   
-    subnet_mask = 0;
-    s_eth_hdr_valid = 0;
-    s_eth_dest_mac = 0;
-    s_eth_src_mac = 0;
-    s_eth_type = 0;
-    s_eth_payload_axis_tdata = 0;
-    s_eth_payload_axis_tkeep = 0;
-    s_eth_payload_axis_tvalid = 0;
-    s_eth_payload_axis_tlast = 0;
-    s_eth_payload_axis_tuser = 0;
-
-    m_eth_hdr_ready = 1;
-    m_eth_payload_axis_tready = 1;
-
-    arp_request_valid = 0;
-    arp_request_ip = 0;
-    arp_response_ready = 0;
-
-    local_mac = 0;
-    local_ip = 0;
-    gateway_ip = 0;
-    subnet_mask = 0;
-    clear_cache = 0;
-
     //$dumpfile("dump.vcd");
     //$dumpvars;
 end
-
-reg tx_en = 0;
-reg rx_en = 0;
-
-assign tck = (tx_en)?clk:1'b0;
-assign rck = (rx_en)?clk:1'b0;
-
-reg[2:0] xmit_state = 0;
-int tx_num = 0;
-always @(posedge tck) begin
-    case (xmit_state)
-        0: begin
-
-            //$display("local_mac ='h%h", local_mac);
-            //$display("local_ip ='h%h", local_ip);
-            //$display("gateway_ip ='h%h", gateway_ip);
-            //$display("subnet_mask ='h%h", subnet_mask);
-
-            //$display("tx_payload_data ='h%h", tx_payload_data);
-
-            //$display("s_eth_dest_mac ='h%h", tx_payload_data[TOTAL_WIDTH-1:TOTAL_WIDTH-48]);
-            //$display("s_eth_src_mac ='h%h", tx_payload_data[TOTAL_WIDTH-49:TOTAL_WIDTH-96]);
-            //$display("s_eth_type ='h%h", tx_payload_data[TOTAL_WIDTH-97:TOTAL_WIDTH-112]);
-            //$display("s_arp_htype ='h%h", tx_payload_data[TOTAL_WIDTH-113:TOTAL_WIDTH-128]);
-            //$display("s_arp_ptype ='h%h", tx_payload_data[TOTAL_WIDTH-129:TOTAL_WIDTH-144]);
-
-            //$display("s_arp_oper ='h%h", tx_payload_data[TOTAL_WIDTH-161:TOTAL_WIDTH-176]);
-            //$display("s_arp_sha ='h%h", tx_payload_data[TOTAL_WIDTH-177:TOTAL_WIDTH-224]);
-            //$display("s_arp_spa ='h%h", tx_payload_data[TOTAL_WIDTH-225:TOTAL_WIDTH-256]);
-            //$display("s_arp_tha ='h%h", tx_payload_data[TOTAL_WIDTH-257:TOTAL_WIDTH-304]);
-            //$display("s_arp_tpa ='h%h", tx_payload_data[TOTAL_WIDTH-305:TOTAL_WIDTH-336]);
-
-            //$display("tx_arp_payload_data ='h%h", tx_payload_data[TOTAL_WIDTH-113:0]);
-
-            s_eth_hdr_valid = 1;
-            s_eth_dest_mac = tx_payload_data[TOTAL_WIDTH-1:TOTAL_WIDTH-48];
-            s_eth_src_mac = tx_payload_data[TOTAL_WIDTH-49:TOTAL_WIDTH-96];
-            s_eth_type = tx_payload_data[TOTAL_WIDTH-97:TOTAL_WIDTH-112];
-            tx_arp_payload_data = tx_payload_data[TOTAL_WIDTH-113:0];
-
-            s_eth_payload_axis_tkeep = 1;
-            s_eth_payload_axis_tvalid = 1;
-            s_eth_payload_axis_tdata = 0;
-
-            xmit_state <= 1;
-
-        end
-        1: begin
-            if(tx_num == 0) begin
-                s_eth_hdr_valid = 0;
-            end
-            
-            if(tx_num < TX_NUM) begin
-                s_eth_payload_axis_tdata = tx_arp_payload_data[TOTAL_WIDTH-113:TOTAL_WIDTH-113-7];
-                tx_arp_payload_data <<= 8;
-                tx_num = tx_num + 1;
-            end
-
-            if(tx_num == TX_NUM) begin
-                s_eth_payload_axis_tlast = 1;
-                tx_num = tx_num + 1;
-            end else if(tx_num == TX_NUM + 1) begin
-                s_eth_payload_axis_tlast = 0;
-                s_eth_payload_axis_tvalid = 0;
-                tx_num = 0;
-                xmit_state <= 0;
-                tx_en <= 0;
-            end
-
-        end
-    endcase
-end
-
-reg[2:0] recv_state = 0;
-int rx_num = 0;
-always @(posedge rck) begin
-    case (recv_state)
-        0: begin
-            if(m_eth_hdr_valid == 1) begin
-                //$display("m_eth_dest_mac ='h%h", m_eth_dest_mac);
-                //$display("m_eth_src_mac ='h%h", m_eth_src_mac);
-                //$display("m_eth_type ='h%h", m_eth_type);
-                //rx_hdr_data = {m_eth_dest_mac, m_eth_src_mac, m_eth_type};
-                //$display("rx_hdr_data ='h%h", rx_hdr_data);
-                recv_state <= 1;
-            end
-
-        end
-        1: begin
-            if(m_eth_payload_axis_tvalid == 1) begin
-                //$display("m_eth_payload_axis_tdata ='h%h", m_eth_payload_axis_tdata);
-                //recv_state <= 1;
-                rx_arp_payload_data = {rx_arp_payload_data, m_eth_payload_axis_tdata};
-                //$display("rx_arp_payload_data ='h%h", rx_arp_payload_data);
-                if(m_eth_payload_axis_tlast == 1) begin
-                    recv_state <= 0;
-                    rx_en <= 0;
-                end
-            end
-           
-        end
-    endcase
-
-end
-
 
 endmodule
