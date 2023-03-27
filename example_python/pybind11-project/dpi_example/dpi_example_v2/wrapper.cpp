@@ -19,45 +19,6 @@ namespace py=pybind11;
 py::scoped_interpreter guard;
 
 extern "C" __attribute__((visibility("default")))
- void gen_rand_arr(/* output */ svOpenArrayHandle arr)
-{
-
-        timeval t1, t2;
-        gettimeofday(&t1, NULL);
-        //py::scoped_interpreter guard;
-
-        int len = svSize(arr, 1);
-
-        auto np = py::module::import("numpy");
-
-        // or change to be exec
-        auto op = np.attr("random")
-                        .attr("randint")(1, 2, len/3, "byte").cast<py::array_t<uint8_t>>();
-        
-        auto a = np.attr("random")
-                        .attr("randint")(0, 127, len/3, "byte").cast<py::array_t<uint8_t>>();
-        
-        auto b = np.attr("random")
-                        .attr("randint")(0, 127, len/3, "byte").cast<py::array_t<uint8_t>>();
-
-        for(int i = 0; i<len/3; ++i){
-        
-            *(uint8_t*)svGetArrElemPtr1(arr, i*3) = op.at(i);
-            *(uint8_t*)svGetArrElemPtr1(arr, i*3+1) = a.at(i);
-            *(uint8_t*)svGetArrElemPtr1(arr, i*3+2) = b.at(i);
-            
-        }
-        gettimeofday(&t2, NULL);
-
-
-        double timeuse  = (t2.tv_sec-t1.tv_sec) + (double)(t2.tv_usec-t1.tv_usec)/1000000.0;
-        std::cout << "data transfer time used: "<< timeuse << "s" << std::endl;
-
-        // delete guard;
-}
-
-
-extern "C" __attribute__((visibility("default")))
 void c_py_gen_packet(svBitVecVal* data) 
 {
     //py::scoped_interpreter guard;
@@ -80,25 +41,12 @@ void c_py_gen_packet(svBitVecVal* data)
 extern "C" __attribute__((visibility("default")))
 void recv_res(svBitVecVal* data) 
 {
-    
     py::module_ sys = py::module_::import("sys");
     py::list path = sys.attr("path");
     path.attr("append")("../utils");
     //py::print(sys.attr("path"));
     py::module_ utils = py::module_::import("harness_utils");
-    /*
-    static unsigned char tmp[32] = {{0}};
-    memcpy(tmp, data, 32);
-    size_t size = sizeof(tmp);
-    auto result = py::array(py::buffer_info(
-        tmp,                              // 数据指针
-        sizeof(char),                      // 元素大小
-        py::format_descriptor<char>::value, // 格式化描述符
-        1,                                  // 维度
-        { size },                           // 形状
-        { sizeof(char) }                    // 每个维度的字节数
-    ));
-    */
+
     size_t size_data = sizeof(data);
 
     auto res = py::array(py::buffer_info(
