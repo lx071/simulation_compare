@@ -149,7 +149,7 @@ async def run_test(dut, idle_inserter=None, backpressure_inserter=None):
 
     # print("==============start=================")
     
-    for i in range(50):
+    for i in range(10000):
 
         # tb.log.info("test ARP request")
 

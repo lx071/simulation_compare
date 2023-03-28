@@ -29,12 +29,12 @@ COCOTB_HDL_TIMEPRECISION = 1ps
 DUT      = arp
 TOPLEVEL = bfm
 MODULE   = test_$(DUT)
-VERILOG_SOURCES += bfm.v
-VERILOG_SOURCES += ../../rtl/$(DUT).v
-VERILOG_SOURCES += ../../rtl/arp_eth_rx.v
-VERILOG_SOURCES += ../../rtl/arp_eth_tx.v
-VERILOG_SOURCES += ../../rtl/arp_cache.v
-VERILOG_SOURCES += ../../rtl/lfsr.v
+VERILOG_SOURCES += $(PWD)/bfm.v
+VERILOG_SOURCES += $(PWD)/../../rtl/$(DUT).v
+VERILOG_SOURCES += $(PWD)/../../rtl/arp_eth_rx.v
+VERILOG_SOURCES += $(PWD)/../../rtl/arp_eth_tx.v
+VERILOG_SOURCES += $(PWD)/../../rtl/arp_cache.v
+VERILOG_SOURCES += $(PWD)/../../rtl/lfsr.v
 
 # module parameters
 export PARAM_DATA_WIDTH ?= 8

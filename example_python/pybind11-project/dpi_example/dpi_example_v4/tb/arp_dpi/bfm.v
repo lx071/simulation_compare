@@ -237,7 +237,7 @@ initial begin
     repeat(2) @(posedge clk);
     repeat(10) @(posedge clk);
 
-    repeat(10) begin
+    repeat(10000) begin
         tx_en = 1;
         @(negedge tx_en);
         rx_en = 1;

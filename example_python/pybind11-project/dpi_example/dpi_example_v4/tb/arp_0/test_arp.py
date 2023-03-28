@@ -147,7 +147,7 @@ async def run_test(dut, idle_inserter=None, backpressure_inserter=None):
     for k in range(10):
         await RisingEdge(dut.clk)
 
-    for i in range(50):
+    for i in range(10000):
         # print("==============start=================")
 
         # tb.log.info("test ARP request")

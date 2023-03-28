@@ -29,11 +29,11 @@ COCOTB_HDL_TIMEPRECISION = 1ps
 DUT      = arp
 TOPLEVEL = $(DUT)
 MODULE   = test_$(DUT)
-VERILOG_SOURCES += ../../rtl/$(DUT).v
-VERILOG_SOURCES += ../../rtl/arp_eth_rx.v
-VERILOG_SOURCES += ../../rtl/arp_eth_tx.v
-VERILOG_SOURCES += ../../rtl/arp_cache.v
-VERILOG_SOURCES += ../../rtl/lfsr.v
+VERILOG_SOURCES += $(PWD)/../../rtl/$(DUT).v
+VERILOG_SOURCES += $(PWD)/../../rtl/arp_eth_rx.v
+VERILOG_SOURCES += $(PWD)/../../rtl/arp_eth_tx.v
+VERILOG_SOURCES += $(PWD)/../../rtl/arp_cache.v
+VERILOG_SOURCES += $(PWD)/../../rtl/lfsr.v
 
 # module parameters
 export PARAM_DATA_WIDTH ?= 8
@@ -73,6 +73,14 @@ else ifeq ($(SIM), verilator)
 	ifeq ($(WAVES), 1)
 		COMPILE_ARGS += --trace-fst
 	endif
+else ifeq ($(SIM), galaxsim)
+        COMPILE_ARGS += -pvalue+$(TOPLEVEL).DATA_WIDTH=$(PARAM_DATA_WIDTH)
+        COMPILE_ARGS += -pvalue+$(TOPLEVEL).KEEP_ENABLE=$(PARAM_KEEP_ENABLE)
+        COMPILE_ARGS += -pvalue+$(TOPLEVEL).KEEP_WIDTH=$(PARAM_KEEP_WIDTH)
+        COMPILE_ARGS += -pvalue+$(TOPLEVEL).CACHE_ADDR_WIDTH=$(PARAM_CACHE_ADDR_WIDTH)
+        COMPILE_ARGS += -pvalue+$(TOPLEVEL).REQUEST_RETRY_COUNT=$(PARAM_REQUEST_RETRY_COUNT)
+        COMPILE_ARGS += -pvalue+$(TOPLEVEL).REQUEST_RETRY_INTERVAL=$(PARAM_REQUEST_RETRY_INTERVAL)
+        COMPILE_ARGS += -pvalue+$(TOPLEVEL).REQUEST_TIMEOUT=$(PARAM_REQUEST_TIMEOUT)
 endif
 
 include $(shell cocotb-config --makefiles)/Makefile.sim
