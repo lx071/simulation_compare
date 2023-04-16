@@ -33,6 +33,7 @@ public:
 
 private:
     int count;
+    char *trans_data = "\x22\x33\x44\x55\x66";
 
     void b_transport(tlm::tlm_generic_payload& trans, sc_time& delay) {
         tlm::tlm_command cmd = trans.get_command();
@@ -48,11 +49,16 @@ private:
         }
 
         if (cmd == tlm::TLM_READ_COMMAND) {
-            if (len != sizeof(count)) {
+            std::cout << "len:" << len << std::endl;
+            std::cout << "trans_data:" << strlen(trans_data) << std::endl;
+            if (len != strlen(trans_data)) {
                 trans.set_response_status(tlm::TLM_BURST_ERROR_RESPONSE);
                 return;
             }
-            memcpy(data, &count, sizeof(count));
+            std::cout << "===" << std::endl;
+
+            // memcpy(data, trans_data, 5);
+            std::cout << "===" << std::endl;
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
             if (len != sizeof(count)) {
@@ -80,40 +86,40 @@ private:
     int count;
 
     void run() {
-        tlm::tlm_generic_payload trans;
-        sc_time delay = sc_time(10, SC_NS);
+        // tlm::tlm_generic_payload trans;
+        // sc_time delay = sc_time(10, SC_NS);
 
-        // 读取计数器的值
-        trans.set_command(tlm::TLM_READ_COMMAND);
-        trans.set_address(0x0);
-        trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
-        trans.set_data_length(sizeof(count));
-        socket->b_transport(trans, delay);
+        // // 读取计数器的值
+        // trans.set_command(tlm::TLM_READ_COMMAND);
+        // trans.set_address(0x0);
+        // trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
+        // trans.set_data_length(sizeof(count));
+        // socket->b_transport(trans, delay);
 
-        assert(trans.is_response_ok());
-        int count = *reinterpret_cast<int*>(trans.get_data_ptr());
-        cout << "计数器的值为：" << count << endl;
+        // assert(trans.is_response_ok());
+        // int count = *reinterpret_cast<int*>(trans.get_data_ptr());
+        // cout << "计数器的值为：" << count << endl;
 
         // 将计数器的值加1
-        count++;
-        trans.set_command(tlm::TLM_WRITE_COMMAND);
-        trans.set_address(0x0);
-        trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
-        trans.set_data_length(sizeof(count));
-        socket->b_transport(trans, delay);
+        // count++;
+        // trans.set_command(tlm::TLM_WRITE_COMMAND);
+        // trans.set_address(0x0);
+        // trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
+        // trans.set_data_length(sizeof(count));
+        // socket->b_transport(trans, delay);
 
-        assert(trans.is_response_ok());
-        cout << "计数器的值加1后为：" << count << endl;
+        // assert(trans.is_response_ok());
+        // cout << "计数器的值加1后为：" << count << endl;
 
-        // 读取计数器的值
-        trans.set_command(tlm::TLM_READ_COMMAND);
-        trans.set_address(0x0);
-        trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
-        trans.set_data_length(sizeof(count));
-        socket->b_transport(trans, delay);
+        // // 读取计数器的值
+        // trans.set_command(tlm::TLM_READ_COMMAND);
+        // trans.set_address(0x0);
+        // trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
+        // trans.set_data_length(sizeof(count));
+        // socket->b_transport(trans, delay);
 
-        assert(trans.is_response_ok());
-        cout << "计数器的值为：" << count << endl;
+        // assert(trans.is_response_ok());
+        // cout << "计数器的值为：" << count << endl;
     }
 };
 
@@ -126,10 +132,30 @@ extern void send_long(long long int data);
 extern void send_bit(const svBit data);
 extern void send_bit_vec(const svBitVecVal* data);
 
+Counter counter("counter");
+Initiator initiator("initiator");
+
+
 void c_py_gen_data(svBitVecVal* data) 
 {
-    char *ptr = "\x00\x31\x00\x37\x00";
-    memcpy(data, ptr, 5);
+    char *payload_data = "\x11\x22\x33\x44\x44";
+    // char payload_data[5];
+    tlm::tlm_generic_payload trans;
+    sc_time delay = sc_time(10, SC_NS);
+    
+    // 读取计数器的值
+    trans.set_command(tlm::TLM_READ_COMMAND);
+    trans.set_address(0x0);
+    trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
+    trans.set_data_length(strlen(payload_data));
+
+    initiator.socket->b_transport(trans, delay);
+
+    assert(trans.is_response_ok());
+    payload_data = reinterpret_cast<char*>(trans.get_data_ptr());
+    // std::cout << "get payload_data：" << payload_data << std::endl;
+    
+    memcpy(data, payload_data, 5);
 }
 
 void put()
@@ -148,17 +174,15 @@ void recv(int data)
     put();
 }
 
+
 int sc_main(int argc, char* argv[]) {
     #if VM_TRACE
     // Before any evaluation, need to know to calculate those signals only used for tracing
         Verilated::traceEverOn(true);
     #endif
-
-    Counter counter("counter");
-    Initiator initiator("initiator");
-
+    
     initiator.socket.bind(counter.socket);
-
+    
     Vwrapper* top = new Vwrapper{"wrapper"};
 
     Verilated::commandArgs(argc, argv);
