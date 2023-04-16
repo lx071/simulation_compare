@@ -1,0 +1,24 @@
+1. cd ~/Downloads/
+2. tar -zxvf systemc-2.3.4.tar
+3. cd systemc-2.3.4
+4. mkdir objdir
+5. cd objdir
+6. sudo mkdir /usr/local/systemc-2.3.4/
+7. ../configure --prefix=/usr/local/systemc-2.3.4/
+8. make
+9. make check
+10. sudo make install
+
+g++ main.cpp -I /usr/local/systemc-2.3.4/include -L /usr/local/systemc-2.3.4/lib-linux64 -o hello -l systemc
+
+-I /home/user/systemc/include -L /home/user/systemc/lib-linux -o hello -l systemc
+这个命令参数比较多，说明如下：
+-I /home/user/systemc/include  告诉g++编译器去/home/user/systemc/include下去寻找所需的头文件即systemc.h
+-L /home/user/systemc/lib-linux  告诉ld链接器去/home/user/systemc/lib-linux下去寻找所需的库文件声明
+-o hello  标准的输出参数，生成的可执行文件名为hello
+-l systemc  告诉ld链接器最终的库文件是libsystemc.a
+
+修改.bashrc（可以修改~/.bashrc，也可以修改/etc/.bashrc），在文件末尾添加
+export LD_LIBRARY_PATH=$LD_LIBRARY:/usr/local/systemc-2.3.4/lib-linux64
+
+
