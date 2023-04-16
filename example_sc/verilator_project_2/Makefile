@@ -44,7 +44,7 @@ endif
 run:
 	@echo "-- Verilator hello-world simple example"
 	@echo "-- VERILATE & COMPILE ------"
-	$(VERILATOR) --timing --trace -cc --exe --build --top-module wrapper hdl/wrapper.v hdl/bfm.v hdl/Add.v sc_main.cpp -CFLAGS "-I/usr/local/systemc-2.3.4/include" -LDFLAGS "-L/usr/local/systemc-2.3.4/lib-linux64 -lsystemc"
+	$(VERILATOR) --trace --timing -sc --exe --build --top-module wrapper -j hdl/wrapper.v hdl/bfm.v hdl/Add.v sc_main.cpp
 	@echo "-- RUN ---------------------"
 	obj_dir/Vwrapper
 	@echo "-- DONE --------------------"

@@ -19,12 +19,9 @@
 #include <tlm_utils/simple_initiator_socket.h>
 #include <tlm_utils/simple_target_socket.h>
 
-#include "svdpi.h"
-#include "Vwrapper__Dpi.h"
-#include <iostream>
-
-using namespace std;
-
+#if VM_TRACE
+#include <verilated_vcd_sc.h>
+#endif
 
 SC_MODULE(Counter) { // 其实只是个target
 public:
@@ -36,6 +33,7 @@ public:
 
 private:
     int count;
+    char *trans_data = "\x22\x33\x44\x55\x66";
 
     void b_transport(tlm::tlm_generic_payload& trans, sc_time& delay) {
         tlm::tlm_command cmd = trans.get_command();
@@ -51,11 +49,16 @@ private:
         }
 
         if (cmd == tlm::TLM_READ_COMMAND) {
-            if (len != sizeof(count)) {
+            std::cout << "len:" << len << std::endl;
+            std::cout << "trans_data:" << strlen(trans_data) << std::endl;
+            if (len != strlen(trans_data)) {
                 trans.set_response_status(tlm::TLM_BURST_ERROR_RESPONSE);
                 return;
             }
-            memcpy(data, &count, sizeof(count));
+            std::cout << "===" << std::endl;
+            //send_bit_vec()
+            // memcpy(data, trans_data, 5);
+            std::cout << "===" << std::endl;
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
             if (len != sizeof(count)) {
@@ -83,66 +86,73 @@ private:
     int count;
 
     void run() {
-        tlm::tlm_generic_payload trans;
-        sc_time delay = sc_time(10, SC_NS);
+        // tlm::tlm_generic_payload trans;
+        // sc_time delay = sc_time(10, SC_NS);
 
-        // 读取计数器的值
-        trans.set_command(tlm::TLM_READ_COMMAND);
-        trans.set_address(0x0);
-        trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
-        trans.set_data_length(sizeof(count));
-        socket->b_transport(trans, delay);
+        // // 读取计数器的值
+        // trans.set_command(tlm::TLM_READ_COMMAND);
+        // trans.set_address(0x0);
+        // trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
+        // trans.set_data_length(sizeof(count));
+        // socket->b_transport(trans, delay);
 
-        assert(trans.is_response_ok());
-        int count = *reinterpret_cast<int*>(trans.get_data_ptr());
-        cout << "计数器的值为：" << count << endl;
+        // assert(trans.is_response_ok());
+        // int count = *reinterpret_cast<int*>(trans.get_data_ptr());
+        // cout << "计数器的值为：" << count << endl;
 
         // 将计数器的值加1
-        count++;
-        trans.set_command(tlm::TLM_WRITE_COMMAND);
-        trans.set_address(0x0);
-        trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
-        trans.set_data_length(sizeof(count));
-        socket->b_transport(trans, delay);
+        // count++;
+        // trans.set_command(tlm::TLM_WRITE_COMMAND);
+        // trans.set_address(0x0);
+        // trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
+        // trans.set_data_length(sizeof(count));
+        // socket->b_transport(trans, delay);
 
-        assert(trans.is_response_ok());
-        cout << "计数器的值加1后为：" << count << endl;
+        // assert(trans.is_response_ok());
+        // cout << "计数器的值加1后为：" << count << endl;
 
-        // 读取计数器的值
-        trans.set_command(tlm::TLM_READ_COMMAND);
-        trans.set_address(0x0);
-        trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
-        trans.set_data_length(sizeof(count));
-        socket->b_transport(trans, delay);
+        // // 读取计数器的值
+        // trans.set_command(tlm::TLM_READ_COMMAND);
+        // trans.set_address(0x0);
+        // trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
+        // trans.set_data_length(sizeof(count));
+        // socket->b_transport(trans, delay);
 
-        assert(trans.is_response_ok());
-        cout << "计数器的值为：" << count << endl;
+        // assert(trans.is_response_ok());
+        // cout << "计数器的值为：" << count << endl;
     }
 };
+
+#include "svdpi.h"
+#include "Vwrapper__Dpi.h"
+#include <iostream>
 
 extern void recv(int data);
 extern void send_long(long long int data);
 extern void send_bit(const svBit data);
 extern void send_bit_vec(const svBitVecVal* data);
 
+Counter counter("counter");
+Initiator initiator("initiator");
+
 
 void c_py_gen_data(svBitVecVal* data) 
 {
     char *payload_data = "\x11\x22\x33\x44\x44";
     // char payload_data[5];
-    // tlm::tlm_generic_payload trans;
-    // sc_time delay = sc_time(10, SC_NS);
+    tlm::tlm_generic_payload trans;
+    sc_time delay = sc_time(10, SC_NS);
     
-    // // 读取计数器的值
-    // trans.set_command(tlm::TLM_READ_COMMAND);
-    // trans.set_address(0x0);
-    // trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
-    // trans.set_data_length(strlen(payload_data));
+    // 读取计数器的值
+    trans.set_command(tlm::TLM_READ_COMMAND);
+    trans.set_address(0x0);
+    trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
+    trans.set_data_length(strlen(payload_data));
 
-    // initiator.socket->b_transport(trans, delay);
+    initiator.socket->b_transport(trans, delay);
 
-    // assert(trans.is_response_ok());
-    // payload_data = reinterpret_cast<char*>(trans.get_data_ptr());
+    assert(trans.is_response_ok());
+    payload_data = reinterpret_cast<char*>(trans.get_data_ptr());
     // std::cout << "get payload_data：" << payload_data << std::endl;
     
     memcpy(data, payload_data, 5);
@@ -164,30 +174,34 @@ void recv(int data)
     put();
 }
 
-Counter counter("counter");
-Initiator initiator("initiator");
 
 int sc_main(int argc, char* argv[]) {
+    #if VM_TRACE
+    // Before any evaluation, need to know to calculate those signals only used for tracing
+        Verilated::traceEverOn(true);
+    #endif
     
-    // Vwrapper* top = new Vwrapper{"wrapper"};
+    initiator.socket.bind(counter.socket);
     
-    auto contextp {make_unique<VerilatedContext>()};
-    auto top {make_unique<Vwrapper>(contextp.get())};
-    contextp->commandArgs(argc, argv);
-    Verilated::traceEverOn(true);
-    
-    // sc_signal<uint32_t> res_o;
-    // top->res_o(res_o);
+    Vwrapper* top = new Vwrapper{"wrapper"};
+
+    Verilated::commandArgs(argc, argv);
+
+    sc_signal<uint32_t> res_o;
+    top->res_o(res_o);
 
     // const svScope scope = svGetScopeFromName("TOP.top");
     // assert(scope);  // Check for nullptr if scope not found
     // svSetScope(scope);
+    
+    // Initialize SC model
+    // sc_start(1, SC_NS);
+    sc_start(SC_ZERO_TIME);
 
     // Simulate until $finish
     while (!Verilated::gotFinish()) {
-
-        top->eval();
-        contextp->timeInc(1000);
+        // Simulate 1ns
+        sc_start(1, SC_NS);
     }
 
     // Final model cleanup
