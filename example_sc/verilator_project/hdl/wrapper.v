@@ -51,13 +51,20 @@ always @(posedge clk_i) begin
     end
 end
 
+parameter TOTAL_WIDTH = 40;
+bit[TOTAL_WIDTH-1:0]    payload_data;
+
 initial begin
     $display("Hello Add!");
     recv(6);
+    c_py_gen_data(payload_data);  
+    $display("payload_data ='h%h", payload_data[TOTAL_WIDTH-1:0]);
     $dumpfile("dump.vcd");
     $dumpvars;
 end
 
+
+import "DPI-C" function void c_py_gen_data(output bit[TOTAL_WIDTH-1:0] pkt);
 import "DPI-C" context function void recv (input int data);
 export "DPI-C" function send_long;
 export "DPI-C" function send_bit;

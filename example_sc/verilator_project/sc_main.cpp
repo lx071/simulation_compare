@@ -126,6 +126,12 @@ extern void send_long(long long int data);
 extern void send_bit(const svBit data);
 extern void send_bit_vec(const svBitVecVal* data);
 
+void c_py_gen_data(svBitVecVal* data) 
+{
+    char *ptr = "\x00\x31\x00\x37\x00";
+    memcpy(data, ptr, 5);
+}
+
 void put()
 {
     long long int data_1 = 131;
@@ -160,10 +166,10 @@ int sc_main(int argc, char* argv[]) {
     sc_signal<uint32_t> res_o;
     top->res_o(res_o);
 
-    // const svScope scope = svGetScopeFromName("TOP.wrapper");
+    // const svScope scope = svGetScopeFromName("TOP.top");
     // assert(scope);  // Check for nullptr if scope not found
     // svSetScope(scope);
-
+    
     // Initialize SC model
     // sc_start(1, SC_NS);
     sc_start(SC_ZERO_TIME);
