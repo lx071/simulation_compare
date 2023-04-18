@@ -25,17 +25,18 @@
 
 using namespace std;
 
-
-SC_MODULE(Counter) { // 其实只是个target
+SC_MODULE(Target) { // 其实只是个target
 public:
-    tlm_utils::simple_target_socket<Counter> socket;
+    tlm_utils::simple_target_socket<Target> socket;
 
-    SC_CTOR(Counter) : count(0) {
-        socket.register_b_transport(this, &Counter::b_transport);   //register methods with each socket
+    SC_CTOR(Target) : count(0) {
+        socket.register_b_transport(this, &Target::b_transport);   //register methods with each socket
     }
 
 private:
     int count;
+    // char *payload_data;
+    unsigned char* payload_data = nullptr;
 
     void b_transport(tlm::tlm_generic_payload& trans, sc_time& delay) {
         tlm::tlm_command cmd = trans.get_command();
@@ -51,8 +52,7 @@ private:
         }
 
         if (cmd == tlm::TLM_READ_COMMAND) {
-            std::cout << "len:" << len << std::endl;
-            // std::cout << "trans:" << strlen(trans) << std::endl;
+            std::cout << "read_len:" << len << std::endl;
             if (len != sizeof(count)) {
                 trans.set_response_status(tlm::TLM_BURST_ERROR_RESPONSE);
                 return;
@@ -60,11 +60,21 @@ private:
             memcpy(data, &count, sizeof(count));
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
-            if (len != sizeof(count)) {
-                trans.set_response_status(tlm::TLM_BURST_ERROR_RESPONSE);
-                return;
+            payload_data = data;
+            std::cout << "write_len:" << len << std::endl;
+            for(int i=0;i<len;i++)
+            {
+                cout << std::hex << static_cast<int>(*(payload_data + i)) << endl;
             }
-            memcpy(&count, data, sizeof(count));
+
+            long long int data_1 = 131;
+            unsigned char data_2 = 231;
+            const svBitVecVal data_3[4] = {0xFFEEFEF7, 0xF133FEF3, 0xF234FEF1, 0xF379FEF9};
+            send_long(data_1);
+            send_bit(data_2);
+            const unsigned int* sv_data = reinterpret_cast<const unsigned int*>(payload_data);
+            send_bit_vec(sv_data);
+            
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
         } else {
             trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
@@ -128,52 +138,47 @@ extern void send_bit(const svBit data);
 extern void send_bit_vec(const svBitVecVal* data);
 
 
-Counter counter("counter");
+Target target("target");
 Initiator initiator("initiator");
 
-
-void c_py_gen_data(svBitVecVal* data) 
-{
-    char *payload_data = "\x11\x22\x33\x44\x44";
-    
+// typedef unsigned __int32 uint32_t;
+// typedef uint32_t svBitVecVal;
+void testbench(svBitVecVal* data) 
+{    
     tlm::tlm_generic_payload trans;
-    sc_time delay = sc_time(10, SC_NS);
+    // sc_time delay = sc_time(10, SC_NS);
 
-    int count = 0;
-    // 读取计数器的值
-    trans.set_command(tlm::TLM_READ_COMMAND);
+    sc_time delay = SC_ZERO_TIME;
+    
+    unsigned char arr[] = {0x11, 0x22, 0x33, 0x44, 0x55};
+    unsigned char *payload_data = arr;
+    // char *payload_data = "\x11\x22\x33\x44\x44";
+
+    // cout << "sizeof(*payload_data)" << sizeof(*payload_data) << endl;
+    // cout << "sizeof(payload_data)" << sizeof(payload_data) << endl; //指针占8字节
+    // cout << "strlen(payload_data)" << strlen((const char*)payload_data) << endl;
+    // set data
+    trans.set_command(tlm::TLM_WRITE_COMMAND);
     trans.set_address(0x0);
-    trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
-    trans.set_data_length(sizeof(count));
+    trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
+    trans.set_data_length(strlen((const char*)payload_data));
     initiator.socket->b_transport(trans, delay);
 
     assert(trans.is_response_ok());
-    count = *reinterpret_cast<int*>(trans.get_data_ptr());
-    cout << "计数器的值为：" << count << endl;
 
-    memcpy(data, payload_data, 5);
+    // memcpy(data, payload_data, 5);
 }
 
-void put()
-{
-    long long int data_1 = 131;
-    unsigned char data_2 = 231;
-    const svBitVecVal data_3[4] = {0xFFEEFEF7, 0xF133FEF3, 0xF234FEF1, 0xF379FEF9};
-    send_long(data_1);
-    send_bit(data_2);
-    send_bit_vec(data_3);
-}
 
 void recv(int data) 
 {
-    std::cout<<data<<std::endl;
-    put();
+    std::cout<<"recv:"<<data<<std::endl;
 }
 
 
 int sc_main(int argc, char* argv[]) {
     
-    initiator.socket.bind(counter.socket);
+    initiator.socket.bind(target.socket);
 
     // Vwrapper* top = new Vwrapper{"wrapper"};
 

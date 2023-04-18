@@ -57,13 +57,13 @@ bit[TOTAL_WIDTH-1:0]    payload_data;
 initial begin
     $display("Hello Add!");
     recv(6);
-    c_py_gen_data(payload_data);  
-    $display("payload_data ='h%h", payload_data[TOTAL_WIDTH-1:0]);
+    testbench(payload_data);  
+    //$display("payload_data ='h%h", payload_data[TOTAL_WIDTH-1:0]);
     $dumpfile("dump.vcd");
     $dumpvars;
 end
 
-import "DPI-C" function void c_py_gen_data(output bit[TOTAL_WIDTH-1:0] pkt);
+import "DPI-C" function void testbench(output bit[TOTAL_WIDTH-1:0] pkt);
 import "DPI-C" context function void recv (input int data);
 export "DPI-C" function send_long;
 export "DPI-C" function send_bit;
@@ -84,12 +84,12 @@ end
 endfunction
 
 
-function void send_bit_vec(bit[256:0] data);
+function void send_bit_vec(bit[39:0] data);
 begin
     $display("send_bit_vec side");
     $display("%h", data);
-    $display(data[7:0]);
-    $display(data[15:8]);
+    //$display(data[7:0]);
+    //$display(data[15:8]);
 end
 endfunction
 
