@@ -51,6 +51,8 @@ private:
         }
 
         if (cmd == tlm::TLM_READ_COMMAND) {
+            std::cout << "len:" << len << std::endl;
+            // std::cout << "trans:" << strlen(trans) << std::endl;
             if (len != sizeof(count)) {
                 trans.set_response_status(tlm::TLM_BURST_ERROR_RESPONSE);
                 return;
@@ -126,25 +128,29 @@ extern void send_bit(const svBit data);
 extern void send_bit_vec(const svBitVecVal* data);
 
 
+Counter counter("counter");
+Initiator initiator("initiator");
+
+
 void c_py_gen_data(svBitVecVal* data) 
 {
     char *payload_data = "\x11\x22\x33\x44\x44";
-    // char payload_data[5];
-    // tlm::tlm_generic_payload trans;
-    // sc_time delay = sc_time(10, SC_NS);
     
-    // // 读取计数器的值
-    // trans.set_command(tlm::TLM_READ_COMMAND);
-    // trans.set_address(0x0);
-    // trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
-    // trans.set_data_length(strlen(payload_data));
+    tlm::tlm_generic_payload trans;
+    sc_time delay = sc_time(10, SC_NS);
 
-    // initiator.socket->b_transport(trans, delay);
+    int count = 0;
+    // 读取计数器的值
+    trans.set_command(tlm::TLM_READ_COMMAND);
+    trans.set_address(0x0);
+    trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
+    trans.set_data_length(sizeof(count));
+    initiator.socket->b_transport(trans, delay);
 
-    // assert(trans.is_response_ok());
-    // payload_data = reinterpret_cast<char*>(trans.get_data_ptr());
-    // std::cout << "get payload_data：" << payload_data << std::endl;
-    
+    assert(trans.is_response_ok());
+    count = *reinterpret_cast<int*>(trans.get_data_ptr());
+    cout << "计数器的值为：" << count << endl;
+
     memcpy(data, payload_data, 5);
 }
 
@@ -164,13 +170,13 @@ void recv(int data)
     put();
 }
 
-Counter counter("counter");
-Initiator initiator("initiator");
 
 int sc_main(int argc, char* argv[]) {
     
+    initiator.socket.bind(counter.socket);
+
     // Vwrapper* top = new Vwrapper{"wrapper"};
-    
+
     auto contextp {make_unique<VerilatedContext>()};
     auto top {make_unique<Vwrapper>(contextp.get())};
     contextp->commandArgs(argc, argv);
