@@ -62,14 +62,15 @@ private:
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
             payload_data = data;
             std::cout << "write_len:" << len << std::endl;
-            for(int i=0;i<len;i++)
-            {
-                cout << std::hex << static_cast<int>(*(payload_data + i)) << endl;
-            }
+            // for(int i=0;i<len;i++)
+            // {
+            //     cout << std::hex << static_cast<int>(*(payload_data + i)) << endl;
+            // }
 
             long long int data_1 = 131;
             unsigned char data_2 = 231;
-            const svBitVecVal data_3[4] = {0xFFEEFEF7, 0xF133FEF3, 0xF234FEF1, 0xF379FEF9};
+            //  ‘const svBitVecVal*’ {aka ‘const unsigned int*’}
+            // const svBitVecVal data_3[4] = {0xFFEEFEF7, 0xF133FEF3, 0xF234FEF1, 0xF379FEF9};
             send_long(data_1);
             send_bit(data_2);
             const unsigned int* sv_data = reinterpret_cast<const unsigned int*>(payload_data);
@@ -143,20 +144,28 @@ Initiator initiator("initiator");
 
 // typedef unsigned __int32 uint32_t;
 // typedef uint32_t svBitVecVal;
-void testbench(svBitVecVal* data) 
-{    
+void testbench() 
+{
     tlm::tlm_generic_payload trans;
     // sc_time delay = sc_time(10, SC_NS);
 
     sc_time delay = SC_ZERO_TIME;
     
-    unsigned char arr[] = {0x11, 0x22, 0x33, 0x44, 0x55};
+    unsigned char arr[200];
+    int k = 1;
+    for (int i = 0; i < 200; i = i + 2) {//0,2,4,...,98
+        arr[i] = k;
+        arr[i+1] = k;
+        k++;
+    }
+    // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
     unsigned char *payload_data = arr;
     // char *payload_data = "\x11\x22\x33\x44\x44";
 
     // cout << "sizeof(*payload_data)" << sizeof(*payload_data) << endl;
     // cout << "sizeof(payload_data)" << sizeof(payload_data) << endl; //指针占8字节
     // cout << "strlen(payload_data)" << strlen((const char*)payload_data) << endl;
+
     // set data
     trans.set_command(tlm::TLM_WRITE_COMMAND);
     trans.set_address(0x0);
