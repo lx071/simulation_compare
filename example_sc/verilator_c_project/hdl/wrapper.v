@@ -58,18 +58,18 @@ end
 
 
 initial begin
-    $display("Hello Add!");
-    recv(6);
+    //$display("Hello Add!");
+    //recv(6);
     testbench();  
     //$display("payload_data ='h%h", payload_data[TOTAL_WIDTH-1:0]);
     $dumpfile("dump.vcd");
     $dumpvars;
 end
 
-import "DPI-C" function void testbench();
+import "DPI-C" context function void testbench();
 import "DPI-C" context function void recv (input int data);
-export "DPI-C" function send_long;
-export "DPI-C" function send_bit;
+//export "DPI-C" function send_long;
+//export "DPI-C" function send_bit;
 export "DPI-C" function send_bit_vec;
 
 function void send_long(longint data);
@@ -89,18 +89,14 @@ endfunction
 
 function void send_bit_vec(bit[1599:0] data);
 begin
-    $display("send_bit_vec side");
+    //$display("send_bit_vec side");
     payload_data = data;
     xmit_en = xmit_en + 1;
 
-    $display("%h", payload_data);
+    //$display("%h", payload_data);
     //$display("payload_data[0]:", payload_data[0]);
     //$display("payload_data[1]:", payload_data[1]);
-    //$display("payload_data[2]:", payload_data[2]);
-    //$display("payload_data[3]:", payload_data[3]);
-    //$display("payload_data[4]:", payload_data[4]);
-    //$display(data[7:0]);
-    //$display(data[15:8]);
+
 end
 endfunction
 

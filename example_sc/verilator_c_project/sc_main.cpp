@@ -71,8 +71,8 @@ private:
             unsigned char data_2 = 231;
             //  ‘const svBitVecVal*’ {aka ‘const unsigned int*’}
             // const svBitVecVal data_3[4] = {0xFFEEFEF7, 0xF133FEF3, 0xF234FEF1, 0xF379FEF9};
-            send_long(data_1);
-            send_bit(data_2);
+            // send_long(data_1);
+            // send_bit(data_2);
             const unsigned int* sv_data = reinterpret_cast<const unsigned int*>(payload_data);
             send_bit_vec(sv_data);
             
