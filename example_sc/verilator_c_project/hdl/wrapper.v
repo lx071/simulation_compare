@@ -8,11 +8,12 @@ output  wire [7:0] res_o
 );
 
 // 最高不能超过十亿bit
-parameter int LENGTH = 2000000; // byte
-parameter NUM=100;
+//parameter int LENGTH = 2000000; // byte
+//parameter TOTAL_WIDTH = 1600;
+parameter NUM=1000000;
+parameter ITEM_WIDTH = 8;
 
 bit clk_i, reset_i;
-//bit [7:0] data[LENGTH*2-1:0]; 
 
 reg [7:0] A_s;
 reg [7:0] B_s;
@@ -33,10 +34,8 @@ bfm inst_bfm(
 );
 
 int num = 0;
-
-parameter TOTAL_WIDTH = 1600;
 reg xmit_en = 0;
-bit[199:0][7:0]    payload_data;
+bit[NUM*2-1:0][ITEM_WIDTH-1:0]    payload_data;
 
 always @(posedge clk_i) begin
     if(reset_i) begin
@@ -51,19 +50,19 @@ always @(posedge clk_i) begin
         if(num >= NUM) begin
             num = 0;
             xmit_en = xmit_en - 1;
-            #2 $finish;
+            $finish;
         end
     end
 end
 
 
 initial begin
+    testbench();  
     //$display("Hello Add!");
     //recv(6);
-    testbench();  
     //$display("payload_data ='h%h", payload_data[TOTAL_WIDTH-1:0]);
-    $dumpfile("dump.vcd");
-    $dumpvars;
+    //$dumpfile("dump.vcd");
+    //$dumpvars;
 end
 
 import "DPI-C" context function void testbench();
@@ -87,7 +86,7 @@ end
 endfunction
 
 
-function void send_bit_vec(bit[1599:0] data);
+function void send_bit_vec(bit[NUM*2-1:0][ITEM_WIDTH-1:0] data);
 begin
     //$display("send_bit_vec side");
     payload_data = data;

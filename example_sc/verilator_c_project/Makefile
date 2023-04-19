@@ -1,4 +1,4 @@
-all: compile run
+all: compile
 
 compile:
 	verilator --timing --trace -cc --exe --build --top-module wrapper hdl/wrapper.v hdl/bfm.v hdl/Add.v sc_main.cpp -CFLAGS "-I/usr/local/systemc-2.3.4/include" -LDFLAGS "-L/usr/local/systemc-2.3.4/lib-linux64 -lsystemc"

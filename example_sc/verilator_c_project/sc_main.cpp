@@ -62,17 +62,9 @@ private:
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
             payload_data = data;
             std::cout << "write_len:" << len << std::endl;
-            // for(int i=0;i<len;i++)
-            // {
-            //     cout << std::hex << static_cast<int>(*(payload_data + i)) << endl;
-            // }
+            // for(int i=0;i<len;i++) cout << std::hex << static_cast<int>(*(payload_data + i)) << endl;
 
-            long long int data_1 = 131;
-            unsigned char data_2 = 231;
             //  ‘const svBitVecVal*’ {aka ‘const unsigned int*’}
-            // const svBitVecVal data_3[4] = {0xFFEEFEF7, 0xF133FEF3, 0xF234FEF1, 0xF379FEF9};
-            // send_long(data_1);
-            // send_bit(data_2);
             const unsigned int* sv_data = reinterpret_cast<const unsigned int*>(payload_data);
             send_bit_vec(sv_data);
             
@@ -133,11 +125,10 @@ private:
     }
 };
 
-extern void recv(int data);
-extern void send_long(long long int data);
-extern void send_bit(const svBit data);
+//extern void recv(int data);
+//extern void send_long(long long int data);
+//extern void send_bit(const svBit data);
 extern void send_bit_vec(const svBitVecVal* data);
-
 
 Target target("target");
 Initiator initiator("initiator");
@@ -150,13 +141,11 @@ void testbench()
     // sc_time delay = sc_time(10, SC_NS);
 
     sc_time delay = SC_ZERO_TIME;
-    
-    unsigned char arr[200];
-    int k = 1;
-    for (int i = 0; i < 200; i = i + 2) {//0,2,4,...,98
-        arr[i] = k;
-        arr[i+1] = k;
-        k++;
+    int num = 1000000;
+    unsigned char arr[num*2];
+    for (int i = 0; i < num; i = i + 1) {
+        arr[i*2] = i%100;
+        arr[i*2+1] = i%100;
     }
     // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
     unsigned char *payload_data = arr;
