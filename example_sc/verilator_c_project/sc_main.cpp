@@ -52,7 +52,7 @@ private:
         }
 
         if (cmd == tlm::TLM_READ_COMMAND) {
-            std::cout << "read_len:" << len << std::endl;
+            //std::cout << "read_len:" << len << std::endl;
             if (len != sizeof(count)) {
                 trans.set_response_status(tlm::TLM_BURST_ERROR_RESPONSE);
                 return;
@@ -61,12 +61,12 @@ private:
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
             payload_data = data;
-            std::cout << "write_len:" << len << std::endl;
+            //std::cout << "write_len:" << len << std::endl;
             // for(int i=0;i<len;i++) cout << std::hex << static_cast<int>(*(payload_data + i)) << endl;
 
             //  ‘const svBitVecVal*’ {aka ‘const unsigned int*’}
             const unsigned int* sv_data = reinterpret_cast<const unsigned int*>(payload_data);
-            send_bit_vec(sv_data);
+            set_data(sv_data);
             
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
         } else {
@@ -126,23 +126,25 @@ private:
 };
 
 //extern void recv(int data);
-//extern void send_long(long long int data);
-//extern void send_bit(const svBit data);
-extern void send_bit_vec(const svBitVecVal* data);
+extern void set_data(const svBitVecVal* data);
+//extern int get_ready();
+extern svBit get_xmit_en();
 
 Target target("target");
 Initiator initiator("initiator");
 
+
 // typedef unsigned __int32 uint32_t;
 // typedef uint32_t svBitVecVal;
-void testbench() 
+void send_tlm_data(int num) 
 {
     tlm::tlm_generic_payload trans;
     // sc_time delay = sc_time(10, SC_NS);
 
     sc_time delay = SC_ZERO_TIME;
-    int num = 1000000;
+    //int num = 50;
     unsigned char arr[num*2];
+
     for (int i = 0; i < num; i = i + 1) {
         arr[i*2] = i%100;
         arr[i*2+1] = i%100;
@@ -179,7 +181,7 @@ int sc_main(int argc, char* argv[]) {
     initiator.socket.bind(target.socket);
 
     // Vwrapper* top = new Vwrapper{"wrapper"};
-
+    
     auto contextp {make_unique<VerilatedContext>()};
     auto top {make_unique<Vwrapper>(contextp.get())};
     contextp->commandArgs(argc, argv);
@@ -187,14 +189,29 @@ int sc_main(int argc, char* argv[]) {
     
     // sc_signal<uint32_t> res_o;
     // top->res_o(res_o);
+    
+    const svScope scope = svGetScopeFromName("TOP.wrapper");
+    assert(scope);  // Check for nullptr if scope not found
+    svSetScope(scope);
 
-    // const svScope scope = svGetScopeFromName("TOP.top");
-    // assert(scope);  // Check for nullptr if scope not found
-    // svSetScope(scope);
+    int NUM = 10000;
+    int item_num = 100;
+    int num = 0;
+    int xmit_en = 1;
 
     // Simulate until $finish
-    while (!Verilated::gotFinish()) {
-
+    while (!Verilated::gotFinish()) {       
+        //cout << "xmit_en:" << xmit_en << endl;
+        
+        if(get_xmit_en() != xmit_en)
+        {
+            num = num + 1;
+            if(num >= NUM + 1) break;
+            xmit_en = get_xmit_en();
+            //cout << "xmit_en:" << xmit_en << endl;
+            send_tlm_data(item_num);
+            
+        } 
         top->eval();
         contextp->timeInc(1000);
     }
