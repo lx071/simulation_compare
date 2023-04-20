@@ -1,10 +1,11 @@
 1. cd ~/Downloads/
-2. tar -zxvf systemc-2.3.4.tar
+2. tar -zxvf systemc-2.3.4.tar.gz
 3. cd systemc-2.3.4
 4. mkdir objdir
 5. cd objdir
 6. sudo mkdir /usr/local/systemc-2.3.4/
 7. ../configure --prefix=/usr/local/systemc-2.3.4/
+//cd .. && autoreconf -ivf  (aclocal-1.13: command not found)
 8. make
 9. make check
 10. sudo make install
