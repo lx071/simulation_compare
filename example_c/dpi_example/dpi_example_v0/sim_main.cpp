@@ -23,7 +23,7 @@ using namespace std;
 extern "C" __attribute__((visibility("default")))
 void gen_tlm_data(svBitVecVal* data) 
 {
-    int num = 100;
+    int num = 1000;
     unsigned char arr[num*2];
 
     for (int i = 0; i < num; i = i + 1) {

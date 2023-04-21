@@ -5,7 +5,8 @@ module wrapper(
 output  wire [7:0] res_o
 );
 
-parameter NUM=50;
+parameter CYCLE_NUM=2000;
+parameter NUM=1000;
 parameter ITEM_WIDTH = 8;
 
 bit clk_i, reset_i;
@@ -60,7 +61,7 @@ end
 
 initial begin
     xmit_en = 0;
-    repeat(3) begin
+    repeat(CYCLE_NUM) begin
         gen_tlm_data();
         xmit_en = 1;
         wait(xmit_en==0);
@@ -69,13 +70,13 @@ initial begin
 end
 
 initial begin
-    $dumpfile("dump.vcd");
-    $dumpvars;
+    //$dumpfile("dump.vcd");
+    //$dumpvars;
 end
 
 function void set_data(bit[NUM*2-1:0][ITEM_WIDTH-1:0] data);
 begin
-    $display("set_data");
+    //$display("set_data");
     payload_data = data;
     //tvalid = 1;
     //$display("%h", payload_data);

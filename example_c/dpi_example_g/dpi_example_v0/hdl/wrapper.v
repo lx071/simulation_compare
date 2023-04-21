@@ -5,7 +5,8 @@ module wrapper(
 output  wire [7:0] res_o
 );
 
-parameter NUM=100;
+parameter CYCLE_NUM=2000;
+parameter NUM=1000;
 parameter ITEM_WIDTH = 8;
 
 bit clk_i, reset_i;
@@ -57,7 +58,7 @@ end
 
 initial begin
     xmit_en = 0;
-    repeat(3) begin
+    repeat(CYCLE_NUM) begin
         gen_tlm_data(payload_data);
         xmit_en = 1;
         wait(xmit_en==0);
@@ -66,8 +67,8 @@ initial begin
 end
 
 initial begin
-    $dumpfile("dump.vcd");
-    $dumpvars;
+    //$dumpfile("dump.vcd");
+    //$dumpvars;
 end
 
 

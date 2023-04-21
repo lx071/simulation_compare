@@ -142,7 +142,7 @@ void gen_tlm_data()
     // sc_time delay = sc_time(10, SC_NS);
 
     sc_time delay = SC_ZERO_TIME;
-    int num = 50;
+    int num = 1000;
     unsigned char arr[num*2];
 
     for (int i = 0; i < num; i = i + 1) {
