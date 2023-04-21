@@ -19,6 +19,11 @@
 
 using namespace std;
 
+//extern void recv(int data);
+extern void set_data(const svBitVecVal* data);
+//extern int get_ready();
+//extern svBit get_xmit_en();
+extern void gen_tlm_data();
 
 SC_MODULE(Target) { // 其实只是个target
 public:
@@ -119,12 +124,6 @@ private:
         cout << "计数器的值为：" << count << endl;
     }
 };
-
-//extern void recv(int data);
-extern void set_data(const svBitVecVal* data);
-//extern int get_ready();
-//extern svBit get_xmit_en();
-extern void gen_tlm_data();
 
 Target target("target");
 Initiator initiator("initiator");

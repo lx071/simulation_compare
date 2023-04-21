@@ -1,7 +1,7 @@
 all: compile
 
 compile:
-	galaxsim hdl/wrapper.v hdl/bfm.v hdl/Add.v sim_main.cpp -CFLAGS "-I/usr/local/systemc-2.3.4/include" -LDFLAGS "-L/usr/local/systemc-2.3.4/lib-linux64 -lsystemc"
+	galaxsim hdl/wrapper.v hdl/bfm.v hdl/Add.v sim_main.cpp -XCFLAGS="-I/usr/local/systemc-2.3.4/include" -XLDFLAGS="-L/usr/local/systemc-2.3.4/lib-linux64 -lsystemc"
 
 run:
 	./xsim
