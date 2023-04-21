@@ -20,10 +20,10 @@
 using namespace std;
 
 //extern void recv(int data);
-extern void set_data(const svBitVecVal* data);
+extern "C" void set_data(const svBitVecVal* data);
 //extern int get_ready();
 //extern svBit get_xmit_en();
-extern void gen_tlm_data();
+extern "C" void gen_tlm_data();
 
 SC_MODULE(Target) { // 其实只是个target
 public:
@@ -132,7 +132,11 @@ Initiator initiator("initiator");
 // typedef uint32_t svBitVecVal;
 void gen_tlm_data() 
 {
-    initiator.socket.bind(target.socket);
+    static bool initialized = false;
+    if (!initialized) {
+        initiator.socket.bind(target.socket);
+        initialized = true;
+    }
 
     tlm::tlm_generic_payload trans;
     // sc_time delay = sc_time(10, SC_NS);

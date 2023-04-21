@@ -139,6 +139,11 @@ Initiator initiator("initiator");
 // typedef uint32_t svBitVecVal;
 void gen_tlm_data() 
 {
+    static bool initialized = false;
+    if (!initialized) {
+        initiator.socket.bind(target.socket);
+        initialized = true;
+    }
     tlm::tlm_generic_payload trans;
     // sc_time delay = sc_time(10, SC_NS);
 
@@ -172,7 +177,7 @@ void gen_tlm_data()
 
 
 int sc_main(int argc, char* argv[]) {
-    initiator.socket.bind(target.socket);
+    //initiator.socket.bind(target.socket);
     
     // Vwrapper* top = new Vwrapper{"wrapper"};
     
