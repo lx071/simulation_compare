@@ -33,29 +33,39 @@ import "DPI-C" function void gen_tlm_data(output bit[NUM*2-1:0][ITEM_WIDTH-1:0] 
 bit[NUM*2-1:0][ITEM_WIDTH-1:0]    payload_data;
 int num = 0;
 
+reg xmit_en;
+
 always @(posedge clk_i) begin
     if(reset_i) begin
         A_s <= 0;
         B_s <= 0;
     end 
-    else if(num < NUM) begin 
+    else if(xmit_en) begin 
 
         //$display("num:", num);
         A_s <= payload_data[num*2+0];
         B_s <= payload_data[num*2+1];
         num = num + 1;
-
     end
-end
-
-always @(posedge clk_i) begin
-    if(num == NUM) begin
-        #2 $finish;
+    if(num >= NUM) begin
+        num = 0;
+        xmit_en = ~xmit_en;
+        //$display("xmit_en:", xmit_en);
+        //$finish;
     end
 end
 
 initial begin
-    gen_tlm_data(payload_data);
+    xmit_en = 0;
+    repeat(3) begin
+        gen_tlm_data(payload_data);
+        xmit_en = 1;
+        wait(xmit_en==0);
+    end
+    $finish;
+end
+
+initial begin
     $dumpfile("dump.vcd");
     $dumpvars;
 end

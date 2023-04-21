@@ -7,10 +7,10 @@
 //======================================================================
 
 // Include model header, generated from Verilating "top.v"
-#include "Vwrapper.h"
+//#include "Vwrapper.h"
 
 #include "svdpi.h"
-//#include "Vwrapper__Dpi.h"
+#include <string.h>
 #include <iostream>
 
 using namespace std;

@@ -14,7 +14,7 @@
 #include <tlm_utils/simple_target_socket.h>
 
 #include "svdpi.h"
-//#include "Vwrapper__Dpi.h"
+#include <string.h>
 #include <iostream>
 
 using namespace std;
