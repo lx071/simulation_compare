@@ -70,11 +70,12 @@ initial begin
     //$dumpvars;
 end
 
-function void set_data(bit[NUM*2-1:0][ITEM_WIDTH-1:0] data);
+task set_data(bit[NUM*2-1:0][ITEM_WIDTH-1:0] data);
 begin
     //$display("set_data");
     payload_data = data;
-    //tvalid = 1;
+    xmit_en = 1;
+    wait(xmit_en == 0);
     //$display("%h", payload_data);
     //$display("payload_data[0]:", payload_data[0]);
     //$display("payload_data[1]:", payload_data[1]);
