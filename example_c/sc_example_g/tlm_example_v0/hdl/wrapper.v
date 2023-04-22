@@ -28,9 +28,8 @@ bfm inst_bfm(
     .res_o(res_o)
 );
 
-import "DPI-C" context function void testbench();
-export "DPI-C" function set_data;
-export "DPI-C" function get_xmit_en;
+import "DPI-C" context task testbench();
+export "DPI-C" task set_data;
 
 bit[NUM*2-1:0][ITEM_WIDTH-1:0]    payload_data;
 int num = 0;
@@ -48,6 +47,7 @@ always @(posedge clk_i) begin
         A_s <= payload_data[num*2+0];
         B_s <= payload_data[num*2+1];
         num = num + 1;
+        //$display("res_o:", res_o);
 
     end
     if(num >= NUM) begin
@@ -76,16 +76,6 @@ begin
     payload_data = data;
     xmit_en = 1;
     wait(xmit_en == 0);
-    //$display("%h", payload_data);
-    //$display("payload_data[0]:", payload_data[0]);
-    //$display("payload_data[1]:", payload_data[1]);
-end
-endfunction
-
-function bit get_xmit_en();
-begin
-    //$display("get_xmit_en");
-    return xmit_en;
 end
 endfunction
 

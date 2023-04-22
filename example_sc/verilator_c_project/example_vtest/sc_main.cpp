@@ -9,18 +9,28 @@
 // SystemC global header
 #include <systemc.h>
 
+// Include common routines
+#include <verilated.h>
+
+// Include model header, generated from Verilating "top.v"
+#include "Vwrapper.h"
+
 #include <tlm.h>
 #include <tlm_utils/simple_initiator_socket.h>
 #include <tlm_utils/simple_target_socket.h>
 
 #include "svdpi.h"
-#include <string.h>
+#include "Vwrapper__Dpi.h"
 #include <iostream>
 
 using namespace std;
 
+//extern void recv(int data);
+
+extern "C" int testbench();
 extern "C" void set_data(const svBitVecVal* data);
-extern "C" void testbench();
+//extern int get_ready();
+extern svBit get_xmit_en();
 
 SC_MODULE(Target) { // 其实只是个target
 public:
@@ -122,24 +132,20 @@ private:
     }
 };
 
+
 Target target("target");
 Initiator initiator("initiator");
 
+
 // typedef unsigned __int32 uint32_t;
 // typedef uint32_t svBitVecVal;
-void send_tlm_data(int num)
+void send_tlm_data(int num) 
 {
-    static bool initialized = false;
-    if (!initialized) {
-        initiator.socket.bind(target.socket);
-        initialized = true;
-    }
-
     tlm::tlm_generic_payload trans;
     // sc_time delay = sc_time(10, SC_NS);
 
     sc_time delay = SC_ZERO_TIME;
-    //int num = 1000;
+    //int num = 50;
     unsigned char arr[num*2];
 
     for (int i = 0; i < num; i = i + 1) {
@@ -148,6 +154,11 @@ void send_tlm_data(int num)
     }
     // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
     unsigned char *payload_data = arr;
+    // char *payload_data = "\x11\x22\x33\x44\x44";
+
+    // cout << "sizeof(*payload_data)" << sizeof(*payload_data) << endl;
+    // cout << "sizeof(payload_data)" << sizeof(payload_data) << endl; //指针占8字节
+    // cout << "strlen(payload_data)" << strlen((const char*)payload_data) << endl;
 
     // set data
     trans.set_command(tlm::TLM_WRITE_COMMAND);
@@ -158,17 +169,68 @@ void send_tlm_data(int num)
 
     assert(trans.is_response_ok());
 
-    // memcpy(data, payload_data, num*2);
+    // memcpy(data, payload_data, 5);
 }
 
-void testbench()
+int testbench()
 {
-    int cycle_num = 2000;
-    int item_num = 1000;
-    for(int i = 0; i < cycle_num; i++)
-    {
-        send_tlm_data(item_num);
-    }
-    
+    int item_num = 100;
+    send_tlm_data(item_num);
+    return 0;
+}
 
+void recv(int data) 
+{
+    std::cout<<"recv:"<<data<<std::endl;
+}
+
+
+int sc_main(int argc, char* argv[]) {
+    
+    initiator.socket.bind(target.socket);
+
+    // Vwrapper* top = new Vwrapper{"wrapper"};
+    
+    auto contextp {make_unique<VerilatedContext>()};
+    auto top {make_unique<Vwrapper>(contextp.get())};
+    contextp->commandArgs(argc, argv);
+    Verilated::traceEverOn(true);
+    
+    // sc_signal<uint32_t> res_o;
+    // top->res_o(res_o);
+    
+    const svScope scope = svGetScopeFromName("TOP.wrapper");
+    assert(scope);  // Check for nullptr if scope not found
+    svSetScope(scope);
+
+    // int NUM = 3;
+    // int item_num = 100;
+    // int num = 0;
+    // int xmit_en = 1;
+
+    // testbench(item_num);
+    
+    // Simulate until $finish
+    while (!Verilated::gotFinish()) {       
+        //cout << "xmit_en:" << xmit_en << endl;
+        
+        // if(get_xmit_en() != xmit_en)
+        // {
+        //     num = num + 1;
+        //     if(num >= NUM + 1) break;
+        //     xmit_en = get_xmit_en();
+        //     //cout << "xmit_en:" << xmit_en << endl;
+        //     testbench(item_num);
+            
+        // } 
+        
+        top->eval();
+        contextp->timeInc(1000);
+    }
+
+    // Final model cleanup
+    top->final();
+
+    // Return good completion status
+    return 0;
 }
