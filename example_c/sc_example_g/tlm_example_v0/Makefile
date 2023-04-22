@@ -8,4 +8,4 @@ run:
 	./xsim
 	
 clean:
-	-rm -rf obj_dir *.log *.dmp *.vpd core dump.vcd xsim*
+	-rm -rf obj_dir *.log *.dmp *.vpd core dump.vcd xsim* *.so

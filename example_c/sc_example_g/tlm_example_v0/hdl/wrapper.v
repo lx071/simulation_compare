@@ -77,6 +77,6 @@ begin
     xmit_en = 1;
     wait(xmit_en == 0);
 end
-endfunction
+endtask
 
 endmodule
