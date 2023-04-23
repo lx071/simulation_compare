@@ -53,7 +53,7 @@ always @(posedge clk_i) begin
         if(num >= NUM) begin
             num = 0;
             xmit_en = ~xmit_en;
-            $display("xmit_en:", xmit_en);
+            //$display("xmit_en:", xmit_en);
             //$finish;
         end
     end
@@ -63,32 +63,25 @@ initial begin
     //tvalid = 0;
     tready = 1;
     xmit_en = 1;
-    $dumpfile("dump.vcd");
-    $dumpvars;
+    //$dumpfile("dump.vcd");
+    //$dumpvars;
 end
 
 //import "DPI-C" context function void testbench();
 import "DPI-C" context function void recv (input int data);
 export "DPI-C" function set_data;
-export "DPI-C" function get_xmit_en;
+//export "DPI-C" function get_xmit_en;
 
 
 function void set_data(bit[NUM*2-1:0][ITEM_WIDTH-1:0] data);
 begin
-    $display("set_data");
+    //$display("set_data");
     payload_data = data;
     tvalid = 1;
     xmit_en = 0;
     //$display("%h", payload_data);
     //$display("payload_data[0]:", payload_data[0]);
     //$display("payload_data[1]:", payload_data[1]);
-end
-endfunction
-
-function bit get_xmit_en();
-begin
-    //$display("get_xmit_en");
-    return xmit_en;
 end
 endfunction
 

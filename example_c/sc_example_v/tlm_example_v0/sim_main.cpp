@@ -25,6 +25,9 @@
 
 using namespace std;
 
+extern void set_data(const svBitVecVal* data);
+//extern svBit get_xmit_en();
+
 SC_MODULE(Target) { // 其实只是个target
 public:
     tlm_utils::simple_target_socket<Target> socket;
@@ -125,11 +128,6 @@ private:
     }
 };
 
-//extern void recv(int data);
-extern void set_data(const svBitVecVal* data);
-//extern int get_ready();
-extern svBit get_xmit_en();
-
 Target target("target");
 Initiator initiator("initiator");
 
@@ -175,8 +173,6 @@ void recv(int data)
     std::cout<<"recv:"<<data<<std::endl;
 }
 
-Vwrapper* top;
-
 int sc_main(int argc, char* argv[]) {
     
     initiator.socket.bind(target.socket);
@@ -184,11 +180,10 @@ int sc_main(int argc, char* argv[]) {
     // Vwrapper* top = new Vwrapper{"wrapper"};
     
     auto contextp {make_unique<VerilatedContext>()};
-    //auto top {make_unique<Vwrapper>(contextp.get())};
+    auto top {make_unique<Vwrapper>(contextp.get())};
     contextp->commandArgs(argc, argv);
     Verilated::traceEverOn(true);
     
-    top = new Vwrapper;
     // sc_signal<uint32_t> res_o;
     // top->res_o(res_o);
     
@@ -208,11 +203,9 @@ int sc_main(int argc, char* argv[]) {
         
         if(top->xmit_en == 1)
         {
-            cout << "xmit_en" << endl;
             num = num + 1;
             if(num >= NUM + 1) break;
-            //xmit_en = get_xmit_en();
-            //cout << "xmit_en:" << xmit_en << endl;
+
             send_tlm_data(item_num);
             
         } 
