@@ -27,14 +27,15 @@ class Target : sc_module{
 public:
     tlm_utils::simple_target_socket<Target> socket;
 
-    Target(sc_module_name name, std::unique_ptr<VerilatedContext>* contextp, Vwrapper* top, int num) : sc_module(name), contextp_(std::move(contextp)), top_(top), num_(num) {
+    Target(sc_module_name name, std::unique_ptr<VerilatedContext> contextp, Vwrapper* top, int num) : sc_module(name), contextp_(std::move(contextp)), top_(top), num_(num) {
         socket.register_b_transport(this, &Target::b_transport);   //register methods with each socket
     }
 
 private:
-    std::unique_ptr<VerilatedContext>* contextp_;
+    std::unique_ptr<VerilatedContext> contextp_;
     Vwrapper* top_;
     int num_;
+    int xmit_en = 0;
 
     unsigned char* payload_data = nullptr;
 
@@ -52,25 +53,26 @@ private:
         }
 
         if (cmd == tlm::TLM_READ_COMMAND) {
-            //std::cout << "read_len:" << len << std::endl;
-            // if (len != sizeof(count)) {
-            //     trans.set_response_status(tlm::TLM_BURST_ERROR_RESPONSE);
-            //     return;
-            // }
-            // memcpy(data, &count, sizeof(count));
+
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
+
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
             payload_data = data;
             //std::cout << "write_len:" << len << std::endl;
             // for(int i=0;i<len;i++) cout << std::hex << static_cast<int>(*(payload_data + i)) << endl;
-
             //  ‘const svBitVecVal*’ {aka ‘const unsigned int*’}
 
             for (int i = 0; i < num_*2; i++) {
                 top_->payload_data[i] = payload_data[i];
             }
             top_->tvalid = 1;
-
+            while(top_->xmit_en == xmit_en)
+            {
+                top_->eval();
+                contextp_->timeInc(1000);
+            } 
+            xmit_en = top_->xmit_en;
+            
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
         } else {
             trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
@@ -132,12 +134,12 @@ int sc_main(int argc, char* argv[]) {
     contextp->commandArgs(argc, argv);
     Verilated::traceEverOn(true);
     
-    int NUM = 6;
-    int item_num = 70;
+    int NUM = 5;
+    int item_num = 100;
     int num = 0;
     int xmit_en = 1;
     
-    Target target("target", &contextp, top, item_num);
+    Target target("target", std::move(contextp), top, item_num);
     Initiator initiator("initiator");
 
     initiator.socket.bind(target.socket);
@@ -145,16 +147,10 @@ int sc_main(int argc, char* argv[]) {
     // Simulate until $finish
     while (!Verilated::gotFinish()) {       
         
-        if(top->xmit_en != xmit_en)
-        {
-            xmit_en = top->xmit_en;
-            num = num + 1;
-            if(num >= NUM + 1) break;
-            send_tlm_data(&initiator, item_num);
-            
-        } 
-        top->eval();
-        contextp->timeInc(1000);
+        num = num + 1;
+        if(num >= NUM + 1) break;
+        send_tlm_data(&initiator, item_num);
+
     }
 
     // Final model cleanup

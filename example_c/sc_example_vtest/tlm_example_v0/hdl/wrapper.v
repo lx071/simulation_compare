@@ -2,7 +2,7 @@
 
 module wrapper#
 (
-    parameter NUM=70,
+    parameter NUM=100,
     parameter ITEM_WIDTH = 8
 
 )(
@@ -55,7 +55,7 @@ always @(posedge clk_i) begin
         if(num >= NUM) begin
             num = 0;
             xmit_en = ~xmit_en;
-            $display("xmit_en:", xmit_en);
+            //$display("xmit_en:", xmit_en);
             //$finish;
         end
     end
