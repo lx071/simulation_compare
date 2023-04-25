@@ -1,13 +1,17 @@
 `timescale 1ns/1ps
 
+module wrapper#
+(
+    parameter NUM=70,
+    parameter ITEM_WIDTH = 8
 
-module wrapper(
+)(
+input bit [ITEM_WIDTH-1:0] payload_data[NUM*2-1:0],
+input reg tvalid,
 output reg xmit_en,
 output  wire [7:0] res_o
 );
 
-parameter NUM=100;
-parameter ITEM_WIDTH = 8;
 
 bit clk_i, reset_i;
 
@@ -30,11 +34,9 @@ bfm inst_bfm(
 );
 
 int num = 0;
-reg tvalid;
+//reg tvalid;
 reg tready;
 //reg xmit_en;
-
-bit[NUM*2-1:0][ITEM_WIDTH-1:0]    payload_data;
 
 always @(posedge clk_i) begin
     if(reset_i) begin
@@ -43,16 +45,16 @@ always @(posedge clk_i) begin
     end else begin
         //$display("tvalid:", tvalid);
         //$display("tready:", tready);
+        //$display("xmit_en:", xmit_en);
         if(tvalid==1 && tready==1) begin
             //$display("num:", num);
             A_s <= payload_data[num*2+0];
             B_s <= payload_data[num*2+1];
             num = num + 1;
         end
-        //$display("num:", num);
         if(num >= NUM) begin
             num = 0;
-            xmit_en = 1;
+            xmit_en = ~xmit_en;
             $display("xmit_en:", xmit_en);
             //$finish;
         end
@@ -62,27 +64,13 @@ end
 initial begin
     //tvalid = 0;
     tready = 1;
-    xmit_en = 1;
+    xmit_en = 0;
+    
+end
+
+initial begin
     $dumpfile("dump.vcd");
     $dumpvars;
 end
-
-//import "DPI-C" context function void testbench();
-import "DPI-C" context function void recv (input int data);
-export "DPI-C" function set_data;
-//export "DPI-C" function get_xmit_en;
-
-
-function void set_data(bit[NUM*2-1:0][ITEM_WIDTH-1:0] data);
-begin
-    //$display("set_data");
-    payload_data = data;
-    tvalid = 1;
-    xmit_en = 0;
-    //$display("%h", payload_data);
-    //$display("payload_data[0]:", payload_data[0]);
-    //$display("payload_data[1]:", payload_data[1]);
-end
-endfunction
 
 endmodule

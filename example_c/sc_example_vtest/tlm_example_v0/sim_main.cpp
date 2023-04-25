@@ -19,28 +19,23 @@
 #include <tlm_utils/simple_initiator_socket.h>
 #include <tlm_utils/simple_target_socket.h>
 
-#include "svdpi.h"
-#include "Vwrapper__Dpi.h"
 #include <iostream>
 
 using namespace std;
-
-extern void set_data(const svBitVecVal* data);
-//extern svBit get_xmit_en();
 
 class Target : sc_module{
 public:
     tlm_utils::simple_target_socket<Target> socket;
 
-    Target(sc_module_name name, Vwrapper* top) : sc_module(name), top_(top) {
+    Target(sc_module_name name, std::unique_ptr<VerilatedContext>* contextp, Vwrapper* top, int num) : sc_module(name), contextp_(std::move(contextp)), top_(top), num_(num) {
         socket.register_b_transport(this, &Target::b_transport);   //register methods with each socket
     }
 
 private:
-
+    std::unique_ptr<VerilatedContext>* contextp_;
     Vwrapper* top_;
-    int count;
-    // char *payload_data;
+    int num_;
+
     unsigned char* payload_data = nullptr;
 
     void b_transport(tlm::tlm_generic_payload& trans, sc_time& delay) {
@@ -58,11 +53,11 @@ private:
 
         if (cmd == tlm::TLM_READ_COMMAND) {
             //std::cout << "read_len:" << len << std::endl;
-            if (len != sizeof(count)) {
-                trans.set_response_status(tlm::TLM_BURST_ERROR_RESPONSE);
-                return;
-            }
-            memcpy(data, &count, sizeof(count));
+            // if (len != sizeof(count)) {
+            //     trans.set_response_status(tlm::TLM_BURST_ERROR_RESPONSE);
+            //     return;
+            // }
+            // memcpy(data, &count, sizeof(count));
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
             payload_data = data;
@@ -70,9 +65,12 @@ private:
             // for(int i=0;i<len;i++) cout << std::hex << static_cast<int>(*(payload_data + i)) << endl;
 
             //  ‘const svBitVecVal*’ {aka ‘const unsigned int*’}
-            const unsigned int* sv_data = reinterpret_cast<const unsigned int*>(payload_data);
-            set_data(sv_data);
-            
+
+            for (int i = 0; i < num_*2; i++) {
+                top_->payload_data[i] = payload_data[i];
+            }
+            top_->tvalid = 1;
+
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
         } else {
             trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
@@ -89,9 +87,7 @@ public:
         
     }
 
-
 };
-
 
 // typedef unsigned __int32 uint32_t;
 // typedef uint32_t svBitVecVal;
@@ -128,12 +124,6 @@ void send_tlm_data(Initiator *initiator, int num)
     // memcpy(data, payload_data, 5);
 }
 
-
-void recv(int data) 
-{
-    std::cout<<"recv:"<<data<<std::endl;
-}
-
 int sc_main(int argc, char* argv[]) {
     
     std::unique_ptr<VerilatedContext> contextp = std::make_unique<VerilatedContext>();
@@ -142,25 +132,22 @@ int sc_main(int argc, char* argv[]) {
     contextp->commandArgs(argc, argv);
     Verilated::traceEverOn(true);
     
-    Target target("target", top);
+    int NUM = 6;
+    int item_num = 70;
+    int num = 0;
+    int xmit_en = 1;
+    
+    Target target("target", &contextp, top, item_num);
     Initiator initiator("initiator");
 
     initiator.socket.bind(target.socket);
     
-    const svScope scope = svGetScopeFromName("TOP.wrapper");
-    assert(scope);  // Check for nullptr if scope not found
-    svSetScope(scope);
-
-    int NUM = 6;
-    int item_num = 100;
-    int num = 0;
-    int xmit_en = 1;
-
     // Simulate until $finish
     while (!Verilated::gotFinish()) {       
- 
-        if(top->xmit_en == 1)
+        
+        if(top->xmit_en != xmit_en)
         {
+            xmit_en = top->xmit_en;
             num = num + 1;
             if(num >= NUM + 1) break;
             send_tlm_data(&initiator, item_num);
