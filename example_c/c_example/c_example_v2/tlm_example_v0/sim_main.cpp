@@ -134,7 +134,7 @@ int sc_main(int argc, char* argv[]) {
     contextp->commandArgs(argc, argv);
     Verilated::traceEverOn(true);
     
-    int NUM = 5;
+    int NUM = 4;
     int item_num = 100;
     int num = 0;
     int xmit_en = 1;
