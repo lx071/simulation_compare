@@ -1,17 +1,19 @@
 `timescale 1ns/1ps
 
 
-module wrapper(
-//input   clk_i,
-//input   reset_i,
+module wrapper#
+(
+    parameter NUM=200,
+    parameter ITEM_WIDTH = 8
+
+)(
+input bit [ITEM_WIDTH-1:0] payload_data[NUM*2-1:0],
+input reg tvalid,
+output reg xmit_en,
 output  wire [7:0] res_o
 );
 
-// 最高不能超过十亿bit
-parameter int LENGTH = 2000000; // byte
-
 bit clk_i, reset_i;
-//bit [7:0] data[LENGTH*2-1:0]; 
 
 reg [7:0] A_s;
 reg [7:0] B_s;
@@ -33,65 +35,44 @@ bfm inst_bfm(
 
 int pointer = 0;
 
+int num = 0;
+//reg tvalid;
+reg tready;
+//reg xmit_en;
+
 always @(posedge clk_i) begin
-    if(reset_i)begin
+    if(reset_i) begin
         A_s <= 0;
         B_s <= 0;
-    end
-    else if(pointer < LENGTH) begin 
-        //A_s <= data[pointer*2+0];
-        //B_s <= data[pointer*2+1];
-        pointer <= pointer + 1;
+    end else begin
+        //$display("tvalid:", tvalid);
+        //$display("tready:", tready);
+        //$display("xmit_en:", xmit_en);
+        if(tvalid==1 && tready==1) begin
+            //$display("num:", num);
+            A_s <= payload_data[num*2+0];
+            B_s <= payload_data[num*2+1];
+            num = num + 1;
+        end
+        if(num >= NUM) begin
+            num = 0;
+            xmit_en = ~xmit_en;
+            //$display("xmit_en:", xmit_en);
+            //$finish;
+        end
     end
 end
-
-always @(posedge clk_i) begin
-    if(pointer==LENGTH) begin
-        #2 $finish;
-    end
-end
-
-parameter TOTAL_WIDTH = 40;
-bit[TOTAL_WIDTH-1:0]    payload_data;
 
 initial begin
-    $display("Hello Add!");
-    recv(6);
-    c_py_gen_data(payload_data);  
-    $display("payload_data ='h%h", payload_data[TOTAL_WIDTH-1:0]);
-    $dumpfile("dump.vcd");
-    $dumpvars;
+    //tvalid = 0;
+    tready = 1;
+    xmit_en = 1;
+    
 end
 
-
-import "DPI-C" function void c_py_gen_data(output bit[TOTAL_WIDTH-1:0] pkt);
-import "DPI-C" context function void recv (input int data);
-export "DPI-C" function send_long;
-export "DPI-C" function send_bit;
-export "DPI-C" function send_bit_vec;
-
-function void send_long(longint data);
-begin
-    $display("send_long side");
-    $display(data);
+initial begin
+    //$dumpfile("dump.vcd");
+    //$dumpvars;
 end
-endfunction
-
-function void send_bit(bit data);
-begin
-    $display("send_bit side");
-    $display(data);
-end
-endfunction
-
-
-function void send_bit_vec(bit[256:0] data);
-begin
-    $display("send_bit_vec side");
-    $display("%h", data);
-    $display(data[7:0]);
-    $display(data[15:8]);
-end
-endfunction
 
 endmodule

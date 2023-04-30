@@ -23,19 +23,83 @@
 #include <verilated_vcd_sc.h>
 #endif
 
-SC_MODULE(Counter) { // 其实只是个target
-public:
-    tlm_utils::simple_target_socket<Counter> socket;
+#include <iostream>
 
-    SC_CTOR(Counter) : count(0) {
-        socket.register_b_transport(this, &Counter::b_transport);   //register methods with each socket
-    }
+
+SC_MODULE(TLMTrafficGenerator)
+{
+	tlm_utils::simple_initiator_socket<TLMTrafficGenerator> socket;
+
+	TLMTrafficGenerator(sc_module_name name, int numThreads = 1) :
+		m_debug(false),
+		m_startDelay(SC_ZERO_TIME)
+	{
+		int i;
+
+		// SC_THREAD(run);
+	}
 
 private:
-    int count;
-    char *trans_data = "\x22\x33\x44\x55\x66";
+    bool m_debug;
+	sc_time m_startDelay;
 
-    void b_transport(tlm::tlm_generic_payload& trans, sc_time& delay) {
+    void run()
+	{
+		wait(m_startDelay);
+        // sc_core::wait(resetn.negedge_event());
+		//...
+	}
+    
+};
+
+SC_MODULE(Top)
+{
+    int num_;
+	sc_clock clk;
+	sc_signal<bool> rst_n; // Active low.
+    sc_signal<bool> tvalid;
+    sc_signal<bool> xmit_en;
+
+    int xmit_en_old;
+
+    sc_signal<uint32_t> res_o;
+    sc_signal<uint32_t> *payload_data;
+
+    TLMTrafficGenerator tg;
+
+    // Vwrapper dut;
+    const std::unique_ptr<Vwrapper> dut{new Vwrapper{"dut"}};
+    
+	tlm_utils::simple_target_socket<Top> target_socket;
+
+	Top(sc_module_name name, int num) :
+        sc_module(name),
+        num_(num),
+		// clk("clk", sc_time(1, SC_US)),
+        res_o("res_o"),
+		tg("traffic_generator")
+		// dut("dut")
+
+	{
+        payload_data = new sc_signal<uint32_t>[num_*2];
+
+		target_socket.register_b_transport(this, &Top::b_transport);
+        tg.socket.bind(target_socket);
+
+        dut->res_o(res_o);
+        dut->tvalid(tvalid);
+        dut->xmit_en(xmit_en);
+
+        for (int i = 0; i < num_*2; i++) {
+            dut->payload_data[i](payload_data[i]);
+        }   
+        sc_start(SC_ZERO_TIME);
+	}
+
+	virtual void b_transport(tlm::tlm_generic_payload &trans, sc_time &delay)
+	{
+        
+		// cout<<"b_transport"<<endl;
         tlm::tlm_command cmd = trans.get_command();
         sc_dt::uint64 addr = trans.get_address();
         unsigned char* data = trans.get_data_ptr();
@@ -49,164 +113,77 @@ private:
         }
 
         if (cmd == tlm::TLM_READ_COMMAND) {
-            std::cout << "len:" << len << std::endl;
-            std::cout << "trans_data:" << strlen(trans_data) << std::endl;
-            if (len != strlen(trans_data)) {
-                trans.set_response_status(tlm::TLM_BURST_ERROR_RESPONSE);
-                return;
-            }
-            std::cout << "===" << std::endl;
-            //send_bit_vec()
-            // memcpy(data, trans_data, 5);
-            std::cout << "===" << std::endl;
+
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
+
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
-            if (len != sizeof(count)) {
-                trans.set_response_status(tlm::TLM_BURST_ERROR_RESPONSE);
-                return;
+            // payload_data[0] = 16;
+            for (int i = 0; i < num_*2; i++) {
+                payload_data[i] = data[i];
             }
-            memcpy(&count, data, sizeof(count));
+            tvalid = 1;
+
+            xmit_en_old = xmit_en;
+
+            while(xmit_en == xmit_en_old)
+            {   
+                sc_start(1, SC_NS);
+            } 
+            xmit_en_old = xmit_en;
+            
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
         } else {
             trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
             return;
         }
-    }
+	}
+
+    ~Top() {
+		// delete target_socket;
+        dut->final();
+        // delete dut;
+		
+	}
 };
-
-SC_MODULE(Initiator) {
-public:
-    tlm_utils::simple_initiator_socket<Initiator> socket;
-
-    SC_CTOR(Initiator) : count(0) {
-        SC_THREAD(run);     //Similar to a Verilog @initial block
-    }
-
-private:
-    int count;
-
-    void run() {
-        // tlm::tlm_generic_payload trans;
-        // sc_time delay = sc_time(10, SC_NS);
-
-        // // 读取计数器的值
-        // trans.set_command(tlm::TLM_READ_COMMAND);
-        // trans.set_address(0x0);
-        // trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
-        // trans.set_data_length(sizeof(count));
-        // socket->b_transport(trans, delay);
-
-        // assert(trans.is_response_ok());
-        // int count = *reinterpret_cast<int*>(trans.get_data_ptr());
-        // cout << "计数器的值为：" << count << endl;
-
-        // 将计数器的值加1
-        // count++;
-        // trans.set_command(tlm::TLM_WRITE_COMMAND);
-        // trans.set_address(0x0);
-        // trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
-        // trans.set_data_length(sizeof(count));
-        // socket->b_transport(trans, delay);
-
-        // assert(trans.is_response_ok());
-        // cout << "计数器的值加1后为：" << count << endl;
-
-        // // 读取计数器的值
-        // trans.set_command(tlm::TLM_READ_COMMAND);
-        // trans.set_address(0x0);
-        // trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
-        // trans.set_data_length(sizeof(count));
-        // socket->b_transport(trans, delay);
-
-        // assert(trans.is_response_ok());
-        // cout << "计数器的值为：" << count << endl;
-    }
-};
-
-#include "svdpi.h"
-#include "Vwrapper__Dpi.h"
-#include <iostream>
-
-extern void recv(int data);
-extern void send_long(long long int data);
-extern void send_bit(const svBit data);
-extern void send_bit_vec(const svBitVecVal* data);
-
-Counter counter("counter");
-Initiator initiator("initiator");
-
-
-void c_py_gen_data(svBitVecVal* data) 
-{
-    char *payload_data = "\x11\x22\x33\x44\x44";
-    // char payload_data[5];
-    tlm::tlm_generic_payload trans;
-    sc_time delay = sc_time(10, SC_NS);
-    
-    // 读取计数器的值
-    trans.set_command(tlm::TLM_READ_COMMAND);
-    trans.set_address(0x0);
-    trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
-    trans.set_data_length(strlen(payload_data));
-
-    initiator.socket->b_transport(trans, delay);
-
-    assert(trans.is_response_ok());
-    payload_data = reinterpret_cast<char*>(trans.get_data_ptr());
-    // std::cout << "get payload_data：" << payload_data << std::endl;
-    
-    memcpy(data, payload_data, 5);
-}
-
-void put()
-{
-    long long int data_1 = 131;
-    unsigned char data_2 = 231;
-    const svBitVecVal data_3[4] = {0xFFEEFEF7, 0xF133FEF3, 0xF234FEF1, 0xF379FEF9};
-    send_long(data_1);
-    send_bit(data_2);
-    send_bit_vec(data_3);
-}
-
-void recv(int data) 
-{
-    std::cout<<data<<std::endl;
-    put();
-}
-
 
 int sc_main(int argc, char* argv[]) {
+
+    Verilated::commandArgs(argc, argv);
+	
     #if VM_TRACE
     // Before any evaluation, need to know to calculate those signals only used for tracing
         Verilated::traceEverOn(true);
     #endif
-    
-    initiator.socket.bind(counter.socket);
-    
-    Vwrapper* top = new Vwrapper{"wrapper"};
 
-    Verilated::commandArgs(argc, argv);
+    int num = 10;
+    int item_num = 200;
 
-    sc_signal<uint32_t> res_o;
-    top->res_o(res_o);
+    Top top("Top", item_num);
 
-    // const svScope scope = svGetScopeFromName("TOP.top");
-    // assert(scope);  // Check for nullptr if scope not found
-    // svSetScope(scope);
-    
-    // Initialize SC model
-    // sc_start(1, SC_NS);
-    sc_start(SC_ZERO_TIME);
+    tlm::tlm_generic_payload trans;
+    // sc_time delay = sc_time(10, SC_NS);
+    sc_time delay = SC_ZERO_TIME;
 
-    // Simulate until $finish
-    while (!Verilated::gotFinish()) {
-        // Simulate 1ns
-        sc_start(1, SC_NS);
+    unsigned char arr[item_num*2];
+
+    for (int k = 0; k < num; k++)
+    {
+        for (int i = 0; i < item_num; i = i + 1) {
+            arr[i*2] = i%100;
+            arr[i*2+1] = i%100;
+        }
+        // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
+        unsigned char *payload_data = arr;
+
+        // set data
+        trans.set_command(tlm::TLM_WRITE_COMMAND);
+        trans.set_address(0x0);
+        trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
+        trans.set_data_length(strlen((const char*)payload_data));
+
+        top.tg.socket->b_transport(trans, delay);
+
     }
-
-    // Final model cleanup
-    top->final();
-
     // Return good completion status
     return 0;
 }
