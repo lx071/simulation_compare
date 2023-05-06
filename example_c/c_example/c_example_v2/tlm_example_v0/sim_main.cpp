@@ -26,13 +26,15 @@ using namespace std;
 class Target : sc_module{
 public:
     tlm_utils::simple_target_socket<Target> socket;
-    
+    int item_num;
 
-    Target(sc_module_name name, int num) : sc_module(name), num_(num) {
+    Target(sc_module_name name) : sc_module(name) {
         socket.register_b_transport(this, &Target::b_transport);   //register methods with each socket
         
         contextp_ = std::make_unique<VerilatedContext>();
         top_ = new Vwrapper(contextp_.get());
+
+        item_num = sizeof(top_->payload_data);
 
         Verilated::traceEverOn(true);
 
@@ -46,7 +48,6 @@ private:
     std::unique_ptr<VerilatedContext> contextp_;
     Vwrapper* top_;
     
-    int num_;
     int xmit_en = 0;
     
     unsigned char* payload_data = nullptr;
@@ -74,7 +75,7 @@ private:
             // for(int i=0;i<len;i++) cout << std::hex << static_cast<int>(*(payload_data + i)) << endl;
             //  ‘const svBitVecVal*’ {aka ‘const unsigned int*’}
 
-            for (int i = 0; i < num_*2; i++) {
+            for (int i = 0; i < item_num; i++) {
                 top_->payload_data[i] = payload_data[i];
             }
             top_->tvalid = 1;
@@ -111,7 +112,7 @@ void send_tlm_data(Initiator *initiator, int num)
     // sc_time delay = sc_time(10, SC_NS);
 
     sc_time delay = SC_ZERO_TIME;
-    //int num = 50;
+
     unsigned char arr[num*2];
 
     for (int i = 0; i < num; i = i + 1) {
@@ -135,12 +136,12 @@ void send_tlm_data(Initiator *initiator, int num)
 
 int sc_main(int argc, char* argv[]) {
 
-    int NUM = 4;
-    int item_num = 100;
+    int NUM = 4;    //send times
+    //int item_num = 100;
     int num = 0;
     int xmit_en = 1;
     
-    Target target("target", item_num);
+    Target target("target");
     Initiator initiator("initiator");
 
     initiator.socket.bind(target.socket);
@@ -150,7 +151,8 @@ int sc_main(int argc, char* argv[]) {
         
         num = num + 1;
         if(num >= NUM + 1) break;
-        send_tlm_data(&initiator, item_num);
+        //target.item_num 表示每个tlm包含的数的个数; 除以2后表示每个tlm包含的激励组数
+        send_tlm_data(&initiator, target.item_num/2);
 
     }
     return 0;
