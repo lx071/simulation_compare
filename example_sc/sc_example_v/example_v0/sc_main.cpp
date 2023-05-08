@@ -55,7 +55,7 @@ private:
 SC_MODULE(Top)
 {
     int num_;
-	sc_clock clk;
+	//sc_clock clk;
 	sc_signal<bool> rst_n; // Active low.
     sc_signal<bool> tvalid;
     sc_signal<bool> xmit_en;
