@@ -102,37 +102,39 @@ public:
         
     }
 
+
+    // typedef unsigned __int32 uint32_t;
+    // typedef uint32_t svBitVecVal;
+    void send_tlm_data(int num) 
+    {
+        tlm::tlm_generic_payload trans;
+        // sc_time delay = sc_time(10, SC_NS);
+
+        sc_time delay = SC_ZERO_TIME;
+
+        unsigned char arr[num*2];
+
+        for (int i = 0; i < num; i = i + 1) {
+            arr[i*2] = i%100;
+            arr[i*2+1] = i%100;
+        }
+        // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
+        unsigned char *payload_data = arr;
+
+        // set data
+        trans.set_command(tlm::TLM_WRITE_COMMAND);
+        trans.set_address(0x0);
+        trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
+        trans.set_data_length(strlen((const char*)payload_data));
+        socket->b_transport(trans, delay);
+
+        assert(trans.is_response_ok());
+
+        // memcpy(data, payload_data, 5);
+    }
 };
 
-// typedef unsigned __int32 uint32_t;
-// typedef uint32_t svBitVecVal;
-void send_tlm_data(Initiator *initiator, int num) 
-{
-    tlm::tlm_generic_payload trans;
-    // sc_time delay = sc_time(10, SC_NS);
 
-    sc_time delay = SC_ZERO_TIME;
-
-    unsigned char arr[num*2];
-
-    for (int i = 0; i < num; i = i + 1) {
-        arr[i*2] = i%100;
-        arr[i*2+1] = i%100;
-    }
-    // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
-    unsigned char *payload_data = arr;
-
-    // set data
-    trans.set_command(tlm::TLM_WRITE_COMMAND);
-    trans.set_address(0x0);
-    trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
-    trans.set_data_length(strlen((const char*)payload_data));
-    initiator->socket->b_transport(trans, delay);
-
-    assert(trans.is_response_ok());
-
-    // memcpy(data, payload_data, 5);
-}
 
 int sc_main(int argc, char* argv[]) {
 
@@ -152,7 +154,7 @@ int sc_main(int argc, char* argv[]) {
         num = num + 1;
         if(num >= NUM + 1) break;
         //target.item_num 表示每个tlm包含的数的个数; 除以2后表示每个tlm包含的激励组数
-        send_tlm_data(&initiator, target.item_num/2);
+        initiator.send_tlm_data(target.item_num/2);
 
     }
     return 0;
