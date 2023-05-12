@@ -78,48 +78,11 @@ public:
     tlm_utils::simple_initiator_socket<Initiator> socket;
 
     SC_CTOR(Initiator) : count(0) {
-        SC_THREAD(run);     //Similar to a Verilog @initial block
+        //SC_THREAD(run);     //Similar to a Verilog @initial block
     }
 
 private:
     int count;
-
-    void run() {
-        tlm::tlm_generic_payload trans;
-        sc_time delay = sc_time(10, SC_NS);
-
-        // 读取计数器的值
-        trans.set_command(tlm::TLM_READ_COMMAND);
-        trans.set_address(0x0);
-        trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
-        trans.set_data_length(sizeof(count));
-        socket->b_transport(trans, delay);
-
-        assert(trans.is_response_ok());
-        int count = *reinterpret_cast<int*>(trans.get_data_ptr());
-        cout << "计数器的值为：" << count << endl;
-
-        // 将计数器的值加1
-        count++;
-        trans.set_command(tlm::TLM_WRITE_COMMAND);
-        trans.set_address(0x0);
-        trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
-        trans.set_data_length(sizeof(count));
-        socket->b_transport(trans, delay);
-
-        assert(trans.is_response_ok());
-        cout << "计数器的值加1后为：" << count << endl;
-
-        // 读取计数器的值
-        trans.set_command(tlm::TLM_READ_COMMAND);
-        trans.set_address(0x0);
-        trans.set_data_ptr(reinterpret_cast<unsigned char*>(&count));
-        trans.set_data_length(sizeof(count));
-        socket->b_transport(trans, delay);
-
-        assert(trans.is_response_ok());
-        cout << "计数器的值为：" << count << endl;
-    }
 };
 
 Target target("target");
