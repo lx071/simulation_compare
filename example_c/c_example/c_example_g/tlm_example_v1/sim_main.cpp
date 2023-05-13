@@ -113,11 +113,12 @@ public:
     }
 };
 
-Target target("target");
-Initiator initiator("initiator");
 
 void testbench()
 {
+    Target target("target");
+    Initiator initiator("initiator");
+
     static bool initialized = false;
     if (!initialized) {
         initiator.socket.bind(target.socket);
