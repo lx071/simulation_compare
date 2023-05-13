@@ -77,12 +77,9 @@ SC_MODULE(Initiator) {
 public:
     tlm_utils::simple_initiator_socket<Initiator> socket;
 
-    SC_CTOR(Initiator) : count(0) {
+    SC_CTOR(Initiator){
         //SC_THREAD(run);     //Similar to a Verilog @initial block
     }
-
-private:
-    int count;
 };
 
 Target target("target");

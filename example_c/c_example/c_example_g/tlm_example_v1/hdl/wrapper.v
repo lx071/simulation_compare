@@ -5,7 +5,6 @@ module wrapper#(
     parameter NUM = 100,
     parameter ITEM_WIDTH = 8
 )(
-output reg xmit_en,
 output  reg [15:0] res_o
 );
 
@@ -73,23 +72,29 @@ always @(posedge clk_i) begin
     end
 end
 
+import "DPI-C" context task testbench();
+export "DPI-C" task set_data;
 
 initial begin
     tready = 1;
-    xmit_en = 1;
-    $dumpfile("dump.vcd");
-    $dumpvars;
-end
-
-export "DPI-C" function set_data;
-
-function void set_data(bit[NUM*3-1:0][ITEM_WIDTH-1:0] data);
-begin
-    payload_data = data;
-    tvalid = 1;
     xmit_en = 0;
-    //$display("%h", payload_data);
+    testbench();
+    $finish;
 end
-endfunction
+
+initial begin
+    //$dumpfile("dump.vcd");
+    //$dumpvars;
+end
+
+task set_data(bit[NUM*3-1:0][ITEM_WIDTH-1:0] data);
+begin
+    //$display("set_data");
+    tvalid = 1;
+    payload_data = data;
+    xmit_en = 1;
+    wait(xmit_en == 0);
+end
+endtask
 
 endmodule

@@ -2,9 +2,11 @@
 
 module wrapper#(
     parameter integer RESET_DELAY=5,
-    parameter NUM = 100,
+    parameter NUM=100,
     parameter ITEM_WIDTH = 8
 )(
+input bit [ITEM_WIDTH-1:0] payload_data[NUM*3-1:0],
+input reg tvalid,
 output reg xmit_en,
 output  reg [15:0] res_o
 );
@@ -20,7 +22,6 @@ reg [7:0] A_s;
 reg [7:0] B_s;
 reg [2:0] op_s;
 reg done;
-
 
 initial begin
     clk_i = 0;
@@ -46,10 +47,7 @@ bfm inst_bfm(
 );
 
 int num = 0;
-reg tvalid;
 reg tready;
-
-bit[NUM*3-1:0][ITEM_WIDTH-1:0]    payload_data;
 
 always @(posedge clk_i) begin
 
@@ -76,20 +74,10 @@ end
 
 initial begin
     tready = 1;
-    xmit_en = 1;
+    xmit_en = 0;
     $dumpfile("dump.vcd");
     $dumpvars;
 end
 
-export "DPI-C" function set_data;
-
-function void set_data(bit[NUM*3-1:0][ITEM_WIDTH-1:0] data);
-begin
-    payload_data = data;
-    tvalid = 1;
-    xmit_en = 0;
-    //$display("%h", payload_data);
-end
-endfunction
 
 endmodule

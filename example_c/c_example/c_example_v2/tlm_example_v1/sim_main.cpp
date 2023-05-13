@@ -19,25 +19,37 @@
 #include <tlm_utils/simple_initiator_socket.h>
 #include <tlm_utils/simple_target_socket.h>
 
-#include "svdpi.h"
-#include "Vwrapper__Dpi.h"
 #include <iostream>
 
 using namespace std;
 
-extern void set_data(const svBitVecVal* data);
-
-SC_MODULE(Target) { // 其实只是个target
+class Target : sc_module{
 public:
     tlm_utils::simple_target_socket<Target> socket;
+    int item_num;
 
-    SC_CTOR(Target) : count(0) {
+    Target(sc_module_name name) : sc_module(name) {
         socket.register_b_transport(this, &Target::b_transport);   //register methods with each socket
+        
+        contextp_ = std::make_unique<VerilatedContext>();
+        top_ = new Vwrapper(contextp_.get());
+
+        item_num = sizeof(top_->payload_data);
+
+        Verilated::traceEverOn(true);
+
     }
+    ~Target() {
+        top_->final();
+        delete top_;
+	}
 
 private:
-    int count;
-    // char *payload_data;
+    std::unique_ptr<VerilatedContext> contextp_;
+    Vwrapper* top_;
+    
+    int xmit_en = 0;
+    
     unsigned char* payload_data = nullptr;
 
     void b_transport(tlm::tlm_generic_payload& trans, sc_time& delay) {
@@ -54,21 +66,25 @@ private:
         }
 
         if (cmd == tlm::TLM_READ_COMMAND) {
-            //std::cout << "read_len:" << len << std::endl;
-            if (len != sizeof(count)) {
-                trans.set_response_status(tlm::TLM_BURST_ERROR_RESPONSE);
-                return;
-            }
-            memcpy(data, &count, sizeof(count));
+
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
+
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
             payload_data = data;
             //std::cout << "write_len:" << len << std::endl;
             // for(int i=0;i<len;i++) cout << std::hex << static_cast<int>(*(payload_data + i)) << endl;
-
             //  ‘const svBitVecVal*’ {aka ‘const unsigned int*’}
-            const unsigned int* sv_data = reinterpret_cast<const unsigned int*>(payload_data);
-            set_data(sv_data);
+
+            for (int i = 0; i < item_num; i++) {
+                top_->payload_data[i] = payload_data[i];
+            }
+            top_->tvalid = 1;
+            while(top_->xmit_en == xmit_en)
+            {
+                top_->eval();
+                contextp_->timeInc(5000);
+            } 
+            xmit_en = top_->xmit_en;
             
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
         } else {
@@ -78,13 +94,14 @@ private:
     }
 };
 
-SC_MODULE(Initiator) {
+class Initiator : sc_module{
 public:
     tlm_utils::simple_initiator_socket<Initiator> socket;
 
-    SC_CTOR(Initiator) {
-        // SC_THREAD(run);     //Similar to a Verilog @initial block
+    Initiator(sc_module_name name) : sc_module(name) {
+        
     }
+
 
     // typedef unsigned __int32 uint32_t;
     // typedef uint32_t svBitVecVal;
@@ -94,15 +111,16 @@ public:
         // sc_time delay = sc_time(10, SC_NS);
 
         sc_time delay = SC_ZERO_TIME;
-        unsigned char arr[num*2];
+
+        unsigned char arr[num*3];
 
         for (int i = 0; i < num; i = i + 1) {
-            arr[i*2] = i%100;
-            arr[i*2+1] = i%100;
+            arr[i*3] = 1;
+            arr[i*3+1] = i%100;
+            arr[i*3+2] = i%100;
         }
         // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
         unsigned char *payload_data = arr;
-        // char *payload_data = "\x11\x22\x33\x44\x44";
 
         // set data
         trans.set_command(tlm::TLM_WRITE_COMMAND);
@@ -112,52 +130,33 @@ public:
         socket->b_transport(trans, delay);
 
         assert(trans.is_response_ok());
-    }
 
+        // memcpy(data, payload_data, 5);
+    }
 };
 
 
+
 int sc_main(int argc, char* argv[]) {
+
+    int NUM = 4;    //send times
+    //int item_num = 100;
+    int num = 0;
+    int xmit_en = 1;
     
     Target target("target");
     Initiator initiator("initiator");
 
     initiator.socket.bind(target.socket);
-
-    // Vwrapper* top = new Vwrapper{"wrapper"};
     
-    auto contextp {make_unique<VerilatedContext>()};
-    auto top {make_unique<Vwrapper>(contextp.get())};
-    contextp->commandArgs(argc, argv);
-    Verilated::traceEverOn(true);
-    
-    const svScope scope = svGetScopeFromName("TOP.wrapper");
-    assert(scope);  // Check for nullptr if scope not found
-    svSetScope(scope);
-
-    int NUM = 6;
-    int item_num = 100;
-    int num = 0;
-    int xmit_en = 1;
-
     // Simulate until $finish
     while (!Verilated::gotFinish()) {       
+        
+        num = num + 1;
+        if(num >= NUM + 1) break;
+        //target.item_num 表示每个tlm包含的数的个数; 除以2后表示每个tlm包含的激励组数
+        initiator.send_tlm_data(target.item_num/3);
 
-        if(top->xmit_en == 1)
-        {
-            num = num + 1;
-            if(num >= NUM + 1) break;
-
-            initiator.send_tlm_data(item_num);
-            
-        } 
-        top->eval();
-        contextp->timeInc(1000);
     }
-
-    // Final model cleanup
-    top->final();
-
-    // Return good completion status
     return 0;
 }

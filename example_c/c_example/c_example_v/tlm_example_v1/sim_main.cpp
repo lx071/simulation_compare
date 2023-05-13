@@ -25,8 +25,6 @@
 
 using namespace std;
 
-extern void set_data(const svBitVecVal* data);
-
 SC_MODULE(Target) { // 其实只是个target
 public:
     tlm_utils::simple_target_socket<Target> socket;
@@ -82,7 +80,7 @@ SC_MODULE(Initiator) {
 public:
     tlm_utils::simple_initiator_socket<Initiator> socket;
 
-    SC_CTOR(Initiator) {
+    SC_CTOR(Initiator){
         // SC_THREAD(run);     //Similar to a Verilog @initial block
     }
 
@@ -94,11 +92,13 @@ public:
         // sc_time delay = sc_time(10, SC_NS);
 
         sc_time delay = SC_ZERO_TIME;
-        unsigned char arr[num*2];
+        //int num = 50;
+        unsigned char arr[num*3];
 
         for (int i = 0; i < num; i = i + 1) {
-            arr[i*2] = i%100;
-            arr[i*2+1] = i%100;
+            arr[i*3] = 1;
+            arr[i*3+1] = i%100;
+            arr[i*3+2] = i%100;
         }
         // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
         unsigned char *payload_data = arr;
@@ -112,10 +112,13 @@ public:
         socket->b_transport(trans, delay);
 
         assert(trans.is_response_ok());
+
+        // memcpy(data, payload_data, 5);
     }
 
 };
 
+extern void set_data(const svBitVecVal* data);
 
 int sc_main(int argc, char* argv[]) {
     
@@ -135,7 +138,7 @@ int sc_main(int argc, char* argv[]) {
     assert(scope);  // Check for nullptr if scope not found
     svSetScope(scope);
 
-    int NUM = 6;
+    int NUM = 5;
     int item_num = 100;
     int num = 0;
     int xmit_en = 1;
@@ -149,10 +152,9 @@ int sc_main(int argc, char* argv[]) {
             if(num >= NUM + 1) break;
 
             initiator.send_tlm_data(item_num);
-            
         } 
         top->eval();
-        contextp->timeInc(1000);
+        contextp->timeInc(5000);
     }
 
     // Final model cleanup
