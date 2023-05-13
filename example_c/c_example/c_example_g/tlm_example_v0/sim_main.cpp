@@ -123,7 +123,7 @@ void testbench()
         initialized = true;
     }
     int cycle_num = 2000;
-    int item_num = 1000;
+    int item_num = 100;
     for(int i = 0; i < cycle_num; i++)
     {
         initiator.send_tlm_data(item_num);

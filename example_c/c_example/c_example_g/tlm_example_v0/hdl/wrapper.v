@@ -5,7 +5,7 @@ module wrapper(
 output  wire [7:0] res_o
 );
 
-parameter NUM=1000;
+parameter NUM=100;
 parameter ITEM_WIDTH = 8;
 
 bit clk_i, reset_i;
