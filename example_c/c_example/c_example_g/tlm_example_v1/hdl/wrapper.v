@@ -48,6 +48,8 @@ int num = 0;
 reg tvalid;
 reg tready;
 
+reg xmit_en;
+
 bit[NUM*3-1:0][ITEM_WIDTH-1:0]    payload_data;
 
 always @(posedge clk_i) begin
@@ -64,6 +66,7 @@ always @(posedge clk_i) begin
             B_s <= payload_data[num*3+2];
             start <= 1;
             num = num + 1;
+            //$display("res_o:", res_o);
         end
         if(num >= NUM) begin
             num = 0;

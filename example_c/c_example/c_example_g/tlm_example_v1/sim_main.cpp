@@ -80,56 +80,53 @@ public:
     SC_CTOR(Initiator){
         //SC_THREAD(run);     //Similar to a Verilog @initial block
     }
+
+    // typedef unsigned __int32 uint32_t;
+    // typedef uint32_t svBitVecVal;
+    void send_tlm_data(int num)
+    {
+        tlm::tlm_generic_payload trans;
+        // sc_time delay = sc_time(10, SC_NS);
+
+        sc_time delay = SC_ZERO_TIME;
+        //int num = 1000;
+        unsigned char arr[num*3];
+
+        for (int i = 0; i < num; i = i + 1) {
+            arr[i*3] = 1;
+            arr[i*3+1] = i%100;
+            arr[i*3+2] = i%100;
+        }
+        // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
+        unsigned char *payload_data = arr;
+
+        // set data
+        trans.set_command(tlm::TLM_WRITE_COMMAND);
+        trans.set_address(0x0);
+        trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
+        trans.set_data_length(strlen((const char*)payload_data));
+        initiator.socket->b_transport(trans, delay);
+
+        assert(trans.is_response_ok());
+
+        // memcpy(data, payload_data, num*2);
+    }
 };
 
 Target target("target");
 Initiator initiator("initiator");
 
-// typedef unsigned __int32 uint32_t;
-// typedef uint32_t svBitVecVal;
-void send_tlm_data(int num)
+void testbench()
 {
     static bool initialized = false;
     if (!initialized) {
         initiator.socket.bind(target.socket);
         initialized = true;
     }
-
-    tlm::tlm_generic_payload trans;
-    // sc_time delay = sc_time(10, SC_NS);
-
-    sc_time delay = SC_ZERO_TIME;
-    //int num = 1000;
-    unsigned char arr[num*3];
-
-    for (int i = 0; i < num; i = i + 1) {
-        arr[i*3] = 1;
-        arr[i*3+1] = i%100;
-        arr[i*3+2] = i%100;
-    }
-    // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
-    unsigned char *payload_data = arr;
-
-    // set data
-    trans.set_command(tlm::TLM_WRITE_COMMAND);
-    trans.set_address(0x0);
-    trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
-    trans.set_data_length(strlen((const char*)payload_data));
-    initiator.socket->b_transport(trans, delay);
-
-    assert(trans.is_response_ok());
-
-    // memcpy(data, payload_data, num*2);
-}
-
-void testbench()
-{
     int cycle_num = 2000;
     int item_num = 1000;
     for(int i = 0; i < cycle_num; i++)
     {
-        send_tlm_data(item_num);
+        initiator.send_tlm_data(item_num);
     }
-    
-
 }
