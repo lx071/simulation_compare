@@ -105,7 +105,7 @@ public:
         trans.set_address(0x0);
         trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
         trans.set_data_length(strlen((const char*)payload_data));
-        initiator.socket->b_transport(trans, delay);
+        socket->b_transport(trans, delay);
 
         assert(trans.is_response_ok());
 
