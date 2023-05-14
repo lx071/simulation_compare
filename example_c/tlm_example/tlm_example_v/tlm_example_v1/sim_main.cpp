@@ -9,18 +9,22 @@
 // SystemC global header
 #include <systemc.h>
 
+// Include common routines
+#include <verilated.h>
+
+// Include model header, generated from Verilating "top.v"
+#include "Vwrapper.h"
+
 #include <tlm.h>
 #include <tlm_utils/simple_initiator_socket.h>
 #include <tlm_utils/simple_target_socket.h>
 
 #include "svdpi.h"
-#include <string.h>
+#include "Vwrapper__Dpi.h"
 #include <iostream>
 
 using namespace std;
 
-extern "C" void set_data(const svBitVecVal* data);
-extern "C" void gen_tlm_data(int num);
 
 SC_MODULE(Target) { // 其实只是个target
 public:
@@ -85,6 +89,9 @@ private:
     int count;
 };
 
+extern void set_data(const svBitVecVal* data);
+extern void gen_tlm_data(int num);
+
 Target target("target");
 Initiator initiator("initiator");
 
@@ -97,17 +104,17 @@ void gen_tlm_data(int num)
         initiator.socket.bind(target.socket);
         initialized = true;
     }
-
     tlm::tlm_generic_payload trans;
     // sc_time delay = sc_time(10, SC_NS);
 
     sc_time delay = SC_ZERO_TIME;
     //int num = 1000;
-    unsigned char arr[num*2];
+    unsigned char arr[num*3];
 
     for (int i = 0; i < num; i = i + 1) {
-        arr[i*2] = i%100;
-        arr[i*2+1] = i%100;
+        arr[i*3] = 1;
+        arr[i*3+1] = i%100;
+        arr[i*3+2] = i%100;
     }
     // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
     unsigned char *payload_data = arr;
@@ -127,4 +134,35 @@ void gen_tlm_data(int num)
     assert(trans.is_response_ok());
 
     // memcpy(data, payload_data, num*2);
+}
+
+
+int sc_main(int argc, char* argv[]) {
+    //initiator.socket.bind(target.socket);
+    
+    // Vwrapper* top = new Vwrapper{"wrapper"};
+    
+    auto contextp {make_unique<VerilatedContext>()};
+    auto top {make_unique<Vwrapper>(contextp.get())};
+    contextp->commandArgs(argc, argv);
+    Verilated::traceEverOn(true);
+    
+    // sc_signal<uint32_t> res_o;
+    // top->res_o(res_o);
+    
+    // const svScope scope = svGetScopeFromName("TOP.wrapper");
+    // assert(scope);  // Check for nullptr if scope not found
+    // svSetScope(scope);
+
+    // Simulate until $finish
+    while (!Verilated::gotFinish()) {       
+        top->eval();
+        contextp->timeInc(1000);
+    }
+
+    // Final model cleanup
+    top->final();
+
+    // Return good completion status
+    return 0;
 }

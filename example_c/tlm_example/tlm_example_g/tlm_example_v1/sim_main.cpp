@@ -20,7 +20,7 @@
 using namespace std;
 
 extern "C" void set_data(const svBitVecVal* data);
-extern "C" void gen_tlm_data();
+extern "C" void gen_tlm_data(int num);
 
 SC_MODULE(Target) { // 其实只是个target
 public:
@@ -87,7 +87,7 @@ Initiator initiator("initiator");
 
 // typedef unsigned __int32 uint32_t;
 // typedef uint32_t svBitVecVal;
-void gen_tlm_data() 
+void gen_tlm_data(int num) 
 {
     static bool initialized = false;
     if (!initialized) {
@@ -99,7 +99,7 @@ void gen_tlm_data()
     // sc_time delay = sc_time(10, SC_NS);
 
     sc_time delay = SC_ZERO_TIME;
-    int num = 1000;
+    //int num = 1000;
     unsigned char arr[num*3];
 
     for (int i = 0; i < num; i = i + 1) {

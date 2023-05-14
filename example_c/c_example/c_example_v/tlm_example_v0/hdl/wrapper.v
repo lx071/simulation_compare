@@ -1,13 +1,18 @@
 `timescale 1ns/1ps
 
 
-module wrapper(
+module wrapper#
+(
+    parameter NUM=100,
+    parameter ITEM_WIDTH = 8
+)
+(
 output reg xmit_en,
 output  wire [7:0] res_o
 );
 
-parameter NUM=100;
-parameter ITEM_WIDTH = 8;
+
+export "DPI-C" function set_data;
 
 bit clk_i, reset_i;
 
@@ -58,8 +63,6 @@ initial begin
     $dumpfile("dump.vcd");
     $dumpvars;
 end
-
-export "DPI-C" function set_data;
 
 function void set_data(bit[NUM*2-1:0][ITEM_WIDTH-1:0] data);
 begin

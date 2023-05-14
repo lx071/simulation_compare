@@ -1,13 +1,18 @@
 `timescale 1ns/1ps
 
 
-module wrapper(
+module wrapper#
+(
+    parameter CYCLE_NUM=2000,
+    parameter NUM=1000,
+    parameter ITEM_WIDTH = 8
+)
+(
 output  wire [7:0] res_o
 );
 
-parameter CYCLE_NUM=2000;
-parameter NUM=1000;
-parameter ITEM_WIDTH = 8;
+import "DPI-C" context function void gen_tlm_data();
+export "DPI-C" function set_data;
 
 bit clk_i, reset_i;
 
@@ -28,9 +33,6 @@ bfm inst_bfm(
     .B_s(B_s),
     .res_o(res_o)
 );
-
-import "DPI-C" context function void gen_tlm_data();
-export "DPI-C" function set_data;
 
 bit[NUM*2-1:0][ITEM_WIDTH-1:0]    payload_data;
 int num = 0;

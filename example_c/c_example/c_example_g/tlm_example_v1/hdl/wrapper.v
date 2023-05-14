@@ -8,6 +8,9 @@ module wrapper#(
 output  reg [15:0] res_o
 );
 
+import "DPI-C" context task testbench(input int item_num);
+export "DPI-C" task set_data;
+
 bit clk_i, reset_i;
 
 always #5 clk_i = ~clk_i;
@@ -75,9 +78,6 @@ always @(posedge clk_i) begin
         end
     end
 end
-
-import "DPI-C" context task testbench(input int item_num);
-export "DPI-C" task set_data;
 
 initial begin
     tready = 1;

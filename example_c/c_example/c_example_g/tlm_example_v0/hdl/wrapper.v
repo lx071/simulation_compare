@@ -1,12 +1,17 @@
 `timescale 1ns/1ps
 
 
-module wrapper(
+module wrapper#
+(
+    parameter NUM=100,
+    parameter ITEM_WIDTH = 8
+)
+(
 output  wire [7:0] res_o
 );
 
-parameter NUM=100;
-parameter ITEM_WIDTH = 8;
+import "DPI-C" context task testbench(input int item_num);
+export "DPI-C" task set_data;
 
 bit clk_i, reset_i;
 
@@ -27,9 +32,6 @@ bfm inst_bfm(
     .B_s(B_s),
     .res_o(res_o)
 );
-
-import "DPI-C" context task testbench(input int item_num);
-export "DPI-C" task set_data;
 
 bit[NUM*2-1:0][ITEM_WIDTH-1:0]    payload_data;
 int num = 0;

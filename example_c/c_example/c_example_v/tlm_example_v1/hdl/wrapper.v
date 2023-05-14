@@ -9,6 +9,8 @@ output reg xmit_en,
 output  reg [15:0] res_o
 );
 
+export "DPI-C" function set_data;
+
 bit clk_i, reset_i;
 
 always #5 clk_i = ~clk_i;
@@ -80,8 +82,6 @@ initial begin
     $dumpfile("dump.vcd");
     $dumpvars;
 end
-
-export "DPI-C" function set_data;
 
 function void set_data(bit[NUM*3-1:0][ITEM_WIDTH-1:0] data);
 begin
