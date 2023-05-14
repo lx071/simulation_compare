@@ -3,15 +3,15 @@
 
 module wrapper#
 (
-    parameter CYCLE_NUM = 2000,
-    parameter NUM = 1000,
+    parameter CYCLE_NUM = 5,
+    parameter NUM = 100,
     parameter ITEM_WIDTH = 8
 )
 (
 output  wire [7:0] res_o
 );
 
-import "DPI-C" function void gen_tlm_data(output bit[NUM*2-1:0][ITEM_WIDTH-1:0] pkt);
+import "DPI-C" function void gen_tlm_data(output bit[NUM*2-1:0][ITEM_WIDTH-1:0] pkt, input int num);
 
 bit clk_i, reset_i;
 
@@ -35,6 +35,7 @@ bfm inst_bfm(
 
 bit[NUM*2-1:0][ITEM_WIDTH-1:0]    payload_data;
 int num = 0;
+int item_num = NUM;
 
 reg xmit_en;
 
@@ -43,12 +44,11 @@ always @(posedge clk_i) begin
         A_s <= 0;
         B_s <= 0;
     end 
-    else if(xmit_en) begin 
-
-        //$display("num:", num);
+    else if(xmit_en) begin
         A_s <= payload_data[num*2+0];
         B_s <= payload_data[num*2+1];
         num = num + 1;
+        //$display("res_o:", res_o);
     end
     if(num >= NUM) begin
         num = 0;
@@ -61,7 +61,7 @@ end
 initial begin
     xmit_en = 0;
     repeat(CYCLE_NUM) begin
-        gen_tlm_data(payload_data);
+        gen_tlm_data(payload_data, item_num);
         xmit_en = 1;
         wait(xmit_en==0);
     end
