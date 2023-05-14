@@ -20,7 +20,7 @@
 using namespace std;
 
 extern "C" void set_data(const svBitVecVal* data);
-extern "C" void testbench();
+extern "C" void testbench(int num);
 
 SC_MODULE(Target) { // 其实只是个target
 public:

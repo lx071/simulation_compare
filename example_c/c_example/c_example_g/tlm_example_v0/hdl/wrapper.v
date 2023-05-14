@@ -28,11 +28,12 @@ bfm inst_bfm(
     .res_o(res_o)
 );
 
-import "DPI-C" context task testbench();
+import "DPI-C" context task testbench(input int item_num);
 export "DPI-C" task set_data;
 
 bit[NUM*2-1:0][ITEM_WIDTH-1:0]    payload_data;
 int num = 0;
+int item_num = NUM;
 
 reg xmit_en;
 
@@ -61,7 +62,7 @@ end
 
 initial begin
     xmit_en = 0;
-    testbench();
+    testbench(item_num);
     $finish;
 end
 

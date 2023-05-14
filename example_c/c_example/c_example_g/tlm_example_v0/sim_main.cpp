@@ -20,7 +20,7 @@
 using namespace std;
 
 extern "C" void set_data(const svBitVecVal* data);
-extern "C" void testbench();
+extern "C" void testbench(int num);
 
 SC_MODULE(Target) { // 其实只是个target
 public:
@@ -113,7 +113,7 @@ public:
 };
 
 
-void testbench()
+void testbench(int item_num)
 {
     Target target("target");
     Initiator initiator("initiator");
@@ -124,7 +124,7 @@ void testbench()
         initialized = true;
     }
     int cycle_num = 2000;
-    int item_num = 100;
+    // int item_num = 100;
     for(int i = 0; i < cycle_num; i++)
     {
         initiator.send_tlm_data(item_num);

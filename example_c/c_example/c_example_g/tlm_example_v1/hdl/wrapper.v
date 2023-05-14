@@ -45,6 +45,7 @@ bfm inst_bfm(
 );
 
 int num = 0;
+int item_num = NUM;
 reg tvalid;
 reg tready;
 
@@ -75,13 +76,13 @@ always @(posedge clk_i) begin
     end
 end
 
-import "DPI-C" context task testbench(output int item_num);
+import "DPI-C" context task testbench(input int item_num);
 export "DPI-C" task set_data;
 
 initial begin
     tready = 1;
     xmit_en = 0;
-    testbench(NUM);
+    testbench(item_num);
     $finish;
 end
 
