@@ -10,7 +10,7 @@ module wrapper#(
 output  reg [15:0] res_o
 );
 
-import "DPI-C" context function void gen_tlm_data();
+import "DPI-C" context function void gen_tlm_data(input int item_num);
 export "DPI-C" function set_data;
 
 bit clk_i, reset_i;
@@ -50,6 +50,7 @@ bfm inst_bfm(
 );
 
 int num = 0;
+int item_num = NUM;
 reg tvalid;
 reg tready;
 
@@ -84,7 +85,7 @@ initial begin
     tready = 1;
     xmit_en = 0;
     repeat(CYCLE_NUM) begin
-        gen_tlm_data();
+        gen_tlm_data(item_num);
         xmit_en = 1;
         wait(xmit_en==0);
     end

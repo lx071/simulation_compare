@@ -25,6 +25,8 @@
 
 using namespace std;
 
+extern void set_data(const svBitVecVal* data);
+extern void gen_tlm_data(int num);
 
 SC_MODULE(Target) { // 其实只是个target
 public:
@@ -89,18 +91,12 @@ private:
     int count;
 };
 
-//extern void recv(int data);
-extern void set_data(const svBitVecVal* data);
-//extern int get_ready();
-//extern svBit get_xmit_en();
-extern void gen_tlm_data();
-
 Target target("target");
 Initiator initiator("initiator");
 
 // typedef unsigned __int32 uint32_t;
 // typedef uint32_t svBitVecVal;
-void gen_tlm_data() 
+void gen_tlm_data(int num) 
 {
     static bool initialized = false;
     if (!initialized) {
@@ -111,7 +107,7 @@ void gen_tlm_data()
     // sc_time delay = sc_time(10, SC_NS);
 
     sc_time delay = SC_ZERO_TIME;
-    int num = 1000;
+    //int num = 1000;
     unsigned char arr[num*2];
 
     for (int i = 0; i < num; i = i + 1) {
@@ -141,20 +137,12 @@ void gen_tlm_data()
 
 int sc_main(int argc, char* argv[]) {
     //initiator.socket.bind(target.socket);
-    
     // Vwrapper* top = new Vwrapper{"wrapper"};
     
     auto contextp {make_unique<VerilatedContext>()};
     auto top {make_unique<Vwrapper>(contextp.get())};
     contextp->commandArgs(argc, argv);
     Verilated::traceEverOn(true);
-    
-    // sc_signal<uint32_t> res_o;
-    // top->res_o(res_o);
-    
-    // const svScope scope = svGetScopeFromName("TOP.wrapper");
-    // assert(scope);  // Check for nullptr if scope not found
-    // svSetScope(scope);
 
     // Simulate until $finish
     while (!Verilated::gotFinish()) {       

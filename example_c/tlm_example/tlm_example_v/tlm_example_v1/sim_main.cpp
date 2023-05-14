@@ -25,6 +25,8 @@
 
 using namespace std;
 
+extern void set_data(const svBitVecVal* data);
+extern void gen_tlm_data(int num);
 
 SC_MODULE(Target) { // 其实只是个target
 public:
@@ -89,9 +91,6 @@ private:
     int count;
 };
 
-extern void set_data(const svBitVecVal* data);
-extern void gen_tlm_data(int num);
-
 Target target("target");
 Initiator initiator("initiator");
 
@@ -146,13 +145,6 @@ int sc_main(int argc, char* argv[]) {
     auto top {make_unique<Vwrapper>(contextp.get())};
     contextp->commandArgs(argc, argv);
     Verilated::traceEverOn(true);
-    
-    // sc_signal<uint32_t> res_o;
-    // top->res_o(res_o);
-    
-    // const svScope scope = svGetScopeFromName("TOP.wrapper");
-    // assert(scope);  // Check for nullptr if scope not found
-    // svSetScope(scope);
 
     // Simulate until $finish
     while (!Verilated::gotFinish()) {       
