@@ -75,13 +75,13 @@ always @(posedge clk_i) begin
     end
 end
 
-import "DPI-C" context task testbench();
+import "DPI-C" context task testbench(output int item_num);
 export "DPI-C" task set_data;
 
 initial begin
     tready = 1;
     xmit_en = 0;
-    testbench();
+    testbench(NUM);
     $finish;
 end
 
