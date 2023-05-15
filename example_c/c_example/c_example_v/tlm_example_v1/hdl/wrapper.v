@@ -13,8 +13,6 @@ export "DPI-C" function set_data;
 
 bit clk_i, reset_i;
 
-always #5 clk_i = ~clk_i;
-
 reg start;
 //reg [15:0] result;
 
@@ -23,6 +21,24 @@ reg [7:0] B_s;
 reg [2:0] op_s;
 reg done;
 
+int num = 0;
+reg tvalid;
+reg tready;
+
+bit[NUM*3-1:0][ITEM_WIDTH-1:0]    payload_data;
+
+bfm inst_bfm(
+    .clk_i(clk_i),
+    .reset_i(reset_i),
+    .A_s(A_s),
+    .B_s(B_s),
+    .op_s(op_s),
+    .start(start),
+    .done(done),
+    .res_o(res_o)
+);
+
+always #5 clk_i = ~clk_i;
 
 initial begin
     clk_i = 0;
@@ -36,22 +52,6 @@ initial begin
     reset_i = 1;
 end
 
-bfm inst_bfm(
-    .clk_i(clk_i),
-    .reset_i(reset_i),
-    .A_s(A_s),
-    .B_s(B_s),
-    .op_s(op_s),
-    .start(start),
-    .done(done),
-    .res_o(res_o)
-);
-
-int num = 0;
-reg tvalid;
-reg tready;
-
-bit[NUM*3-1:0][ITEM_WIDTH-1:0]    payload_data;
 
 always @(posedge clk_i) begin
 
@@ -67,6 +67,7 @@ always @(posedge clk_i) begin
             B_s <= payload_data[num*3+2];
             start <= 1;
             num = num + 1;
+            //$display("res_o:", res_o);
         end
         if(num >= NUM) begin
             num = 0;
@@ -79,8 +80,8 @@ end
 initial begin
     tready = 1;
     xmit_en = 1;
-    $dumpfile("dump.vcd");
-    $dumpvars;
+    //$dumpfile("dump.vcd");
+    //$dumpvars;
 end
 
 function void set_data(bit[NUM*3-1:0][ITEM_WIDTH-1:0] data);

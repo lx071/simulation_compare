@@ -10,8 +10,7 @@ module wrapper#(
 output  reg [15:0] res_o
 );
 
-import "DPI-C" context function void gen_tlm_data(input int item_num);
-export "DPI-C" function set_data;
+import "DPI-C" function void gen_tlm_data(output bit[NUM*3-1:0][ITEM_WIDTH-1:0] pkt, input int num);
 
 bit clk_i, reset_i;
 
@@ -84,7 +83,8 @@ initial begin
     tready = 1;
     xmit_en = 0;
     repeat(CYCLE_NUM) begin
-        gen_tlm_data(item_num);
+        gen_tlm_data(payload_data, item_num);
+        tvalid = 1;
         xmit_en = 1;
         wait(xmit_en==0);
     end
@@ -95,13 +95,5 @@ initial begin
     //$dumpfile("dump.vcd");
     //$dumpvars;
 end
-
-function void set_data(bit[NUM*3-1:0][ITEM_WIDTH-1:0] data);
-begin
-    payload_data = data;
-    tvalid = 1;
-    //$display("%h", payload_data);
-end
-endfunction
 
 endmodule

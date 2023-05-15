@@ -24,18 +24,19 @@ extern "C" __attribute__((visibility("default")))
 void gen_tlm_data(svBitVecVal* data, int num) 
 {
     //int num = 100;
-    unsigned char arr[num*2];
+    unsigned char arr[num*3];
 
     for (int i = 0; i < num; i = i + 1) {
-        arr[i*2] = i%100;
-        arr[i*2+1] = i%100;
+        arr[i*3] = 1;
+        arr[i*3+1] = i%100;
+        arr[i*3+2] = i%100;
     }
     // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
     unsigned char *payload_data = arr;
     // const unsigned int* sv_data = reinterpret_cast<const unsigned int*>(payload_data);
     // set_data(sv_data);
 
-    memcpy(data, payload_data, num*2);
+    memcpy(data, payload_data, num*3);
 }
 
 

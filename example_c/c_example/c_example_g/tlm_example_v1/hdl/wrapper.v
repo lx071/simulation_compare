@@ -13,8 +13,6 @@ export "DPI-C" task set_data;
 
 bit clk_i, reset_i;
 
-always #5 clk_i = ~clk_i;
-
 reg start;
 //reg [15:0] result;
 
@@ -23,18 +21,14 @@ reg [7:0] B_s;
 reg [2:0] op_s;
 reg done;
 
+int num = 0;
+int item_num = NUM;
+reg tvalid;
+reg tready;
 
-initial begin
-    clk_i = 0;
-    //reset_i = 0;
-    A_s = 0;
-    B_s = 0;
-    op_s = 0;
-    start = 0;
-    //data = 0;
-    //repeat(RESET_DELAY) @(posedge clk_i);
-    reset_i = 1;
-end
+reg xmit_en;
+
+bit[NUM*3-1:0][ITEM_WIDTH-1:0]    payload_data;
 
 bfm inst_bfm(
     .clk_i(clk_i),
@@ -47,14 +41,19 @@ bfm inst_bfm(
     .res_o(res_o)
 );
 
-int num = 0;
-int item_num = NUM;
-reg tvalid;
-reg tready;
+always #5 clk_i = ~clk_i;
 
-reg xmit_en;
-
-bit[NUM*3-1:0][ITEM_WIDTH-1:0]    payload_data;
+initial begin
+    clk_i = 0;
+    //reset_i = 0;
+    A_s = 0;
+    B_s = 0;
+    op_s = 0;
+    start = 0;
+    //data = 0;
+    //repeat(RESET_DELAY) @(posedge clk_i);
+    reset_i = 1;
+end
 
 always @(posedge clk_i) begin
 
