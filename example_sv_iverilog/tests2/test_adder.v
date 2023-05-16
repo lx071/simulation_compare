@@ -48,7 +48,7 @@ initial begin
         end
     end
 
-    $stop;
+    $finish;
 
 end
 

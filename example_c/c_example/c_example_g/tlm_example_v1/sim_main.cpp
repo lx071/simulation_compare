@@ -81,6 +81,8 @@ public:
         //SC_THREAD(run);     //Similar to a Verilog @initial block
     }
 
+    unsigned char *arr;
+
     // typedef unsigned __int32 uint32_t;
     // typedef uint32_t svBitVecVal;
     void send_tlm_data(int num)
@@ -90,8 +92,9 @@ public:
 
         sc_time delay = SC_ZERO_TIME;
         //int num = 1000;
-        unsigned char arr[num*3];
-
+        //unsigned char arr[num*3];
+        arr = new unsigned char[num*3];
+        
         for (int i = 0; i < num; i = i + 1) {
             arr[i*3] = 1;
             arr[i*3+1] = i%100;

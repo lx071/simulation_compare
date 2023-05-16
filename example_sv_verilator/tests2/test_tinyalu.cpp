@@ -26,9 +26,9 @@ int main(int argc, char **argv)
     Verilated::commandArgs(argc, argv);
     Verilated::traceEverOn(true);
     top = new Vtinyalu;
-    tfp = new VerilatedVcdC;
-    top->trace(tfp, 99);
-    tfp->open("dump.vcd");
+    //tfp = new VerilatedVcdC;
+    //top->trace(tfp, 99);
+    //tfp->open("dump.vcd");
     top->clk = 0;
     top->reset_n = 0;
 
@@ -44,20 +44,20 @@ int main(int argc, char **argv)
         {
             top->reset_n=1;       
         }
-        if(top->reset_n ==1 && main_time%5==0)
+        if(top->reset_n ==1)
         {
             top->clk = !(top->clk);
             if(top->clk==1) assign(top);
         }
 
         top->eval();
-        tfp->dump(main_time);
+        //tfp->dump(main_time);
         main_time+=5;
     }
 
-    tfp->close();
+    //tfp->close();
     delete top;
-    delete tfp;
+    //delete tfp;
     exit(0);
     return 0;
 }

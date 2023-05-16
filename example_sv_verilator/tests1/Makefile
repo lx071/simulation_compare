@@ -4,7 +4,7 @@
 
 # make all
 
-all: first compile second run end
+all: compile
 
 first:
 	date +%M.%s.%N
@@ -18,7 +18,7 @@ end:
 # only make compile
 
 compile:
-	verilator --cc ./../hdl/MyTopLevel.v --exe test_adder.cpp --trace
+	verilator -Wno-fatal --cc ./../hdl/MyTopLevel.v --exe test_adder.cpp --trace
 	make -j -C ./obj_dir -f VMyTopLevel.mk VMyTopLevel
 
 

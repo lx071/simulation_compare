@@ -4,9 +4,9 @@
 
 # make all
 
-all: first compile second run end
+all: compile
 
-exec: first run end
+exec: run
 
 first:
 	date +%M.%s.%N
@@ -20,13 +20,13 @@ end:
 # only make compile
 
 compile:
-	verilator --cc ./../hdl/tinyalu.sv --exe test_tinyalu.cpp --trace
+	verilator -Wno-fatal --cc ./../hdl/tinyalu.sv --exe test_tinyalu.cpp --trace
+	make -j -C ./obj_dir -f Vtinyalu.mk Vtinyalu
 
 
 # only make visual ( make .elf file to the .vcd file )
 
 run:
-	make -j -C ./obj_dir -f Vtinyalu.mk Vtinyalu
 	./obj_dir/Vtinyalu
 
 # only open the wave

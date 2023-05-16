@@ -28,9 +28,9 @@ int main(int argc, char **argv)
     Verilated::commandArgs(argc, argv);
     Verilated::traceEverOn(true);
     top = new VMyTopLevel;
-    tfp = new VerilatedVcdC;
-    top->trace(tfp, 99);
-    tfp->open("dump.vcd");
+    //tfp = new VerilatedVcdC;
+    //top->trace(tfp, 99);
+    //tfp->open("dump.vcd");
     top->clk = 0;
     top->reset = 1;
 
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
     {
         if(num>=2000000) break;
         if(main_time==100) top->reset=0;
-        if(top->reset ==0 && main_time%5==0)
+        if(top->reset ==0)
         {
             top->clk = !(top->clk);
             if(top->clk==1) assign(top);
@@ -54,9 +54,9 @@ int main(int argc, char **argv)
         main_time+=5;
     }
 
-    tfp->close();
+    //tfp->close();
     delete top;
-    delete tfp;
+    //delete tfp;
     exit(0);
     return 0;
 }

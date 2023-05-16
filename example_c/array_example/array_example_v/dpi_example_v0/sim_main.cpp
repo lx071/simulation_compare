@@ -18,13 +18,16 @@
 
 using namespace std;
 
+unsigned char *arr;
+
 // typedef unsigned __int32 uint32_t;
 // typedef uint32_t svBitVecVal;
 extern "C" __attribute__((visibility("default")))
 void gen_tlm_data(svBitVecVal* data, int num) 
 {
     //int num = 100;
-    unsigned char arr[num*2];
+    // unsigned char arr[num*2];
+    arr = new unsigned char[num*2];
 
     for (int i = 0; i < num; i = i + 1) {
         arr[i*2] = i%100;
