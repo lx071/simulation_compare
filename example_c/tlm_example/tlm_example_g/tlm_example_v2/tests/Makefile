@@ -24,12 +24,6 @@ compile:
 	# galaxsim ../test_hash.so ${VERILOG_SOURCES} -Xutil=1
 	g++ -shared -fPIC -o libadd.so ../sim_main.cpp -I /usr/local/systemc-2.3.4/include -L /usr/local/systemc-2.3.4/lib-linux64 -l systemc
 	galaxsim ${VERILOG_SOURCES} libadd.so
-	
-        
-# only make visual ( make .elf file to the .vcd file )
-
-exec:
-	python test.py
 
 clean:
 	rm -rf xsim* dump.vcd run.out

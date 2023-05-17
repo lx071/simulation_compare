@@ -2,9 +2,9 @@
 
 module wrapper#(
     parameter integer RESET_DELAY=5,
-    parameter CYCLE_NUM = 2000,
+    parameter CYCLE_NUM = 4,
     parameter NUM = 100,
-    parameter ITEM_WIDTH = 8
+    parameter ITEM_WIDTH = 24
 )
 (
 output  reg [15:0] res_o
@@ -30,7 +30,7 @@ reg tready;
 
 reg xmit_en;
 
-bit[NUM*3-1:0][ITEM_WIDTH-1:0]    payload_data;
+bit[NUM-1:0][ITEM_WIDTH-1:0]    payload_data;
 
 bfm inst_bfm(
     .clk_i(clk_i),
@@ -66,9 +66,9 @@ always @(posedge clk_i) begin
     end else begin   
 
         if(tvalid==1 && tready==1) begin
-            op_s <= payload_data[num*3+0][2:0];
-            A_s <= payload_data[num*3+1];
-            B_s <= payload_data[num*3+2];
+            op_s <= payload_data[num][2:0];
+            A_s <= payload_data[num][15:8];
+            B_s <= payload_data[num][23:16];
             start <= 1;
             num = num + 1;
             //$display("res_o:", res_o);
@@ -96,7 +96,7 @@ initial begin
     //$dumpvars;
 end
 
-function void set_data(bit[NUM*3-1:0][ITEM_WIDTH-1:0] data);
+function void set_data(bit[NUM-1:0][ITEM_WIDTH-1:0] data);
 begin
     payload_data = data;
     tvalid = 1;

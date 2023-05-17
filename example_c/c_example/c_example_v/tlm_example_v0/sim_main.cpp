@@ -135,7 +135,7 @@ int sc_main(int argc, char* argv[]) {
     assert(scope);  // Check for nullptr if scope not found
     svSetScope(scope);
 
-    int NUM = 6;
+    int NUM = 5;
     int item_num = 100;
     int num = 0;
     int xmit_en = 1;

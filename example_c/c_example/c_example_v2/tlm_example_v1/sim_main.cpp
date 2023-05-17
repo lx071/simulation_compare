@@ -75,9 +75,8 @@ private:
             // for(int i=0;i<len;i++) cout << std::hex << static_cast<int>(*(payload_data + i)) << endl;
             //  ‘const svBitVecVal*’ {aka ‘const unsigned int*’}
 
-            for (int i = 0; i < item_num; i++) {
-                top_->payload_data[i] = payload_data[i];
-            }
+            memcpy(&top_->payload_data, payload_data, item_num);
+
             top_->tvalid = 1;
             while(top_->xmit_en == xmit_en)
             {
@@ -139,7 +138,7 @@ public:
 
 int sc_main(int argc, char* argv[]) {
 
-    int NUM = 4;    //send times
+    int NUM = 5;    //send times
     //int item_num = 100;
     int num = 0;
     int xmit_en = 1;

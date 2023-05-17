@@ -4,7 +4,7 @@
 module wrapper#
 (
     parameter NUM=100,
-    parameter ITEM_WIDTH = 8
+    parameter ITEM_WIDTH = 16
 )
 (
 output  wire [7:0] res_o
@@ -18,7 +18,7 @@ bit clk_i, reset_i;
 reg [7:0] A_s;
 reg [7:0] B_s;
 
-bit[NUM*2-1:0][ITEM_WIDTH-1:0]    payload_data;
+bit[NUM-1:0][ITEM_WIDTH-1:0]    payload_data;
 int num = 0;
 int item_num = NUM;
 
@@ -47,8 +47,8 @@ always @(posedge clk_i) begin
     else if(xmit_en) begin 
 
         //$display("num:", num);
-        A_s <= payload_data[num*2+0];
-        B_s <= payload_data[num*2+1];
+        A_s <= payload_data[num][7:0];
+        B_s <= payload_data[num][15:8];
         num = num + 1;
         //$display("res_o:", res_o);
 
@@ -72,7 +72,7 @@ initial begin
     //$dumpvars;
 end
 
-task set_data(bit[NUM*2-1:0][ITEM_WIDTH-1:0] data);
+task set_data(bit[NUM-1:0][ITEM_WIDTH-1:0] data);
 begin
     //$display("set_data");
     payload_data = data;

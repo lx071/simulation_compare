@@ -26,13 +26,15 @@ using namespace std;
 class Target : sc_module{
 public:
     tlm_utils::simple_target_socket<Target> socket;
-    
+    int item_num;
 
-    Target(sc_module_name name, int num) : sc_module(name), num_(num) {
+    Target(sc_module_name name) : sc_module(name) {
         socket.register_b_transport(this, &Target::b_transport);   //register methods with each socket
         
         contextp_ = std::make_unique<VerilatedContext>();
         top_ = new Vwrapper(contextp_.get());
+
+        item_num = sizeof(top_->payload_data);
 
         Verilated::traceEverOn(true);
 
@@ -46,7 +48,6 @@ private:
     std::unique_ptr<VerilatedContext> contextp_;
     Vwrapper* top_;
     
-    int num_;
     int xmit_en = 0;
     
     unsigned char* payload_data = nullptr;
@@ -66,6 +67,11 @@ private:
 
         if (cmd == tlm::TLM_READ_COMMAND) {
 
+            payload_data = &top_->res_o;
+            cout << "res_o:" << static_cast<int>(top_->res_o) << endl;
+            cout <<"sizeof(top->payload_data):"<<sizeof(top_->payload_data)<<endl;
+            cout <<"sizeof(res_o):"<<sizeof(top_->res_o)<<endl;
+            memcpy(data, payload_data, 1);
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
@@ -74,9 +80,8 @@ private:
             // for(int i=0;i<len;i++) cout << std::hex << static_cast<int>(*(payload_data + i)) << endl;
             //  ‘const svBitVecVal*’ {aka ‘const unsigned int*’}
 
-            for (int i = 0; i < num_*2; i++) {
-                top_->payload_data[i] = payload_data[i];
-            }
+            memcpy(&top_->payload_data, payload_data, item_num);
+            
             top_->tvalid = 1;
             while(top_->xmit_en == xmit_en)
             {
@@ -101,46 +106,73 @@ public:
         
     }
 
+    unsigned char *arr;
+
+    // typedef unsigned __int32 uint32_t;
+    // typedef uint32_t svBitVecVal;
+    void send_tlm_data(int num) 
+    {
+        tlm::tlm_generic_payload trans;
+        // sc_time delay = sc_time(10, SC_NS);
+
+        sc_time delay = SC_ZERO_TIME;
+
+        //unsigned char arr[num*2];
+        arr = new unsigned char[num*2];
+
+        for (int i = 0; i < num; i = i + 1) {
+            arr[i*2] = i%100;
+            arr[i*2+1] = i%100;
+        }
+        // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
+        unsigned char *payload_data = arr;
+
+        // set data
+        trans.set_command(tlm::TLM_WRITE_COMMAND);
+        trans.set_address(0x0);
+        trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
+        trans.set_data_length(strlen((const char*)payload_data));
+        socket->b_transport(trans, delay);
+
+        assert(trans.is_response_ok());
+
+        // memcpy(data, payload_data, 5);
+    }
+
+    void get_tlm_data(int num) 
+    {
+
+        tlm::tlm_generic_payload trans;
+        // sc_time delay = sc_time(10, SC_NS);
+
+        sc_time delay = SC_ZERO_TIME;
+
+        // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
+        unsigned char *payload_data = arr;
+
+        // set data
+        trans.set_command(tlm::TLM_READ_COMMAND);
+        trans.set_address(0x0);
+        trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
+        trans.set_data_length(strlen((const char*)payload_data));
+        socket->b_transport(trans, delay);
+
+        assert(trans.is_response_ok());
+
+        cout << "data:" << static_cast<int>(*(payload_data)) << endl;
+    }
 };
 
-// typedef unsigned __int32 uint32_t;
-// typedef uint32_t svBitVecVal;
-void send_tlm_data(Initiator *initiator, int num) 
-{
-    tlm::tlm_generic_payload trans;
-    // sc_time delay = sc_time(10, SC_NS);
 
-    sc_time delay = SC_ZERO_TIME;
-    //int num = 50;
-    unsigned char arr[num*2];
-
-    for (int i = 0; i < num; i = i + 1) {
-        arr[i*2] = i%100;
-        arr[i*2+1] = i%100;
-    }
-    // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
-    unsigned char *payload_data = arr;
-
-    // set data
-    trans.set_command(tlm::TLM_WRITE_COMMAND);
-    trans.set_address(0x0);
-    trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
-    trans.set_data_length(strlen((const char*)payload_data));
-    initiator->socket->b_transport(trans, delay);
-
-    assert(trans.is_response_ok());
-
-    // memcpy(data, payload_data, 5);
-}
 
 int sc_main(int argc, char* argv[]) {
 
-    int NUM = 4;
-    int item_num = 100;
+    int NUM = 4;    //send times
+    //int item_num = 100;
     int num = 0;
     int xmit_en = 1;
     
-    Target target("target", item_num);
+    Target target("target");
     Initiator initiator("initiator");
 
     initiator.socket.bind(target.socket);
@@ -150,8 +182,10 @@ int sc_main(int argc, char* argv[]) {
         
         num = num + 1;
         if(num >= NUM + 1) break;
-        send_tlm_data(&initiator, item_num);
+        //target.item_num 表示每个tlm包含的数的个数; 除以2后表示每个tlm包含的激励组数
+        initiator.send_tlm_data(target.item_num/2);
 
     }
+    initiator.get_tlm_data(10);
     return 0;
 }

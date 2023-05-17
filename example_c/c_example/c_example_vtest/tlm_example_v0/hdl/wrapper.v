@@ -3,15 +3,14 @@
 module wrapper#
 (
     parameter NUM=100,
-    parameter ITEM_WIDTH = 8
+    parameter ITEM_WIDTH = 16
 
 )(
-input bit [ITEM_WIDTH-1:0] payload_data[NUM*2-1:0],
+input bit [NUM-1:0][ITEM_WIDTH-1:0] payload_data,
 input reg tvalid,
 output reg xmit_en,
 output  wire [7:0] res_o
 );
-
 
 bit clk_i, reset_i;
 
@@ -22,7 +21,6 @@ int num = 0;
 //reg tvalid;
 reg tready;
 //reg xmit_en;
-
 
 bfm inst_bfm(
     .clk_i(clk_i),
@@ -44,19 +42,16 @@ always @(posedge clk_i) begin
         A_s <= 0;
         B_s <= 0;
     end else begin
-        //$display("tvalid:", tvalid);
-        //$display("tready:", tready);
-        //$display("xmit_en:", xmit_en);
         if(tvalid==1 && tready==1) begin
-            //$display("num:", num);
-            A_s <= payload_data[num*2+0];
-            B_s <= payload_data[num*2+1];
+            A_s <= payload_data[num][7:0];
+            B_s <= payload_data[num][15:8];
             num = num + 1;
+            //$display("res_o:", res_o);
         end
         if(num >= NUM) begin
             num = 0;
             xmit_en = ~xmit_en;
-            $display("xmit_en:", xmit_en);
+            //$display("xmit_en:", xmit_en);
             //$finish;
         end
     end

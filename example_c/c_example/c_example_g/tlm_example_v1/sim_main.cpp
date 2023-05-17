@@ -127,7 +127,7 @@ void testbench(int item_num)
         initiator.socket.bind(target.socket);
         initialized = true;
     }
-    int cycle_num = 2000;
+    int cycle_num = 5;
     // int item_num = 100;
     for(int i = 0; i < cycle_num; i++)
     {
