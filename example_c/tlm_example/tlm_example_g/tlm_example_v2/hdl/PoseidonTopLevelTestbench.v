@@ -4,8 +4,8 @@
 //import "DPI-C" function void c_py_gen_packet(output bit[99:0][2:0][254:0] pkt);
 //import "DPI-C" function void c_py_gen_packet(output bit[764:0] pkt);
 
-import "DPI-C" context task testbench(input int item_num);
-export "DPI-C" task set_data;
+//import "DPI-C" context task testbench(input int item_num);
+//export "DPI-C" task set_data;
 
 module bfm (
     

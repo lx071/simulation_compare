@@ -167,7 +167,7 @@ public:
 
 int sc_main(int argc, char* argv[]) {
 
-    int NUM = 4;    //send times
+    int NUM = 5;    //send times
     //int item_num = 100;
     int num = 0;
     int xmit_en = 1;
