@@ -1,7 +1,7 @@
-//import "DPI-C" function void gen_rand_arr(output bit [7:0] nums []);
-//import "DPI-C" function void recv(input int data);
-//import "DPI-C" function void recv_res (input bit[254:0] data);
-//import "DPI-C" function void c_py_gen_packet(output bit[99:0][2:0][254:0] pkt);
+
+import "DPI-C" function void recv_res (input bit[254:0] data);
+import "DPI-C" function void c_py_gen_packet(output bit[99:0][2:0][254:0] pkt);
+
 //import "DPI-C" function void c_py_gen_packet(output bit[764:0] pkt);
 
 //import "DPI-C" context task testbench(input int item_num);
@@ -18,14 +18,14 @@ module bfm (
     wire io_input_ready, io_output_valid, io_output_last;
     wire [254:0] io_output_payload;
 
-    //reg [254:0] ref_input;
-    //reg [254:0] ref_output;
+    reg [254:0] ref_input;
+    reg [254:0] ref_output;
     reg xmit_en = 0;
     reg [2:0] i = 0;
     reg flag = 1;
     reg [8:0] num = 0;
 
-    //bit[99:0][2:0][254:0] data;
+    bit[99:0][2:0][254:0] data;
 
     initial begin
         clk = 0;
@@ -33,7 +33,7 @@ module bfm (
     end
 
     initial begin
-        //c_py_gen_packet(data);
+        c_py_gen_packet(data);
     
         //$display("get data ='h%h",data[0][0]);
         //$display("get data ='h%h",data[0][1]);
@@ -103,7 +103,7 @@ module bfm (
         end
         else begin
             if(output_handshake) begin
-                //recv_res(io_output_payload);
+                recv_res(io_output_payload);
                 
                 //if( io_output_payload != ref_output) begin
                 //    $display("error output %d: %h",output_counter, io_output_payload);
