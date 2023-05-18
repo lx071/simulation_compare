@@ -2,7 +2,7 @@
 
 module bfm #(
     parameter NUM = 100
-)
+);
 
     import "DPI-C" function void recv_res (input bit[254:0] data);
     import "DPI-C" function void c_py_gen_packet(output bit[NUM-1:0][2:0][255:0] pkt);
@@ -36,8 +36,8 @@ module bfm #(
     initial begin
         gen_tlm_data(item_num);
     
-        $display("get data ='h%h",payload_data[0][0][254:0]);
-        $display("get data ='h%h",payload_data[0][1][254:0]);
+        //$display("get data ='h%h",payload_data[0][0][254:0]);
+        //$display("get data ='h%h",payload_data[0][1][254:0]);
         //$display("get data ='h%h",data[0][2]);
         
         //recv(321);
@@ -63,10 +63,8 @@ module bfm #(
         if(xmit_en && flag) begin
             
             io_input_valid = 1;
-            io_input_payload = ref_input;
-            //io_input_payload = data[num][i];
-            
-            //$display("get data =[%d][%d]'h%h", num, i, io_input_payload);
+            //io_input_payload = ref_input;
+            io_input_payload = payload_data[num][i][254:0];
 
             i = i + 1;
             if(i == 3) begin
@@ -106,6 +104,8 @@ module bfm #(
             if(output_handshake) begin
                 recv_res(io_output_payload);
                 
+                //$display("io_output_payload:%h", io_output_payload);
+
                 //if( io_output_payload != ref_output) begin
                 //    $display("error output %d: %h",output_counter, io_output_payload);
                 //    $display(" test fail !!!");

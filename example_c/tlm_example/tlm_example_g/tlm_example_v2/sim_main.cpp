@@ -97,8 +97,6 @@ public:
         unsigned char *ref_input_1 = (unsigned char*)"\x5f\x6d\x26\xe8\xb8\x97\x72\xdf\x73\xb4\x9b\x71\x9b\x5e\x94\x6c\xdf\x1d\x55\x18\xba\x3e\xef\xca\x94\x03\x2a\x29\xcc\x0a\x4c\x5f";
         unsigned char *ref_input_2 = (unsigned char*)"\x5f\x6d\x26\xe8\xb8\x97\x72\xdf\x73\xb4\x9b\x71\x9b\x5e\x94\x6c\xdf\x1d\x55\x18\xba\x3e\xef\xca\x94\x03\x2a\x29\xcc\x0a\x4c\x5f";
         
-        unsigned char *ref_output = (unsigned char*)"\x13\x2e\x0f\xb5\x8f\x03\xf4\x9e\xaf\xd6\x55\xb5\x59\xcb\xf6\xe2\xbd\x37\x1c\x26\x9f\x80\x39\xcb\xd3\xfa\x6f\x6b\x17\xa2\x97\x97";
-        
         payload_data = new unsigned char[32 * 3 * num];
 
         for (int i = 0; i < num; i ++)
@@ -139,25 +137,15 @@ void gen_tlm_data(int num)
 
 void recv_res(svBitVecVal* data) 
 {
-    // py::module_ sys = py::module_::import("sys");
-    // py::list path = sys.attr("path");
-    // path.attr("append")("../utils");
-    // //py::print(sys.attr("path"));
-    // py::module_ utils = py::module_::import("harness_utils");
-
-    // size_t size_data = sizeof(data);
-
-    // auto res = py::array(py::buffer_info(
-    //     data,                                       // 数据指针
-    //     sizeof(svBitVecVal),                        // 元素大小
-    //     py::format_descriptor<svBitVecVal>::value, // 格式化描述符
-    //     1,                                          // 维度
-    //     { size_data },                              // 形状
-    //     { sizeof(svBitVecVal) }                    // 每个维度的字节数
-    // ));
-
-    // utils.attr("recv")(res);
-
     cout << "recv_res" << endl;
+
+    unsigned char *output = (unsigned char *)data;
+    unsigned char *ref_output = (unsigned char*)"\x13\x2e\x0f\xb5\x8f\x03\xf4\x9e\xaf\xd6\x55\xb5\x59\xcb\xf6\xe2\xbd\x37\x1c\x26\x9f\x80\x39\xcb\xd3\xfa\x6f\x6b\x17\xa2\x97\x97";
+
+    for (int i = 0; i < 32; i++) {
+        if (output[i] != ref_output[31 - i]) cout << "ERROR" << endl;
+        // printf("%02x", output[i]);
+    }
+    cout << endl;
 
 }
