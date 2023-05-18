@@ -24,6 +24,8 @@ THE SOFTWARE.
 
 // Language: Verilog 2001
 
+`timescale 1ns / 1ps
+
 /*
  * ARP block for IPv4, ethernet frame interface
  */
@@ -108,8 +110,12 @@ parameter TOTAL_WIDTH = 336;
 parameter TX_NUM = 28;
 bit[TOTAL_WIDTH-1:0]    tx_payload_data;
 bit[TOTAL_WIDTH-1-112:0]    tx_arp_payload_data;
+bit[TOTAL_WIDTH-1:0]    rx_payload_data;
 bit[TOTAL_WIDTH-1:TOTAL_WIDTH-112]  rx_hdr_data;
 bit[TOTAL_WIDTH-113:0]    rx_arp_payload_data;
+
+import "DPI-C" function void c_py_gen_data(output bit[TOTAL_WIDTH-1:0] pkt);
+import "DPI-C" function void recv_data (input bit[TOTAL_WIDTH-1:0] data, int num);
 
 arp #(
     .DATA_WIDTH(DATA_WIDTH),
@@ -176,7 +182,21 @@ arp_inst
     .clear_cache(clear_cache)
 );
 
+
+
+reg tx_en;
+reg rx_en;
+
+wire tck;
+wire rck;
+
+assign tck = (tx_en)?clk:1'b0;
+assign rck = (rx_en)?clk:1'b0;
+
 initial begin   
+    tx_en = 0;
+    rx_en = 0;
+
     subnet_mask = 0;
     s_eth_hdr_valid = 0;
     s_eth_dest_mac = 0;
@@ -203,13 +223,29 @@ initial begin
 
     //$dumpfile("dump.vcd");
     //$dumpvars;
+    
+    local_mac = 48'hdad1d2d3d4d5;
+    local_ip = 32'hc0a80165;
+    gateway_ip = 32'hc0a80101;
+    subnet_mask = 32'hffffff00;
+     
+    rst = 0;
+    repeat(2) @(posedge clk);
+    rst = 1;
+    repeat(2) @(posedge clk);
+    rst = 0;
+    repeat(2) @(posedge clk);
+    repeat(10) @(posedge clk);
+
+    repeat(10000) begin
+        tx_en = 1;
+        @(negedge tx_en);
+        rx_en = 1;
+        @(negedge rx_en);
+    end
+
+    $finish;
 end
-
-reg tx_en = 0;
-reg rx_en = 0;
-
-assign tck = (tx_en)?clk:1'b0;
-assign rck = (rx_en)?clk:1'b0;
 
 reg[2:0] xmit_state = 0;
 int tx_num = 0;
@@ -217,13 +253,9 @@ always @(posedge tck) begin
     case (xmit_state)
         0: begin
 
-            //$display("local_mac ='h%h", local_mac);
-            //$display("local_ip ='h%h", local_ip);
-            //$display("gateway_ip ='h%h", gateway_ip);
-            //$display("subnet_mask ='h%h", subnet_mask);
-
-            //$display("tx_payload_data ='h%h", tx_payload_data);
-
+            c_py_gen_data(tx_payload_data);   
+            $display("get tx_payload_data ='h%h", tx_payload_data); 
+    
             //$display("s_eth_dest_mac ='h%h", tx_payload_data[TOTAL_WIDTH-1:TOTAL_WIDTH-48]);
             //$display("s_eth_src_mac ='h%h", tx_payload_data[TOTAL_WIDTH-49:TOTAL_WIDTH-96]);
             //$display("s_eth_type ='h%h", tx_payload_data[TOTAL_WIDTH-97:TOTAL_WIDTH-112]);
@@ -271,6 +303,7 @@ always @(posedge tck) begin
                 tx_num = 0;
                 xmit_state <= 0;
                 tx_en <= 0;
+                
             end
 
         end
@@ -286,7 +319,7 @@ always @(posedge rck) begin
                 //$display("m_eth_dest_mac ='h%h", m_eth_dest_mac);
                 //$display("m_eth_src_mac ='h%h", m_eth_src_mac);
                 //$display("m_eth_type ='h%h", m_eth_type);
-                //rx_hdr_data = {m_eth_dest_mac, m_eth_src_mac, m_eth_type};
+                rx_hdr_data = {m_eth_dest_mac, m_eth_src_mac, m_eth_type};
                 //$display("rx_hdr_data ='h%h", rx_hdr_data);
                 recv_state <= 1;
             end
@@ -298,9 +331,16 @@ always @(posedge rck) begin
                 //recv_state <= 1;
                 rx_arp_payload_data = {rx_arp_payload_data, m_eth_payload_axis_tdata};
                 //$display("rx_arp_payload_data ='h%h", rx_arp_payload_data);
+
                 if(m_eth_payload_axis_tlast == 1) begin
-                    recv_state <= 0;
+            
+                    recv_state <= 0;                    
                     rx_en <= 0;
+                    rx_payload_data = {rx_hdr_data, rx_arp_payload_data};
+                    $display("rx_payload_data ='h%h", rx_payload_data);
+                    recv_data(rx_payload_data, 42);
+                    
+                    //$finish;
                 end
             end
            
