@@ -84,6 +84,8 @@ public:
         //SC_THREAD(run);     //Similar to a Verilog @initial block
     }
 
+    unsigned char *arr;
+
     // typedef unsigned __int32 uint32_t;
     // typedef uint32_t svBitVecVal;
     void send_tlm_data(int num)
@@ -93,7 +95,7 @@ public:
 
         sc_time delay = SC_ZERO_TIME;
         //int num = 1000;
-        unsigned char arr[num*2];
+        arr = new unsigned char[num*2];
 
         for (int i = 0; i < num; i = i + 1) {
             arr[i*2] = i%100;
@@ -152,6 +154,35 @@ void c_py_gen_packet(svBitVecVal* data)
     // // std::cout<<ptr<<std::endl;
     
     // memcpy(data, ptr, size);
+    unsigned char *ref_input_0 = (unsigned char*)"\x5f\x6d\x26\xe8\xb8\x97\x72\xdf\x73\xb4\x9b\x71\x9b\x5e\x94\x6c\xdf\x1d\x55\x18\xba\x3e\xef\xca\x94\x03\x2a\x29\xcc\x0a\x4c\x5f";
+    unsigned char *ref_input_1 = (unsigned char*)"\x5f\x6d\x26\xe8\xb8\x97\x72\xdf\x73\xb4\x9b\x71\x9b\x5e\x94\x6c\xdf\x1d\x55\x18\xba\x3e\xef\xca\x94\x03\x2a\x29\xcc\x0a\x4c\x5f";
+    unsigned char *ref_input_2 = (unsigned char*)"\x5f\x6d\x26\xe8\xb8\x97\x72\xdf\x73\xb4\x9b\x71\x9b\x5e\x94\x6c\xdf\x1d\x55\x18\xba\x3e\xef\xca\x94\x03\x2a\x29\xcc\x0a\x4c\x5f";
+    
+    unsigned char *ref_output = (unsigned char*)"\x13\x2e\x0f\xb5\x8f\x03\xf4\x9e\xaf\xd6\x55\xb5\x59\xcb\xf6\xe2\xbd\x37\x1c\x26\x9f\x80\x39\xcb\xd3\xfa\x6f\x6b\x17\xa2\x97\x97";
+    
+    unsigned char *result = new unsigned char[9600];
+
+    for (int i = 0; i < 100; i ++)
+    {
+
+        for (int k = 0; k < 32; k ++)
+        {
+            result[i * 32 * 3 + 0 * 32 + k] = ref_input_0[i * 32 * 3 + 0 * 32 + 31 - k]; 
+            result[i * 32 * 3 + 1 * 32 + k] = ref_input_1[i * 32 * 3 + 1 * 32 + 31 - k]; 
+            result[i * 32 * 3 + 2 * 32 + k] = ref_input_2[i * 32 * 3 + 2 * 32 + 31 - k]; 
+        }
+        
+        // memcpy(data + (i * 3 + 0) * 32, ref_input_0, 32);
+        // memcpy(data + (i * 3 + 1) * 32, ref_input_1, 32);
+        // memcpy(data + (i * 3 + 2) * 32, ref_input_2, 32);
+    }
+    memcpy(data, result, 9600);
+    
+    // cout << "result: ";
+    // for (int i = 0; i < 320; i++) printf("%02x", result[i]);
+    
+    cout << endl;
+    
     cout << "c_py_gen_packet" << endl;
 }
 

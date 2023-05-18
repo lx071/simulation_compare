@@ -1,6 +1,6 @@
 
 import "DPI-C" function void recv_res (input bit[254:0] data);
-import "DPI-C" function void c_py_gen_packet(output bit[99:0][2:0][254:0] pkt);
+import "DPI-C" function void c_py_gen_packet(output bit[99:0][2:0][255:0] pkt);
 
 //import "DPI-C" function void c_py_gen_packet(output bit[764:0] pkt);
 
@@ -25,7 +25,7 @@ module bfm (
     reg flag = 1;
     reg [8:0] num = 0;
 
-    bit[99:0][2:0][254:0] data;
+    bit[99:0][2:0][255:0] data;
 
     initial begin
         clk = 0;
@@ -35,8 +35,8 @@ module bfm (
     initial begin
         c_py_gen_packet(data);
     
-        //$display("get data ='h%h",data[0][0]);
-        //$display("get data ='h%h",data[0][1]);
+        $display("get data ='h%h",data[0][0][254:0]);
+        $display("get data ='h%h",data[0][1][254:0]);
         //$display("get data ='h%h",data[0][2]);
         
         //recv(321);
