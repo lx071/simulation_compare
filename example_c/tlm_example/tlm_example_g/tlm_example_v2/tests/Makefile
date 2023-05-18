@@ -25,6 +25,9 @@ compile:
 	g++ -shared -fPIC -o libadd.so ../sim_main.cpp -I /usr/local/systemc-2.3.4/include -L /usr/local/systemc-2.3.4/lib-linux64 -l systemc
 	galaxsim ${VERILOG_SOURCES} libadd.so
 
+run:
+	./xsim
+	
 clean:
 	rm -rf xsim* dump.vcd run.out
 	

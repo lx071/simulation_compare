@@ -5,8 +5,6 @@ module bfm #(
 );
 
     import "DPI-C" function void recv_res (input bit[254:0] data);
-    import "DPI-C" function void c_py_gen_packet(output bit[NUM-1:0][2:0][255:0] pkt);
-
     import "DPI-C" context function void gen_tlm_data(input int item_num);
     export "DPI-C" function set_data;
 
