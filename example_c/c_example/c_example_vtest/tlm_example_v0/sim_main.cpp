@@ -106,10 +106,8 @@ public:
         
     }
 
-    unsigned char *arr;
+    unsigned char *payload_data;
 
-    // typedef unsigned __int32 uint32_t;
-    // typedef uint32_t svBitVecVal;
     void send_tlm_data(int num) 
     {
         tlm::tlm_generic_payload trans;
@@ -117,15 +115,12 @@ public:
 
         sc_time delay = SC_ZERO_TIME;
 
-        //unsigned char arr[num*2];
-        arr = new unsigned char[num*2];
+        payload_data = new unsigned char[num*2];
 
         for (int i = 0; i < num; i = i + 1) {
-            arr[i*2] = i%100;
-            arr[i*2+1] = i%100;
+            payload_data[i*2] = i%100;
+            payload_data[i*2+1] = i%100;
         }
-        // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
-        unsigned char *payload_data = arr;
 
         // set data
         trans.set_command(tlm::TLM_WRITE_COMMAND);
@@ -135,8 +130,6 @@ public:
         socket->b_transport(trans, delay);
 
         assert(trans.is_response_ok());
-
-        // memcpy(data, payload_data, 5);
     }
 
     void get_tlm_data(int num) 
@@ -146,9 +139,6 @@ public:
         // sc_time delay = sc_time(10, SC_NS);
 
         sc_time delay = SC_ZERO_TIME;
-
-        // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
-        unsigned char *payload_data = arr;
 
         // set data
         trans.set_command(tlm::TLM_READ_COMMAND);

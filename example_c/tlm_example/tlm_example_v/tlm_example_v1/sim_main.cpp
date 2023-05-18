@@ -83,19 +83,41 @@ SC_MODULE(Initiator) {
 public:
     tlm_utils::simple_initiator_socket<Initiator> socket;
 
-    SC_CTOR(Initiator) : count(0) {
+    SC_CTOR(Initiator) {
         // SC_THREAD(run);     //Similar to a Verilog @initial block
     }
 
-private:
-    int count;
+    unsigned char *payload_data;
+
+    void gen_tlm_data(int num) 
+    {
+        tlm::tlm_generic_payload trans;
+        // sc_time delay = sc_time(10, SC_NS);
+
+        sc_time delay = SC_ZERO_TIME;
+
+        payload_data = new unsigned char[num*3];
+
+        for (int i = 0; i < num; i = i + 1) {
+            payload_data[i*3] = 1;
+            payload_data[i*3+1] = i%100;
+            payload_data[i*3+2] = i%100;
+        }
+        
+        // set data
+        trans.set_command(tlm::TLM_WRITE_COMMAND);
+        trans.set_address(0x0);
+        trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
+        trans.set_data_length(strlen((const char*)payload_data));
+        socket->b_transport(trans, delay);
+
+        assert(trans.is_response_ok());
+    }
 };
 
 Target target("target");
 Initiator initiator("initiator");
 
-// typedef unsigned __int32 uint32_t;
-// typedef uint32_t svBitVecVal;
 void gen_tlm_data(int num) 
 {
     static bool initialized = false;
@@ -103,36 +125,7 @@ void gen_tlm_data(int num)
         initiator.socket.bind(target.socket);
         initialized = true;
     }
-    tlm::tlm_generic_payload trans;
-    // sc_time delay = sc_time(10, SC_NS);
-
-    sc_time delay = SC_ZERO_TIME;
-    //int num = 1000;
-    unsigned char arr[num*3];
-
-    for (int i = 0; i < num; i = i + 1) {
-        arr[i*3] = 1;
-        arr[i*3+1] = i%100;
-        arr[i*3+2] = i%100;
-    }
-    // unsigned char arr[] = {0x1, 0x2, 0x3, 0x4, 0x5};
-    unsigned char *payload_data = arr;
-    // char *payload_data = "\x11\x22\x33\x44\x44";
-
-    // cout << "sizeof(*payload_data)" << sizeof(*payload_data) << endl;
-    // cout << "sizeof(payload_data)" << sizeof(payload_data) << endl; //指针占8字节
-    // cout << "strlen(payload_data)" << strlen((const char*)payload_data) << endl;
-
-    // set data
-    trans.set_command(tlm::TLM_WRITE_COMMAND);
-    trans.set_address(0x0);
-    trans.set_data_ptr(reinterpret_cast<unsigned char*>(payload_data));
-    trans.set_data_length(strlen((const char*)payload_data));
-    initiator.socket->b_transport(trans, delay);
-
-    assert(trans.is_response_ok());
-
-    // memcpy(data, payload_data, num*2);
+    initiator.gen_tlm_data(num);
 }
 
 
