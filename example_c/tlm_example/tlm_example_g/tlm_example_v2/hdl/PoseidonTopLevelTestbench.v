@@ -1,15 +1,15 @@
 
-import "DPI-C" function void recv_res (input bit[254:0] data);
-import "DPI-C" function void c_py_gen_packet(output bit[99:0][2:0][255:0] pkt);
 
-//import "DPI-C" function void c_py_gen_packet(output bit[764:0] pkt);
+module bfm #(
+    parameter NUM = 100
+)
 
-//import "DPI-C" context task testbench(input int item_num);
-//export "DPI-C" task set_data;
+    import "DPI-C" function void recv_res (input bit[254:0] data);
+    import "DPI-C" function void c_py_gen_packet(output bit[NUM-1:0][2:0][255:0] pkt);
 
-module bfm (
-    
-);
+    import "DPI-C" context function void gen_tlm_data(input int item_num);
+    export "DPI-C" function set_data;
+
     reg clk;
 
     reg io_input_valid, io_input_last, io_output_ready, resetn;
@@ -25,7 +25,8 @@ module bfm (
     reg flag = 1;
     reg [8:0] num = 0;
 
-    bit[99:0][2:0][255:0] data;
+    bit[NUM-1:0][2:0][255:0] payload_data;
+    int item_num = NUM;
 
     initial begin
         clk = 0;
@@ -33,10 +34,10 @@ module bfm (
     end
 
     initial begin
-        c_py_gen_packet(data);
+        gen_tlm_data(item_num);
     
-        $display("get data ='h%h",data[0][0][254:0]);
-        $display("get data ='h%h",data[0][1][254:0]);
+        $display("get data ='h%h",payload_data[0][0][254:0]);
+        $display("get data ='h%h",payload_data[0][1][254:0]);
         //$display("get data ='h%h",data[0][2]);
         
         //recv(321);
@@ -126,11 +127,19 @@ module bfm (
     end
 
 
-
     initial begin
         //$dumpfile("dump.vcd");
         //$dumpvars;
     end
+
+
+    function void set_data(bit[NUM-1:0][2:0][255:0] data);
+    begin
+        payload_data = data;
+        //tvalid = 1;
+        //$display("%h", payload_data);
+    end
+    endfunction
 
 
     PoseidonTopLevel poseidonInst(
@@ -146,6 +155,5 @@ module bfm (
         .clk               (clk             ),
         .resetn             (resetn           )
     );
-
 
 endmodule

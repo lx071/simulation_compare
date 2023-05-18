@@ -20,7 +20,7 @@
 using namespace std;
 
 extern "C" void set_data(const svBitVecVal* data);
-extern "C" void testbench(int num);
+extern "C" void gen_tlm_data(int num);
 
 extern "C" void c_py_gen_packet(svBitVecVal* data);
 extern "C" void recv_res(svBitVecVal* data);
@@ -65,8 +65,8 @@ private:
             // for(int i=0;i<len;i++) cout << std::hex << static_cast<int>(*(payload_data + i)) << endl;
 
             //  ‘const svBitVecVal*’ {aka ‘const unsigned int*’}
-            // const unsigned int* sv_data = reinterpret_cast<const unsigned int*>(payload_data);
-            // set_data(sv_data);
+            const unsigned int* sv_data = reinterpret_cast<const unsigned int*>(payload_data);
+            set_data(sv_data);
             
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
         } else {
@@ -86,7 +86,7 @@ public:
 
     unsigned char *payload_data;
 
-    void gen_tlm_data() 
+    void gen_tlm_data(int num)
     {
         tlm::tlm_generic_payload trans;
         // sc_time delay = sc_time(10, SC_NS);
@@ -99,9 +99,9 @@ public:
         
         unsigned char *ref_output = (unsigned char*)"\x13\x2e\x0f\xb5\x8f\x03\xf4\x9e\xaf\xd6\x55\xb5\x59\xcb\xf6\xe2\xbd\x37\x1c\x26\x9f\x80\x39\xcb\xd3\xfa\x6f\x6b\x17\xa2\x97\x97";
         
-        payload_data = new unsigned char[9600];
+        payload_data = new unsigned char[32 * 3 * num];
 
-        for (int i = 0; i < 100; i ++)
+        for (int i = 0; i < num; i ++)
         {
             for (int k = 0; k < 32; k ++)
             {
@@ -125,16 +125,16 @@ public:
 Target target("target");
 Initiator initiator("initiator");
 
-void c_py_gen_packet(svBitVecVal* data) 
+void gen_tlm_data(int num)
 {
-    cout << "c_py_gen_packet" << endl;
+    cout << "gen_tlm_data" << endl;
 
     static bool initialized = false;
     if (!initialized) {
         initiator.socket.bind(target.socket);
         initialized = true;
     }
-    initiator.gen_tlm_data();
+    initiator.gen_tlm_data(num);
 }
 
 void recv_res(svBitVecVal* data) 
