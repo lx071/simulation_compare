@@ -25,7 +25,8 @@ void recv_data(svBitVecVal* data, int n)
 {
     py::module_ sys = py::module_::import("sys");
     py::list path = sys.attr("path");
-    path.attr("append")("../utils");
+    path.attr("append")("../utils");    //for verilator
+    // path.attr("append")("./utils");    //for galaxsim
     py::module_ utils = py::module_::import("harness_utils");
    
     size_t size_data = sizeof(data);
@@ -47,7 +48,8 @@ void c_py_gen_data(svBitVecVal* data)
 {
     py::module_ sys = py::module_::import("sys");
     py::list path = sys.attr("path");
-    path.attr("append")("../utils");
+    path.attr("append")("../utils");    //for verilator
+    // path.attr("append")("./utils");    //for galaxsim
     py::module_ utils = py::module_::import("harness_utils");
 
     py::bytes result = utils.attr("send_data")();
