@@ -114,11 +114,6 @@ bit[TOTAL_WIDTH-1:0]    rx_payload_data;
 bit[TOTAL_WIDTH-1:TOTAL_WIDTH-112]  rx_hdr_data;
 bit[TOTAL_WIDTH-113:0]    rx_arp_payload_data;
 
-//import "DPI-C" function void c_py_gen_data(output bit[TOTAL_WIDTH-1:0] pkt);
-import "DPI-C" function void recv_data (input bit[TOTAL_WIDTH-1:0] data, int num);
-import "DPI-C" context function void gen_tlm_data(input int item_num);
-export "DPI-C" function set_data;
-
 arp #(
     .DATA_WIDTH(DATA_WIDTH),
     .KEEP_ENABLE(KEEP_ENABLE),
@@ -195,7 +190,14 @@ wire rck;
 assign tck = (tx_en)?clk:1'b0;
 assign rck = (rx_en)?clk:1'b0;
 
+bit[TOTAL_WIDTH-1:0] ref_tx_data;
+bit[TOTAL_WIDTH-1:0] ref_rx_data;
+
+
 initial begin   
+    ref_tx_data =336'hffffffffffff5a5152535455080600010800060400015a5152535455c0a80164000000000000c0a80165;
+    ref_rx_data =336'h5a5152535455dad1d2d3d4d508060001080006040002dad1d2d3d4d5c0a801655a5152535455c0a80164;
+
     tx_en = 0;
     rx_en = 0;
 
@@ -255,9 +257,7 @@ always @(posedge tck) begin
     case (xmit_state)
         0: begin
 
-            gen_tlm_data(0);
-
-            //c_py_gen_data(tx_payload_data);   
+            tx_payload_data = ref_tx_data;   
             $display("get tx_payload_data ='h%h", tx_payload_data); 
     
             //$display("s_eth_dest_mac ='h%h", tx_payload_data[TOTAL_WIDTH-1:TOTAL_WIDTH-48]);
@@ -342,7 +342,10 @@ always @(posedge rck) begin
                     rx_en <= 0;
                     rx_payload_data = {rx_hdr_data, rx_arp_payload_data};
                     $display("rx_payload_data ='h%h", rx_payload_data);
-                    recv_data(rx_payload_data, 42);
+
+                    if(rx_payload_data != ref_rx_data) begin
+                        $display("ERROR!");
+                    end
                     
                     //$finish;
                 end
@@ -353,12 +356,5 @@ always @(posedge rck) begin
 
 end
 
-function void set_data(bit[TOTAL_WIDTH-1:0] data);
-begin
-    tx_payload_data = data;
-    //tvalid = 1;
-    //$display("%h", payload_data);
-end
-endfunction
 
 endmodule

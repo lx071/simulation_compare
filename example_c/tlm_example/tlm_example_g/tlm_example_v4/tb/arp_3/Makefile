@@ -18,9 +18,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-all: compile
+all: compile_v
 
 TOPLEVEL_LANG = verilog
+
+# SIM ?= verilator
+# WAVES ?= 0
+
+# COCOTB_HDL_TIMEUNIT = 1ns
+# COCOTB_HDL_TIMEPRECISION = 1ps
 
 DUT      = arp
 TOPLEVEL = bfm
@@ -32,13 +38,28 @@ VERILOG_SOURCES += ../../rtl/arp_eth_tx.v
 VERILOG_SOURCES += ../../rtl/arp_cache.v
 VERILOG_SOURCES += ../../rtl/lfsr.v
 
-compile:
-# 	verilator -Wno-WIDTH --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
-	verilator -Wno-WIDTH --trace --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp  -CFLAGS "$(shell python3 -m pybind11 --includes)" -LDFLAGS "-lpython3.8" -CFLAGS "-I/usr/local/systemc-2.3.4/include" -LDFLAGS "-L/usr/local/systemc-2.3.4/lib-linux64 -lsystemc"
+# EXTRA_ARGS += --timing
 
-run:
-	export PYTHONPATH=$PYTHONPATH:/home/lx071/.local/lib/python3.8/site-packages && \
+# the -Wall option enables all warning messages
+# the -Wno-WIDTH option disables the WIDTH warning message specifically.
+compile_v:
+# 	verilator -Wno-WIDTH --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
+	verilator -Wno-WIDTH --trace --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
+
+exec_v:
 	cd obj_dir&&./Vbfm&&cd ..
+
+compile_i:
+	iverilog -o run.out ${VERILOG_SOURCES}
+
+exec_i:
+	vvp -n run.out
+
+compile_g:
+	galaxsim ${VERILOG_SOURCES}
+
+exec_g:
+	./xsim
 
 clean::
 	@rm -rf iverilog_dump.v sim_build results.xml __pycache__ dump.vcd* obj_dir build utils/__pycache__ xsim*

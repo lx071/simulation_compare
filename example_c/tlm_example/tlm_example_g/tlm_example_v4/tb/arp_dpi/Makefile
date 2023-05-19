@@ -32,13 +32,31 @@ VERILOG_SOURCES += ../../rtl/arp_eth_tx.v
 VERILOG_SOURCES += ../../rtl/arp_cache.v
 VERILOG_SOURCES += ../../rtl/lfsr.v
 
-compile:
-# 	verilator -Wno-WIDTH --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
-	verilator -Wno-WIDTH --trace --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp  -CFLAGS "$(shell python3 -m pybind11 --includes)" -LDFLAGS "-lpython3.8" -CFLAGS "-I/usr/local/systemc-2.3.4/include" -LDFLAGS "-L/usr/local/systemc-2.3.4/lib-linux64 -lsystemc"
+# EXTRA_ARGS += --timing
 
-run:
+# Compile the source code and create a shared library called 'test_arp'
+compile:	
+	g++ -shared -fPIC -o test_arp.so wrapper.cpp -std=c++11 $(shell python3 -m pybind11 --includes) -lpython3.8
+
+# c++ -O3 -Wall -shared -std=c++11 -fPIC $(shell python3 -m pybind11 --includes) wrapper.cpp -lpython3.8 -o test_arp.so
+
+# the -Wall option enables all warning messages
+# the -Wno-WIDTH option disables the WIDTH warning message specifically.
+
+compile_v:
+# 	verilator -Wno-WIDTH --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
+	verilator -Wno-WIDTH --trace --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp ../test_arp.so
+
+exec_v:
 	export PYTHONPATH=$PYTHONPATH:/home/lx071/.local/lib/python3.8/site-packages && \
 	cd obj_dir&&./Vbfm&&cd ..
+
+
+compile_g:
+	galaxsim test_arp.so ${VERILOG_SOURCES}
+
+exec_g:
+	./xsim
 
 clean::
 	@rm -rf iverilog_dump.v sim_build results.xml __pycache__ dump.vcd* obj_dir build utils/__pycache__ xsim*

@@ -15,6 +15,8 @@
 #include <tlm_utils/simple_initiator_socket.h>
 #include <tlm_utils/simple_target_socket.h>
 
+
+using namespace std;
 //typedef unsigned char uint8_t;
 //typedef unsigned int uint32_t; 
 //typedef uint8_t svScalar;
@@ -25,11 +27,9 @@ namespace py=pybind11;
 
 py::scoped_interpreter guard;
 
-extern "C" __attribute__((visibility("default"))) void c_py_gen_data(svBitVecVal* data);
-extern "C" __attribute__((visibility("default"))) void recv_data(svBitVecVal* data, int n);
-
 extern "C" void set_data(const svBitVecVal* data);
 extern "C" void gen_tlm_data(int num);
+extern "C" void recv_data(svBitVecVal* data, int n);
 
 SC_MODULE(Target) { // 其实只是个target
 public:
@@ -99,12 +99,15 @@ public:
 
         sc_time delay = SC_ZERO_TIME;
 
-        payload_data = new unsigned char[num*2];
+        py::module_ sys = py::module_::import("sys");
+        py::list path = sys.attr("path");
+        // path.attr("append")("../utils");    //for verilator
+        path.attr("append")("./utils");    //for galaxsim
+        py::module_ utils = py::module_::import("harness_utils");
 
-        for (int i = 0; i < num; i = i + 1) {
-            payload_data[i*2] = i%100;
-            payload_data[i*2+1] = i%100;
-        }
+        py::bytes result = utils.attr("send_data")();
+        Py_ssize_t size = PyBytes_GET_SIZE(result.ptr());
+        unsigned char * payload_data = (unsigned char * )PyBytes_AsString(result.ptr());    //# low bit 01 02 03 ... 20 high bit
 
         // set data
         trans.set_command(tlm::TLM_WRITE_COMMAND);
@@ -117,12 +120,27 @@ public:
     }
 };
 
+
+Target target("target");
+Initiator initiator("initiator");
+
+void gen_tlm_data(int num)
+{
+    //cout << "gen_tlm_data" << endl;
+    static bool initialized = false;
+    if (!initialized) {
+        initiator.socket.bind(target.socket);
+        initialized = true;
+    }
+    initiator.gen_tlm_data(num);
+}
+
 void recv_data(svBitVecVal* data, int n) 
 {
     py::module_ sys = py::module_::import("sys");
     py::list path = sys.attr("path");
-    path.attr("append")("../utils");    //for verilator
-    // path.attr("append")("./utils");    //for galaxsim
+    // path.attr("append")("../utils");    //for verilator
+    path.attr("append")("./utils");    //for galaxsim
     py::module_ utils = py::module_::import("harness_utils");
    
     size_t size_data = sizeof(data);
@@ -138,43 +156,4 @@ void recv_data(svBitVecVal* data, int n)
     
     utils.attr("recv_res")(res);
 
-}
-
-void c_py_gen_data(svBitVecVal* data) 
-{
-    py::module_ sys = py::module_::import("sys");
-    py::list path = sys.attr("path");
-    path.attr("append")("../utils");    //for verilator
-    // path.attr("append")("./utils");    //for galaxsim
-    py::module_ utils = py::module_::import("harness_utils");
-
-    py::bytes result = utils.attr("send_data")();
-    Py_ssize_t size = PyBytes_GET_SIZE(result.ptr());
-    char * ptr = PyBytes_AsString(result.ptr());    //# low bit 01 02 03 ... 20 high bit
-
-    memcpy(data, ptr, size);
-}
-
-
-
-#include <memory>
-#include "svdpi.h"
-#include "verilated.h"
-#include "Vbfm.h"
-
-using namespace std;
-
-int sc_main(int argc, char** argv)
-{
-    auto contextp {make_unique<VerilatedContext>()};
-    // std::unique_ptr<VerilatedContext> contextp_;
-    // Vwrapper* top_;
-    contextp->commandArgs(argc, argv);
-    Verilated::traceEverOn(true);
-    auto top {make_unique<Vbfm>(contextp.get())};
-    while(!contextp->gotFinish()){
-        top->eval();
-        contextp->timeInc(4000);
-    }
-    return 0;
 }
