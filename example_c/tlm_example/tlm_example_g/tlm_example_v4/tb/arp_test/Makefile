@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-all: compile_v
+all: compile
 
 TOPLEVEL_LANG = verilog
 
@@ -33,20 +33,11 @@ VERILOG_SOURCES += ../../rtl/arp_cache.v
 VERILOG_SOURCES += ../../rtl/lfsr.v
 
 
-compile_v:
-# 	verilator -Wno-WIDTH --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
-	verilator -Wno-WIDTH --trace --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp  -CFLAGS "$(shell python3 -m pybind11 --includes)" -LDFLAGS "-lpython3.8" -CFLAGS "-I/usr/local/systemc-2.3.4/include" -LDFLAGS "-L/usr/local/systemc-2.3.4/lib-linux64 -lsystemc"
-
-exec_v:
-	export PYTHONPATH=$PYTHONPATH:/home/lx071/.local/lib/python3.8/site-packages && \
-	cd obj_dir&&./Vbfm&&cd ..
-
-
-compile_g:
+compile:
 	g++ -shared -fPIC -o test_arp.so wrapper.cpp -std=c++11 $(shell python3 -m pybind11 --includes) -lpython3.8
 	galaxsim test_arp.so ${VERILOG_SOURCES}
 
-exec_g:
+run:
 	./xsim
 
 clean::
