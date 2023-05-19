@@ -114,8 +114,10 @@ bit[TOTAL_WIDTH-1:0]    rx_payload_data;
 bit[TOTAL_WIDTH-1:TOTAL_WIDTH-112]  rx_hdr_data;
 bit[TOTAL_WIDTH-113:0]    rx_arp_payload_data;
 
-import "DPI-C" function void c_py_gen_data(output bit[TOTAL_WIDTH-1:0] pkt);
+//import "DPI-C" function void c_py_gen_data(output bit[TOTAL_WIDTH-1:0] pkt);
 import "DPI-C" function void recv_data (input bit[TOTAL_WIDTH-1:0] data, int num);
+import "DPI-C" context function void gen_tlm_data(input int item_num);
+export "DPI-C" function set_data;
 
 arp #(
     .DATA_WIDTH(DATA_WIDTH),
@@ -253,7 +255,9 @@ always @(posedge tck) begin
     case (xmit_state)
         0: begin
 
-            c_py_gen_data(tx_payload_data);   
+            gen_tlm_data(0);
+
+            //c_py_gen_data(tx_payload_data);   
             $display("get tx_payload_data ='h%h", tx_payload_data); 
     
             //$display("s_eth_dest_mac ='h%h", tx_payload_data[TOTAL_WIDTH-1:TOTAL_WIDTH-48]);
@@ -349,5 +353,12 @@ always @(posedge rck) begin
 
 end
 
+function void set_data(bit[TOTAL_WIDTH-1:0] data);
+begin
+    tx_payload_data = data;
+    //tvalid = 1;
+    //$display("%h", payload_data);
+end
+endfunction
 
 endmodule
