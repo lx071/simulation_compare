@@ -22,12 +22,6 @@ all: compile
 
 TOPLEVEL_LANG = verilog
 
-# SIM ?= verilator
-# WAVES ?= 0
-
-# COCOTB_HDL_TIMEUNIT = 1ns
-# COCOTB_HDL_TIMEPRECISION = 1ps
-
 DUT      = arp
 TOPLEVEL = bfm
 MODULE   = test_$(DUT)
@@ -40,9 +34,11 @@ VERILOG_SOURCES += ../../rtl/lfsr.v
 
 # EXTRA_ARGS += --timing
 
-compile:
-	mkdir build
-	cd build&&cmake ..&&make&&cp test_arp.so ..&&cd ..
+# Compile the source code and create a shared library called 'test_arp'
+compile:	
+	g++ -shared -fPIC -o test_arp.so wrapper.cpp -std=c++11 $(shell python3 -m pybind11 --includes) -lpython3.8
+
+# c++ -O3 -Wall -shared -std=c++11 -fPIC $(shell python3 -m pybind11 --includes) wrapper.cpp -lpython3.8 -o test_arp.so
 
 # the -Wall option enables all warning messages
 # the -Wno-WIDTH option disables the WIDTH warning message specifically.
@@ -52,16 +48,15 @@ compile_v:
 	verilator -Wno-WIDTH --trace --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp ../test_arp.so
 
 exec_v:
+	export PYTHONPATH=$PYTHONPATH:/home/lx071/.local/lib/python3.8/site-packages && \
 	cd obj_dir&&./Vbfm&&cd ..
 
 
 compile_g:
-	galaxsim test_arp.so ${VERILOG_SOURCES} -Xutil=1
+	galaxsim test_arp.so ${VERILOG_SOURCES}
 
 exec_g:
 	./xsim
-
-# include $(shell cocotb-config --makefiles)/Makefile.sim
 
 clean::
 	@rm -rf iverilog_dump.v sim_build results.xml __pycache__ dump.vcd* obj_dir build utils/__pycache__ xsim*

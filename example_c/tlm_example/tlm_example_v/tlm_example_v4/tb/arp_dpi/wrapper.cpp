@@ -18,8 +18,9 @@ namespace py=pybind11;
 
 py::scoped_interpreter guard;
 
+extern "C" __attribute__((visibility("default"))) void c_py_gen_data(svBitVecVal* data);
+extern "C" __attribute__((visibility("default"))) void recv_data(svBitVecVal* data, int n);
 
-extern "C" __attribute__((visibility("default")))
 void recv_data(svBitVecVal* data, int n) 
 {
     py::module_ sys = py::module_::import("sys");
@@ -42,7 +43,6 @@ void recv_data(svBitVecVal* data, int n)
 
 }
 
-extern "C" __attribute__((visibility("default")))
 void c_py_gen_data(svBitVecVal* data) 
 {
     py::module_ sys = py::module_::import("sys");
