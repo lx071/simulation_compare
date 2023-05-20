@@ -28,23 +28,23 @@ using namespace std;
 namespace py=pybind11;
 
 py::scoped_interpreter guard;
+py::module_ utils;
 
 extern "C" void gen_tlm_data(int num);
 extern "C" void set_data(const svBitVecVal* data);
 extern "C" void recv_tlm_data(int num);
 extern "C" void get_data(svBitVecVal* data);
 
-SC_MODULE(Target) { // 其实只是个target
+class Target : sc_module{
 public:
     tlm_utils::simple_target_socket<Target> socket;
 
-    SC_CTOR(Target) : count(0) {
+    Target(sc_module_name name) : sc_module(name) {
         socket.register_b_transport(this, &Target::b_transport);   //register methods with each socket
         socket.register_transport_dbg(this, &Target::transport_dbg);
     }
 
 private:
-    int count;
     // char *payload_data;
     unsigned char* input_payload_data = nullptr;
     unsigned int *output_payload_data = nullptr;
@@ -64,13 +64,9 @@ private:
         }
 
         if (cmd == tlm::TLM_READ_COMMAND) {
-            //std::cout << "read_len:" << len << std::endl;
-            if (len != sizeof(count)) {
-                trans.set_response_status(tlm::TLM_BURST_ERROR_RESPONSE);
-                return;
-            }
-            memcpy(data, &count, sizeof(count));
+
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
+
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
             input_payload_data = data;
             //std::cout << "write_len:" << len << std::endl;
@@ -119,12 +115,18 @@ private:
     }
 };
 
-SC_MODULE(Initiator) {
+class Initiator : sc_module{
 public:
     tlm_utils::simple_initiator_socket<Initiator> socket;
 
-    SC_CTOR(Initiator) {
+    Initiator(sc_module_name name) : sc_module(name) {
         // SC_THREAD(run);     //Similar to a Verilog @initial block
+
+        py::module_ sys = py::module_::import("sys");
+        py::list path = sys.attr("path");
+        path.attr("append")("../utils");    //for verilator
+        // path.attr("append")("./utils");    //for galaxsim
+        utils = py::module_::import("harness_utils");     
     }
 
     unsigned char *payload_data;
@@ -134,13 +136,7 @@ public:
         tlm::tlm_generic_payload trans;
         // sc_time delay = sc_time(10, SC_NS);
 
-        sc_time delay = SC_ZERO_TIME;
-
-        py::module_ sys = py::module_::import("sys");
-        py::list path = sys.attr("path");
-        path.attr("append")("../utils");    //for verilator
-        // path.attr("append")("./utils");    //for galaxsim
-        py::module_ utils = py::module_::import("harness_utils");
+        sc_time delay = SC_ZERO_TIME;   
 
         py::bytes result = utils.attr("send_data")();
         Py_ssize_t size = PyBytes_GET_SIZE(result.ptr());
@@ -173,12 +169,6 @@ public:
         trans.set_data_ptr(data);
 
         unsigned int n_bytes = socket->transport_dbg( trans );
-
-        py::module_ sys = py::module_::import("sys");
-        py::list path = sys.attr("path");
-        path.attr("append")("../utils");    //for verilator
-        // path.attr("append")("./utils");    //for galaxsim
-        py::module_ utils = py::module_::import("harness_utils");
     
         size_t size_data = sizeof(data);
         
@@ -192,7 +182,8 @@ public:
         ));
         
         utils.attr("recv_data")(res);
-    }
+    } 
+    
 };
 
 

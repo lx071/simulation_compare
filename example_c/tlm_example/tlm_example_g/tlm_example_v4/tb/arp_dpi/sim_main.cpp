@@ -15,6 +15,8 @@
 #include <tlm_utils/simple_initiator_socket.h>
 #include <tlm_utils/simple_target_socket.h>
 
+// #include "verilated.h"
+// #include "Vbfm.h"
 
 using namespace std;
 //typedef unsigned char uint8_t;
@@ -26,6 +28,7 @@ using namespace std;
 namespace py=pybind11;
 
 py::scoped_interpreter guard;
+py::module_ utils;
 
 extern "C" void gen_tlm_data(int num);
 extern "C" void set_data(const svBitVecVal* data);
@@ -118,7 +121,12 @@ public:
 
     Initiator(sc_module_name name) : sc_module(name) {
         // SC_THREAD(run);     //Similar to a Verilog @initial block
-        
+
+        py::module_ sys = py::module_::import("sys");
+        py::list path = sys.attr("path");
+        // path.attr("append")("../utils");    //for verilator
+        path.attr("append")("./utils");    //for galaxsim
+        utils = py::module_::import("harness_utils");     
     }
 
     unsigned char *payload_data;
@@ -128,13 +136,7 @@ public:
         tlm::tlm_generic_payload trans;
         // sc_time delay = sc_time(10, SC_NS);
 
-        sc_time delay = SC_ZERO_TIME;
-
-        py::module_ sys = py::module_::import("sys");
-        py::list path = sys.attr("path");
-        // path.attr("append")("../utils");    //for verilator
-        path.attr("append")("./utils");    //for galaxsim
-        utils = py::module_::import("harness_utils");        
+        sc_time delay = SC_ZERO_TIME;   
 
         py::bytes result = utils.attr("send_data")();
         Py_ssize_t size = PyBytes_GET_SIZE(result.ptr());
@@ -167,12 +169,6 @@ public:
         trans.set_data_ptr(data);
 
         unsigned int n_bytes = socket->transport_dbg( trans );
-
-        py::module_ sys = py::module_::import("sys");
-        py::list path = sys.attr("path");
-        // path.attr("append")("../utils");    //for verilator
-        path.attr("append")("./utils");    //for galaxsim
-        utils = py::module_::import("harness_utils");
     
         size_t size_data = sizeof(data);
         
@@ -186,10 +182,8 @@ public:
         ));
         
         utils.attr("recv_data")(res);
-    }
-
-private:
-    py::module_ utils;
+    } 
+    
 };
 
 
