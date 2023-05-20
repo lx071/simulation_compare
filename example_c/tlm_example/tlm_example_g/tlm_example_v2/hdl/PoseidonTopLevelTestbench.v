@@ -3,8 +3,7 @@ module bfm #(
     parameter NUM = 100
 );
 
-    import "DPI-C" function void recv_res(input bit[254:0] data);
-    import "DPI-C" function void recv_tlm_data(input bit[NUM-1][255:0] data);
+    import "DPI-C" context function void recv_tlm_data(input int item_num);
     import "DPI-C" context function void gen_tlm_data(input int item_num);
     export "DPI-C" function set_data;
     export "DPI-C" function get_data;
@@ -115,7 +114,7 @@ module bfm #(
             end
 
             if(output_counter == 100) begin
-                recv_tlm_data(output_payload_data);
+                recv_tlm_data(item_num);
                 $display("test success !!!");
                 //$display("cycles: %d", cycle_counter);
                 $finish();
@@ -138,7 +137,7 @@ module bfm #(
     end
     endfunction
 
-    function void get_data(bit[NUM-1:0][255:0] data);
+    function get_data(output bit[NUM-1:0][255:0] data);
     begin
         data = output_payload_data;
     end

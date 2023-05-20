@@ -19,10 +19,9 @@
 
 using namespace std;
 
-extern "C" void set_data(const svBitVecVal* data);
 extern "C" void gen_tlm_data(int num);
-extern "C" void recv_res(svBitVecVal* data);
-extern "C" void recv_tlm_data(svBitVecVal* data);
+extern "C" void set_data(const svBitVecVal* data);
+extern "C" void recv_tlm_data(int num);
 extern "C" void get_data(svBitVecVal* data);
 
 SC_MODULE(Target) { // 其实只是个target
@@ -31,14 +30,18 @@ public:
 
     SC_CTOR(Target) : count(0) {
         socket.register_b_transport(this, &Target::b_transport);   //register methods with each socket
+        socket.register_transport_dbg(this, &Target::transport_dbg);
+
     }
 
 private:
     int count;
     // char *payload_data;
-    unsigned char* payload_data = nullptr;
+    unsigned char* input_payload_data = nullptr;
+    unsigned int *output_payload_data = nullptr;
 
-    void b_transport(tlm::tlm_generic_payload& trans, sc_time& delay) {
+    // TLM-2 blocking transport method
+    virtual void b_transport(tlm::tlm_generic_payload& trans, sc_time& delay) {
         tlm::tlm_command cmd = trans.get_command();
         sc_dt::uint64 addr = trans.get_address();
         unsigned char* data = trans.get_data_ptr();
@@ -60,12 +63,12 @@ private:
             memcpy(data, &count, sizeof(count));
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
-            payload_data = data;
+            input_payload_data = data;
             //std::cout << "write_len:" << len << std::endl;
             // for(int i=0;i<len;i++) cout << std::hex << static_cast<int>(*(payload_data + i)) << endl;
 
             //  ‘const svBitVecVal*’ {aka ‘const unsigned int*’}
-            const unsigned int* sv_data = reinterpret_cast<const unsigned int*>(payload_data);
+            const unsigned int* sv_data = reinterpret_cast<const unsigned int*>(input_payload_data);
             set_data(sv_data);
             
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
@@ -73,6 +76,33 @@ private:
             trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
             return;
         }
+    }
+
+
+    // *********************************************
+    // TLM-2 debug transport method
+    // *********************************************
+
+    virtual unsigned int transport_dbg(tlm::tlm_generic_payload& trans)
+    {
+        tlm::tlm_command cmd = trans.get_command();
+        sc_dt::uint64    adr = trans.get_address() / 4;
+        unsigned char*   ptr = trans.get_data_ptr();
+        unsigned int     len = trans.get_data_length();
+
+        // Calculate the number of bytes to be actually copied
+        // unsigned int num_bytes = (len < (SIZE - adr) * 4) ? len : (SIZE - adr) * 4;
+    
+        output_payload_data = new unsigned int[3200/4]; 
+
+        if ( cmd == tlm::TLM_READ_COMMAND )
+            get_data(output_payload_data);
+            memcpy(ptr, output_payload_data, 3200);
+
+        else if ( cmd == tlm::TLM_WRITE_COMMAND )
+            // memcpy(&mem[adr], ptr, num_bytes);
+
+        return 0;
     }
 };
 
@@ -118,6 +148,34 @@ public:
 
         assert(trans.is_response_ok());
     }
+
+    void recv_tlm_data(int num)
+    {
+        tlm::tlm_generic_payload trans;
+        // sc_time delay = sc_time(10, SC_NS);
+
+        sc_time delay = SC_ZERO_TIME;
+
+        trans.set_command(tlm::TLM_WRITE_COMMAND);
+        trans.set_address(0);
+        trans.set_read();
+        trans.set_data_length(128);
+
+        unsigned char* data = new unsigned char[3200];
+        trans.set_data_ptr(data);
+
+        unsigned int n_bytes = socket->transport_dbg( *trans );
+
+        // check
+        unsigned char *ref_output = (unsigned char*)"\x13\x2e\x0f\xb5\x8f\x03\xf4\x9e\xaf\xd6\x55\xb5\x59\xcb\xf6\xe2\xbd\x37\x1c\x26\x9f\x80\x39\xcb\xd3\xfa\x6f\x6b\x17\xa2\x97\x97";
+        for (int k = 0; k < 100; k ++)
+        {
+            for (int i = 0; i < 32; i++) {
+                if (data[k*32 + i] != ref_output[31 - i]) cout << "ERROR" << endl;
+                // printf("%02x", output[i]);
+            }
+        }
+    }
 };
 
 Target target("target");
@@ -134,29 +192,9 @@ void gen_tlm_data(int num)
     initiator.gen_tlm_data(num);
 }
 
-void recv_res(svBitVecVal* data) 
+void recv_tlm_data(int num) 
 {
-    //cout << "recv_res" << endl;
-    unsigned char *output = (unsigned char *)data;
-    unsigned char *ref_output = (unsigned char*)"\x13\x2e\x0f\xb5\x8f\x03\xf4\x9e\xaf\xd6\x55\xb5\x59\xcb\xf6\xe2\xbd\x37\x1c\x26\x9f\x80\x39\xcb\xd3\xfa\x6f\x6b\x17\xa2\x97\x97";
-
-    for (int i = 0; i < 32; i++) {
-        if (output[i] != ref_output[31 - i]) cout << "ERROR" << endl;
-        // printf("%02x", output[i]);
-    }
-}
-
-void recv_tlm_data(svBitVecVal* data) 
-{
-    //cout << "recv_res" << endl;
-    unsigned char *output = (unsigned char *)data;
-    unsigned char *ref_output = (unsigned char*)"\x13\x2e\x0f\xb5\x8f\x03\xf4\x9e\xaf\xd6\x55\xb5\x59\xcb\xf6\xe2\xbd\x37\x1c\x26\x9f\x80\x39\xcb\xd3\xfa\x6f\x6b\x17\xa2\x97\x97";
-    for (int k = 0; k < 100; k ++)
-    {
-        for (int i = 0; i < 32; i++) {
-            if (output[k*32 + i] != ref_output[31 - i]) cout << "ERROR" << endl;
-            // printf("%02x", output[i]);
-        }
-    }
     
+    initiator.recv_tlm_data(num);
+
 }
