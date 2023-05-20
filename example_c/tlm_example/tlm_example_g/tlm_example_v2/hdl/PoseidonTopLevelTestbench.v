@@ -1,5 +1,3 @@
-
-
 module bfm #(
     parameter ClockPeriod = 10,
     parameter NUM = 100
@@ -34,13 +32,8 @@ module bfm #(
     initial begin
         gen_tlm_data(item_num);
 
-        io_input_payload = 0;
-        io_input_valid = 0;
-        //io_input_last = 0;
-        //io_output_ready = 1;
         ref_input = 255'h5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f;
         ref_output = 255'h132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797;
-
     end
 
 
@@ -49,7 +42,7 @@ module bfm #(
     reg io_input_valid;
     wire io_input_ready, io_input_last;
     wire input_handshake = io_input_valid & io_input_ready;
-    reg [4:0] input_counter;
+    reg [9:0] input_counter;
     reg [1:0] index_counter;
     always @(posedge clk) begin
         if(~resetn) begin
@@ -80,9 +73,9 @@ module bfm #(
     assign io_input_last = (index_counter == 2);
     always @(*) begin
         case(index_counter)
-            0:io_input_payload = payload_data[input_counter][255*1-1:255*0];
-            1:io_input_payload = payload_data[input_counter][255*2-1:255*1];
-            2:io_input_payload = payload_data[input_counter][255*3-1:255*2];
+            0:io_input_payload = payload_data[input_counter][0][254:0];
+            1:io_input_payload = payload_data[input_counter][1][254:0];
+            2:io_input_payload = payload_data[input_counter][2][254:0];
         endcase
     end
 
