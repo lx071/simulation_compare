@@ -96,11 +96,15 @@ private:
         output_payload_data = new unsigned int[3200/4]; 
 
         if ( cmd == tlm::TLM_READ_COMMAND )
+        {
             get_data(output_payload_data);
             memcpy(ptr, output_payload_data, 3200);
-
+        }
+            
         else if ( cmd == tlm::TLM_WRITE_COMMAND )
-            // memcpy(&mem[adr], ptr, num_bytes);
+        {
+
+        }
 
         return 0;
     }
@@ -156,7 +160,7 @@ public:
 
         sc_time delay = SC_ZERO_TIME;
 
-        trans.set_command(tlm::TLM_WRITE_COMMAND);
+        trans.set_command(tlm::TLM_READ_COMMAND);
         trans.set_address(0);
         trans.set_read();
         trans.set_data_length(128);
@@ -164,7 +168,7 @@ public:
         unsigned char* data = new unsigned char[3200];
         trans.set_data_ptr(data);
 
-        unsigned int n_bytes = socket->transport_dbg( *trans );
+        unsigned int n_bytes = socket->transport_dbg( trans );
 
         // check
         unsigned char *ref_output = (unsigned char*)"\x13\x2e\x0f\xb5\x8f\x03\xf4\x9e\xaf\xd6\x55\xb5\x59\xcb\xf6\xe2\xbd\x37\x1c\x26\x9f\x80\x39\xcb\xd3\xfa\x6f\x6b\x17\xa2\x97\x97";
