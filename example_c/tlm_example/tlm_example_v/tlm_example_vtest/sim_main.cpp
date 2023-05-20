@@ -9,20 +9,25 @@
 // SystemC global header
 #include <systemc.h>
 
+// Include common routines
+#include <verilated.h>
+
+// Include model header, generated from Verilating "top.v"
+#include "Vwrapper.h"
+
 #include <tlm.h>
 #include <tlm_utils/simple_initiator_socket.h>
 #include <tlm_utils/simple_target_socket.h>
 
 #include "svdpi.h"
-#include <string.h>
+#include "Vwrapper__Dpi.h"
 #include <iostream>
 
 using namespace std;
 
-extern "C" void set_data(const svBitVecVal* data);
-extern "C" void gen_tlm_data(int num);
-extern "C" void recv_tlm_data(int num);
-extern "C" void get_data(svBitVecVal* data);
+extern void set_data(const svBitVecVal* data);
+extern void gen_tlm_data(int num);
+extern void get_data_0(svBitVecVal* data);
 
 SC_MODULE(Target) { // 其实只是个target
 public:
@@ -66,7 +71,15 @@ private:
             //  ‘const svBitVecVal*’ {aka ‘const unsigned int*’}
             const unsigned int* sv_data = reinterpret_cast<const unsigned int*>(payload_data);
             set_data(sv_data);
+            unsigned int* c_data = new unsigned int[100];
             
+            get_data_0(c_data);
+            unsigned char* res = (unsigned char*)c_data;
+            for (int i = 0; i < 32; i++) {
+                
+                printf("%02x", res[i]);
+            }
+
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
         } else {
             trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
@@ -79,35 +92,26 @@ SC_MODULE(Initiator) {
 public:
     tlm_utils::simple_initiator_socket<Initiator> socket;
 
-    SC_CTOR(Initiator){
-        //SC_THREAD(run);     //Similar to a Verilog @initial block
+    SC_CTOR(Initiator) {
+        // SC_THREAD(run);     //Similar to a Verilog @initial block
     }
 
     unsigned char *payload_data;
-
-    void gen_tlm_data(int num)
+    
+    void gen_tlm_data(int num) 
     {
         tlm::tlm_generic_payload trans;
         // sc_time delay = sc_time(10, SC_NS);
 
         sc_time delay = SC_ZERO_TIME;
 
-        unsigned char *ref_input_0 = (unsigned char*)"\x5f\x6d\x26\xe8\xb8\x97\x72\xdf\x73\xb4\x9b\x71\x9b\x5e\x94\x6c\xdf\x1d\x55\x18\xba\x3e\xef\xca\x94\x03\x2a\x29\xcc\x0a\x4c\x5f";
-        unsigned char *ref_input_1 = (unsigned char*)"\x5f\x6d\x26\xe8\xb8\x97\x72\xdf\x73\xb4\x9b\x71\x9b\x5e\x94\x6c\xdf\x1d\x55\x18\xba\x3e\xef\xca\x94\x03\x2a\x29\xcc\x0a\x4c\x5f";
-        unsigned char *ref_input_2 = (unsigned char*)"\x5f\x6d\x26\xe8\xb8\x97\x72\xdf\x73\xb4\x9b\x71\x9b\x5e\x94\x6c\xdf\x1d\x55\x18\xba\x3e\xef\xca\x94\x03\x2a\x29\xcc\x0a\x4c\x5f";
-        
-        payload_data = new unsigned char[32 * 3 * num];
+        payload_data = new unsigned char[num*2];
 
-        for (int i = 0; i < num; i ++)
-        {
-            for (int k = 0; k < 32; k ++)
-            {
-                payload_data[i * 32 * 3 + 0 * 32 + k] = ref_input_0[31 - k]; 
-                payload_data[i * 32 * 3 + 1 * 32 + k] = ref_input_1[31 - k]; 
-                payload_data[i * 32 * 3 + 2 * 32 + k] = ref_input_2[31 - k]; 
-            }
+        for (int i = 0; i < num; i = i + 1) {
+            payload_data[i*2] = i%100;
+            payload_data[i*2+1] = i%100;
         }
-
+      
         // set data
         trans.set_command(tlm::TLM_WRITE_COMMAND);
         trans.set_address(0x0);
@@ -122,9 +126,8 @@ public:
 Target target("target");
 Initiator initiator("initiator");
 
-void gen_tlm_data(int num)
+void gen_tlm_data(int num) 
 {
-    //cout << "gen_tlm_data" << endl;
     static bool initialized = false;
     if (!initialized) {
         initiator.socket.bind(target.socket);
@@ -133,19 +136,25 @@ void gen_tlm_data(int num)
     initiator.gen_tlm_data(num);
 }
 
-void recv_tlm_data(int num) 
-{
-    unsigned int *res = new unsigned int[3200/4]; 
-    get_data(res);
-    //cout << "recv_res" << endl;
-    unsigned char *output = (unsigned char *)res;
-    unsigned char *ref_output = (unsigned char*)"\x13\x2e\x0f\xb5\x8f\x03\xf4\x9e\xaf\xd6\x55\xb5\x59\xcb\xf6\xe2\xbd\x37\x1c\x26\x9f\x80\x39\xcb\xd3\xfa\x6f\x6b\x17\xa2\x97\x97";
-    for (int k = 0; k < 100; k ++)
-    {
-        for (int i = 0; i < 32; i++) {
-            if (output[k*32 + i] != ref_output[31 - i]) cout << "ERROR" << endl;
-            // printf("%02x", output[i]);
-        }
-    }
+
+int sc_main(int argc, char* argv[]) {
+    //initiator.socket.bind(target.socket);
+    // Vwrapper* top = new Vwrapper{"wrapper"};
     
+    auto contextp {make_unique<VerilatedContext>()};
+    auto top {make_unique<Vwrapper>(contextp.get())};
+    contextp->commandArgs(argc, argv);
+    Verilated::traceEverOn(true);
+
+    // Simulate until $finish
+    while (!Verilated::gotFinish()) {       
+        top->eval();
+        contextp->timeInc(1000);
+    }
+
+    // Final model cleanup
+    top->final();
+
+    // Return good completion status
+    return 0;
 }
