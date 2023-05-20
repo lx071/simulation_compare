@@ -28,13 +28,20 @@ arp = ARP(hwtype=1, ptype=0x0800, hwlen=6, plen=4, op=1,
     hwdst='00:00:00:00:00:00', pdst='192.168.1.101')
 tx_pkt = tx_eth / arp
 
+# tx_payload_data ='hffffffffffff5a5152535455080600010800060400015a5152535455c0a80164000000000000c0a80165
+# rx_payload_data ='h5a5152535455dad1d2d3d4d508060001080006040002dad1d2d3d4d5c0a801655a5152535455c0a80164
+# tx_payload_data: b'\xff\xff\xff\xff\xff\xffZQRSTU\x08\x06\x00\x01\x08\x00\x06\x04\x00\x01ZQRSTU\xc0\xa8\x01d\x00\x00\x00\x00\x00\x00\xc0\xa8\x01e'
+# rx_payload_data: b'ZQRSTU\xda\xd1\xd2\xd3\xd4\xd5\x08\x06\x00\x01\x08\x00\x06\x04\x00\x02\xda\xd1\xd2\xd3\xd4\xd5\xc0\xa8\x01eZQRSTU\xc0\xa8\x01d'
+
 def send_data():
+    # print("tx_payload_data:", bytes(tx_pkt))
     data = bytes(tx_pkt)[::-1]
     return data
 
 
-def recv_res(data):
+def recv_data(data):
     res_byte = data.tobytes()[::-1]
+    # print("rx_payload_data:", res_byte)
 
     m_eth_dest_mac = res_byte[0:6]
     m_eth_src_mac = res_byte[6:12]
