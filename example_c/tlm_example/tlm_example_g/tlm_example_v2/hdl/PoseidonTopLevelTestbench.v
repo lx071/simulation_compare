@@ -1,6 +1,7 @@
 
 
 module bfm #(
+    parameter ClockPeriod = 10,
     parameter NUM = 100
 );
 
@@ -8,13 +9,7 @@ module bfm #(
     import "DPI-C" context function void gen_tlm_data(input int item_num);
     export "DPI-C" function set_data;
 
-    reg clk;
-
-    reg io_input_valid, io_input_last, io_output_ready, resetn;
-    reg [254:0] io_input_payload;
-    
-    wire io_input_ready, io_output_valid, io_output_last;
-    wire [254:0] io_output_payload;
+    reg clk, resetn;
 
     reg [254:0] ref_input;
     reg [254:0] ref_output;
@@ -28,72 +23,78 @@ module bfm #(
 
     initial begin
         clk = 0;
-        forever #5 clk = ~clk;
+        forever #(ClockPeriod/2) clk = ~clk;
+    end
+
+    initial begin
+        resetn = 0;
+        #(2*ClockPeriod) resetn = 1;
     end
 
     initial begin
         gen_tlm_data(item_num);
-    
-        //$display("get data ='h%h",payload_data[0][0][254:0]);
-        //$display("get data ='h%h",payload_data[0][1][254:0]);
-        //$display("get data ='h%h",data[0][2]);
-        
-        //recv(321);
 
         io_input_payload = 0;
         io_input_valid = 0;
-        io_input_last = 0;
-        resetn = 0;
-        io_output_ready = 1;
+        //io_input_last = 0;
+        //io_output_ready = 1;
         ref_input = 255'h5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f;
         ref_output = 255'h132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797;
-        #100 
-        resetn = 1;
-        xmit_en = 1;
+
     end
 
+
+    // drive input ports
+    reg [254:0] io_input_payload;
+    reg io_input_valid;
+    wire io_input_ready, io_input_last;
+    wire input_handshake = io_input_valid & io_input_ready;
+    reg [4:0] input_counter;
+    reg [1:0] index_counter;
     always @(posedge clk) begin
-    
-        if(xmit_en && io_input_valid && io_input_ready) begin
-            flag = 1;
+        if(~resetn) begin
+            index_counter <= 0;
+            input_counter <= 0;
+            io_input_valid <= 0;
         end
-
-        if(xmit_en && flag) begin
-            
-            io_input_valid = 1;
-            //io_input_payload = ref_input;
-            io_input_payload = payload_data[num][i][254:0];
-
-            i = i + 1;
-            if(i == 3) begin
-                io_input_last = 1;
-                i = 0;
-                num = num + 1;
-            end else begin
-                io_input_last = 0;
+        else begin
+            if(input_counter < 100) begin
+                io_input_valid <= 1'b1;
             end
-            //$display("io_input_last:", io_input_last);
-            //$display("io_input_payload:", io_input_payload);
+            else begin
+                io_input_valid <= 1'b0;
+            end
 
-            flag = 0;
-        end    
-
-        if(!xmit_en && flag == 0) begin
-            io_input_valid = 0;     
-            flag = 1;
+            if(input_handshake) begin
+                if(io_input_last) begin
+                    $display("input %d successfully", input_counter);
+                    input_counter <= input_counter + 1;
+                    index_counter <= 0;
+                end
+                else begin
+                    index_counter <= index_counter + 1;
+                end
+            end
         end
-
-        if(xmit_en && num >= 100) begin
-            xmit_en = 0;     
-            num = 0;   
-        end
-        
     end
+    assign io_input_last = (index_counter == 2);
+    always @(*) begin
+        case(index_counter)
+            0:io_input_payload = payload_data[input_counter][255*1-1:255*0];
+            1:io_input_payload = payload_data[input_counter][255*2-1:255*1];
+            2:io_input_payload = payload_data[input_counter][255*3-1:255*2];
+        endcase
+    end
+
     
+    // check output
+    wire io_output_last, io_output_valid, io_output_ready;
     wire output_handshake = io_output_valid & io_output_ready;
+    wire [254:0] io_output_payload;
     reg [6:0] output_counter;
 
-    //assign io_output_ready = 1'b1;
+    assign io_output_ready = 1'b1;
+    
     always@(posedge clk) begin
         if(~resetn) begin
             output_counter <= 0;
