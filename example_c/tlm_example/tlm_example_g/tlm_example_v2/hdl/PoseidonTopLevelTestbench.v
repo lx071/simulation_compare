@@ -3,9 +3,11 @@ module bfm #(
     parameter NUM = 100
 );
 
-    import "DPI-C" function void recv_res (input bit[254:0] data);
+    import "DPI-C" function void recv_res(input bit[254:0] data);
+    import "DPI-C" function void recv_tlm_data(input bit[NUM-1][255:0] data);
     import "DPI-C" context function void gen_tlm_data(input int item_num);
     export "DPI-C" function set_data;
+    export "DPI-C" function get_data;
 
     reg clk, resetn;
 
@@ -16,7 +18,8 @@ module bfm #(
     reg flag = 1;
     reg [8:0] num = 0;
 
-    bit[NUM-1:0][2:0][255:0] payload_data;
+    bit[NUM-1:0][2:0][255:0] input_payload_data;
+    bit[NUM-1:0][255:0] output_payload_data;
     int item_num = NUM;
 
     initial begin
@@ -73,9 +76,9 @@ module bfm #(
     assign io_input_last = (index_counter == 2);
     always @(*) begin
         case(index_counter)
-            0:io_input_payload = payload_data[input_counter][0][254:0];
-            1:io_input_payload = payload_data[input_counter][1][254:0];
-            2:io_input_payload = payload_data[input_counter][2][254:0];
+            0:io_input_payload = input_payload_data[input_counter][0][254:0];
+            1:io_input_payload = input_payload_data[input_counter][1][254:0];
+            2:io_input_payload = input_payload_data[input_counter][2][254:0];
         endcase
     end
 
@@ -94,8 +97,9 @@ module bfm #(
         end
         else begin
             if(output_handshake) begin
-                recv_res(io_output_payload);
-                
+                //recv_res(io_output_payload);
+                output_payload_data[output_counter] = io_output_payload;
+
                 //$display("io_output_payload:%h", io_output_payload);
 
                 //if( io_output_payload != ref_output) begin
@@ -111,6 +115,7 @@ module bfm #(
             end
 
             if(output_counter == 100) begin
+                recv_tlm_data(output_payload_data);
                 $display("test success !!!");
                 //$display("cycles: %d", cycle_counter);
                 $finish();
@@ -127,9 +132,15 @@ module bfm #(
 
     function void set_data(bit[NUM-1:0][2:0][255:0] data);
     begin
-        payload_data = data;
+        input_payload_data = data;
         //tvalid = 1;
         //$display("%h", payload_data);
+    end
+    endfunction
+
+    function void get_data(bit[NUM-1:0][255:0] data);
+    begin
+        data = output_payload_data;
     end
     endfunction
 

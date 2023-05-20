@@ -22,6 +22,8 @@ using namespace std;
 extern "C" void set_data(const svBitVecVal* data);
 extern "C" void gen_tlm_data(int num);
 extern "C" void recv_res(svBitVecVal* data);
+extern "C" void recv_tlm_data(svBitVecVal* data);
+extern "C" void get_data(svBitVecVal* data);
 
 SC_MODULE(Target) { // 其实只是个target
 public:
@@ -142,4 +144,19 @@ void recv_res(svBitVecVal* data)
         if (output[i] != ref_output[31 - i]) cout << "ERROR" << endl;
         // printf("%02x", output[i]);
     }
+}
+
+void recv_tlm_data(svBitVecVal* data) 
+{
+    //cout << "recv_res" << endl;
+    unsigned char *output = (unsigned char *)data;
+    unsigned char *ref_output = (unsigned char*)"\x13\x2e\x0f\xb5\x8f\x03\xf4\x9e\xaf\xd6\x55\xb5\x59\xcb\xf6\xe2\xbd\x37\x1c\x26\x9f\x80\x39\xcb\xd3\xfa\x6f\x6b\x17\xa2\x97\x97";
+    for (int k = 0; k < 100; k ++)
+    {
+        for (int i = 0; i < 32; i++) {
+            if (output[k*32 + i] != ref_output[31 - i]) cout << "ERROR" << endl;
+            // printf("%02x", output[i]);
+        }
+    }
+    
 }
