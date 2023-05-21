@@ -4,12 +4,6 @@ module bfm #(
     parameter ClockPeriod = 10,
     parameter NUM = 100
 );
-
-    import "DPI-C" context function void recv_tlm_data(input int item_num);
-    import "DPI-C" context function void gen_tlm_data(input int item_num);
-    export "DPI-C" function set_data;
-    export "DPI-C" function get_data;
-
     reg clk, resetn;
 
     reg [254:0] ref_input;
@@ -19,8 +13,6 @@ module bfm #(
     reg flag = 1;
     reg [8:0] num = 0;
 
-    bit[NUM-1:0][2:0][255:0] input_payload_data;
-    bit[NUM-1:0][255:0] output_payload_data;
     int item_num = NUM;
 
     initial begin
@@ -34,8 +26,6 @@ module bfm #(
     end
 
     initial begin
-        gen_tlm_data(item_num);
-
         ref_input = 255'h5f6d26e8b89772df73b49b719b5e946cdf1d5518ba3eefca94032a29cc0a4c5f;
         ref_output = 255'h132e0fb58f03f49eafd655b559cbf6e2bd371c269f8039cbd3fa6f6b17a29797;
     end
@@ -77,9 +67,9 @@ module bfm #(
     assign io_input_last = (index_counter == 2);
     always @(*) begin
         case(index_counter)
-            0:io_input_payload = input_payload_data[input_counter][0][254:0];
-            1:io_input_payload = input_payload_data[input_counter][1][254:0];
-            2:io_input_payload = input_payload_data[input_counter][2][254:0];
+            0:io_input_payload = ref_input;
+            1:io_input_payload = ref_input;
+            2:io_input_payload = ref_input;
         endcase
     end
 
@@ -98,17 +88,14 @@ module bfm #(
         end
         else begin
             if(output_handshake) begin
-                //recv_res(io_output_payload);
-                output_payload_data[output_counter] = io_output_payload;
-
                 //$display("io_output_payload:%h", io_output_payload);
 
-                //if( io_output_payload != ref_output) begin
-                //    $display("error output %d: %h",output_counter, io_output_payload);
-                //    $display(" test fail !!!");
-                //    //$display("cycles: %d", cycle_counter);
-                //    $finish();
-                //end
+                if( io_output_payload != ref_output) begin
+                    $display("error output %d: %h",output_counter, io_output_payload);
+                    $display(" test fail !!!");
+                    //$display("cycles: %d", cycle_counter);
+                    $finish();
+                end
                 //$display("ref_outputs[output_counter]: %d",ref_output);
                 //$display("res %d: %h correct",output_counter, io_output_payload);
                 $display("res %d: correct",output_counter);
@@ -116,7 +103,6 @@ module bfm #(
             end
 
             if(output_counter == 100) begin
-                recv_tlm_data(item_num);
                 $display("test success !!!");
                 //$display("cycles: %d", cycle_counter);
                 $finish();
@@ -129,22 +115,6 @@ module bfm #(
         //$dumpfile("dump.vcd");
         //$dumpvars;
     end
-
-
-    function void set_data(bit[NUM-1:0][2:0][255:0] data);
-    begin
-        input_payload_data = data;
-        //tvalid = 1;
-        //$display("%h", payload_data);
-    end
-    endfunction
-
-    function get_data(output bit[NUM-1:0][255:0] data);
-    begin
-        data = output_payload_data;
-    end
-    endfunction
-
 
     PoseidonTopLevel poseidonInst(
         .io_input_valid    (io_input_valid  ),

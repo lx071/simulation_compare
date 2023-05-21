@@ -258,7 +258,7 @@ always @(posedge tck) begin
         0: begin
 
             tx_payload_data = ref_tx_data;   
-            $display("get tx_payload_data ='h%h", tx_payload_data); 
+            //$display("get tx_payload_data ='h%h", tx_payload_data); 
     
             //$display("s_eth_dest_mac ='h%h", tx_payload_data[TOTAL_WIDTH-1:TOTAL_WIDTH-48]);
             //$display("s_eth_src_mac ='h%h", tx_payload_data[TOTAL_WIDTH-49:TOTAL_WIDTH-96]);
@@ -341,7 +341,7 @@ always @(posedge rck) begin
                     recv_state <= 0;                    
                     rx_en <= 0;
                     rx_payload_data = {rx_hdr_data, rx_arp_payload_data};
-                    $display("rx_payload_data ='h%h", rx_payload_data);
+                    //$display("rx_payload_data ='h%h", rx_payload_data);
 
                     if(rx_payload_data != ref_rx_data) begin
                         $display("ERROR!");
