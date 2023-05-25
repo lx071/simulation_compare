@@ -108,13 +108,14 @@ always #4 clk = ~clk;
 
 parameter TOTAL_WIDTH = 336;
 parameter TX_NUM = 28;
-bit[TOTAL_WIDTH-1:0]    tx_payload_data;
+
+bit[TOTAL_WIDTH-1:0]    tx_payload_data[1];
 bit[TOTAL_WIDTH-1-112:0]    tx_arp_payload_data;
-bit[TOTAL_WIDTH-1:0]    rx_payload_data;
+bit[TOTAL_WIDTH-1:0]    rx_payload_data[1];
 bit[TOTAL_WIDTH-1:TOTAL_WIDTH-112]  rx_hdr_data;
 bit[TOTAL_WIDTH-113:0]    rx_arp_payload_data;
 
-import "DPI-C" context task init(inout bit[7:0] in_data[], inout bit[7:0] out_data[]);
+import "DPI-C" context task init(inout bit[TOTAL_WIDTH-1:0] in_data[], inout bit[TOTAL_WIDTH-1:0] out_data[]);
 import "DPI-C" context function void recv_tlm_data(input int item_num);
 import "DPI-C" context function void gen_tlm_data(input int item_num);
 
@@ -282,10 +283,10 @@ always @(posedge tck) begin
             //$display("tx_arp_payload_data ='h%h", tx_payload_data[TOTAL_WIDTH-113:0]);
 
             s_eth_hdr_valid = 1;
-            s_eth_dest_mac = tx_payload_data[TOTAL_WIDTH-1:TOTAL_WIDTH-48];
-            s_eth_src_mac = tx_payload_data[TOTAL_WIDTH-49:TOTAL_WIDTH-96];
-            s_eth_type = tx_payload_data[TOTAL_WIDTH-97:TOTAL_WIDTH-112];
-            tx_arp_payload_data = tx_payload_data[TOTAL_WIDTH-113:0];
+            s_eth_dest_mac = tx_payload_data[0][TOTAL_WIDTH-1:TOTAL_WIDTH-48];
+            s_eth_src_mac = tx_payload_data[0][TOTAL_WIDTH-49:TOTAL_WIDTH-96];
+            s_eth_type = tx_payload_data[0][TOTAL_WIDTH-97:TOTAL_WIDTH-112];
+            tx_arp_payload_data = tx_payload_data[0][TOTAL_WIDTH-113:0];
 
             s_eth_payload_axis_tkeep = 1;
             s_eth_payload_axis_tvalid = 1;
@@ -347,7 +348,7 @@ always @(posedge rck) begin
             
                     recv_state <= 0;                    
                     rx_en <= 0;
-                    rx_payload_data = {rx_hdr_data, rx_arp_payload_data};
+                    rx_payload_data[0] = {rx_hdr_data, rx_arp_payload_data};
                     //$display("rx_payload_data ='h%h", rx_payload_data);
                     recv_tlm_data(42);
 

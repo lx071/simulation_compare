@@ -333,7 +333,7 @@ void init(svOpenArrayHandle input_payload_data, svOpenArrayHandle output_payload
     unsigned char *out_data;
     in_data = ( unsigned char* ) svGetArrayPtr(input_payload_data);
     out_data = ( unsigned char* ) svGetArrayPtr(output_payload_data);
-    int len = svSize(input_payload_data, 0);
+    // int len = svSize(input_payload_data, 0);
     // cout << "len:" << len << endl;
 
     target.init(in_data, out_data);
