@@ -114,11 +114,9 @@ bit[TOTAL_WIDTH-1:0]    rx_payload_data;
 bit[TOTAL_WIDTH-1:TOTAL_WIDTH-112]  rx_hdr_data;
 bit[TOTAL_WIDTH-113:0]    rx_arp_payload_data;
 
-
+import "DPI-C" context task init(inout bit[7:0] in_data[], inout bit[7:0] out_data[]);
 import "DPI-C" context function void recv_tlm_data(input int item_num);
 import "DPI-C" context function void gen_tlm_data(input int item_num);
-export "DPI-C" function set_data;
-export "DPI-C" function get_data;
 
 
 arp #(
@@ -197,6 +195,9 @@ wire rck;
 assign tck = (tx_en)?clk:1'b0;
 assign rck = (rx_en)?clk:1'b0;
 
+bit[TOTAL_WIDTH-1:0] ref_tx_data;
+bit[TOTAL_WIDTH-1:0] ref_rx_data;
+
 initial begin   
     tx_en = 0;
     rx_en = 0;
@@ -240,8 +241,13 @@ initial begin
     rst = 0;
     repeat(2) @(posedge clk);
     repeat(10) @(posedge clk);
+    
+    ref_tx_data =336'hffffffffffff5a5152535455080600010800060400015a5152535455c0a80164000000000000c0a80165;
+    ref_rx_data =336'h5a5152535455dad1d2d3d4d508060001080006040002dad1d2d3d4d5c0a801655a5152535455c0a80164;
 
-    repeat(10000) begin
+    init(tx_payload_data, rx_payload_data);
+
+    repeat(100) begin
         tx_en = 1;
         @(negedge tx_en);
         rx_en = 1;
@@ -256,9 +262,9 @@ int tx_num = 0;
 always @(posedge tck) begin
     case (xmit_state)
         0: begin
-
             gen_tlm_data(0);
-
+            //tx_payload_data = ref_tx_data;
+            //$display("get tx_payload_data ='h%h", tx_payload_data);
             //$display("get tx_payload_data ='h%h", tx_payload_data); 
     
             //$display("s_eth_dest_mac ='h%h", tx_payload_data[TOTAL_WIDTH-1:TOTAL_WIDTH-48]);
@@ -353,21 +359,5 @@ always @(posedge rck) begin
     endcase
 
 end
-
-function void set_data(bit[TOTAL_WIDTH-1:0] data);
-begin
-    tx_payload_data = data;
-    //tvalid = 1;
-    //$display("set_data: %h", data);
-end
-endfunction
-
-function get_data(output bit[TOTAL_WIDTH-1:0] data);
-begin
-    data = rx_payload_data;
-    //$display("get_data: %h", data);
-end
-endfunction
-
 
 endmodule
