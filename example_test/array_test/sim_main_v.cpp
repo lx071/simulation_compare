@@ -25,13 +25,17 @@ public:
         // cout << "init" << endl;
         dut_in_data = in_data;
         dut_out_data = out_data;
+        for(int i = 0;i < 5; i++)
+        {
+            dut_in_data[i] = i;
+        }
     }
 
     void gen_data()
     {
         for(int i = 0;i < 5; i++)
         {
-            dut_in_data[i] = i;
+            dut_in_data[i] = i + 1;
         }
     }
     void recv_data()
