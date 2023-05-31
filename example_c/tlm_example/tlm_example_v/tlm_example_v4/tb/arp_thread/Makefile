@@ -37,7 +37,6 @@ compile:
 	verilator -Wno-WIDTH --trace --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp -CFLAGS "-I/usr/local/systemc-2.3.4/include" -LDFLAGS "-L/usr/local/systemc-2.3.4/lib-linux64 -lsystemc"
 
 run:
-	export PYTHONPATH=$PYTHONPATH:/home/lx071/.local/lib/python3.8/site-packages && \
 	cd obj_dir&&./Vbfm&&cd ..
 
 clean::

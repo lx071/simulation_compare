@@ -14,17 +14,18 @@ public:
     Mem(int count){
         cout << "Mem" << endl;
     }
-    unsigned char *dut_in_data = nullptr;
-    unsigned char *dut_out_data = nullptr;
+    svOpenArrayHandle dut_in_data;
+    svOpenArrayHandle dut_out_data;
 
-    void init(unsigned char* in_data, unsigned char* out_data) 
+    void init(svOpenArrayHandle in_data, svOpenArrayHandle out_data) 
     {
         // cout << "init" << endl;
         dut_in_data = in_data;
         dut_out_data = out_data;
         for(int i = 0;i < 5; i++)
         {
-            dut_in_data[i] = i;
+            // dut_in_data[i] = i;
+            *(uint8_t*)svGetArrElemPtr1(in_data, i) = i;
         }
     }
 
@@ -32,7 +33,7 @@ public:
     {
         for(int i = 0;i < 5; i++)
         {
-            dut_in_data[i] = i + 1;
+            *(uint8_t*)svGetArrElemPtr1(in_data, i) = i + 1;
         }
     }
     void recv_data()
@@ -40,7 +41,7 @@ public:
         cout << "recv_data:";
         for(int i = 0;i < 5; i++)
         {
-            printf("%02x", dut_out_data[i]);
+            printf("%02x", *(uint8_t*)svGetArrElemPtr1(out_data, i));
         }
         cout << endl;
     }
@@ -63,11 +64,11 @@ void recv_data()
 
 void init(svOpenArrayHandle input_data, svOpenArrayHandle output_data) 
 {
-    unsigned char *in_data;
-    unsigned char *out_data;
-    in_data = ( unsigned char* ) svGetArrayPtr(input_data);
-    out_data = ( unsigned char* ) svGetArrayPtr(output_data);
+    // unsigned char *in_data;
+    // unsigned char *out_data;
+    // in_data = ( unsigned char* ) svGetArrayPtr(input_data);
+    // out_data = ( unsigned char* ) svGetArrayPtr(output_data);
 
-    mem.init(in_data, out_data);
+    mem.init(input_data, output_data);
 
 }

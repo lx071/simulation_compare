@@ -31,6 +31,12 @@ void waits()
     std::cerr << "...finished waiting. i == 1\n";
 }
  
+// std::chrono::nanoseconds
+// std::chrono::microseconds
+// std::chrono::milliseconds
+// std::chrono::seconds
+// std::chrono::minutes
+// std::chrono::hours
 void signals()
 {
     std::this_thread::sleep_for(std::chrono::seconds(1));

@@ -115,11 +115,15 @@ bit[TOTAL_WIDTH-1:0]    rx_payload_data[1];
 bit[TOTAL_WIDTH-1:TOTAL_WIDTH-112]  rx_hdr_data;
 bit[TOTAL_WIDTH-113:0]    rx_arp_payload_data;
 
-import "DPI-C" context function void init(inout bit[TOTAL_WIDTH-1:0] in_data[], inout bit[TOTAL_WIDTH-1:0] out_data[], bit in_valid);
-import "DPI-C" context function void finalize();
-import "DPI-C" context function void recv_tlm_data(input int item_num);
-import "DPI-C" context function void gen_tlm_data(input int item_num);
+import "DPI-C" context function void init(inout bit[TOTAL_WIDTH-1:0] in_data[], inout bit[TOTAL_WIDTH-1:0] out_data[]);
+import "DPI-C" context function void kill();
 
+import "DPI-C" context function void get_tlm_data();
+export "DPI-C" task set_tlm_data;
+
+export "DPI-C" function get_data;
+
+export "DPI-C" function finalize;
 
 arp #(
     .DATA_WIDTH(DATA_WIDTH),
@@ -201,10 +205,14 @@ bit[TOTAL_WIDTH-1:0] ref_tx_data;
 bit[TOTAL_WIDTH-1:0] ref_rx_data;
 
 bit input_valid;
+bit ready;
+bit final_en;
 
 initial begin   
-    tx_en = 0;
-    rx_en = 0;
+    final_en = 0;
+    ready = 0;
+    tx_en = 1;
+    rx_en = 1;
     input_valid = 0;
 
     subnet_mask = 0;
@@ -250,17 +258,10 @@ initial begin
     ref_tx_data =336'hffffffffffff5a5152535455080600010800060400015a5152535455c0a80164000000000000c0a80165;
     ref_rx_data =336'h5a5152535455dad1d2d3d4d508060001080006040002dad1d2d3d4d5c0a801655a5152535455c0a80164;
 
-    init(tx_payload_data, rx_payload_data, input_valid);
+    init(tx_payload_data, rx_payload_data);
 
-    repeat(10) begin
-        tx_en = 1;
-        @(negedge tx_en);
-        rx_en = 1;
-        @(negedge rx_en);
-    end
-
-    finalize();
-
+    @(posedge final_en) kill();
+    
     $finish;
 end
 
@@ -269,14 +270,12 @@ int tx_num = 0;
 always @(posedge tck) begin
     case (xmit_state)
         0: begin
-            if (input_valid == 0) begin
-                //$display("input_valid == 0");
-            end
+            //$display("input_valid == ", input_valid);
+            
             if (input_valid == 1) begin
-                gen_tlm_data(0);
-
+                $display("input_valid == 1");
                 //tx_payload_data = ref_tx_data;
-                //$display("get tx_payload_data ='h%h", tx_payload_data);
+                $display("get tx_payload_data ='h%h", tx_payload_data[0]);
                 //$display("get tx_payload_data ='h%h", tx_payload_data); 
         
                 //$display("s_eth_dest_mac ='h%h", tx_payload_data[TOTAL_WIDTH-1:TOTAL_WIDTH-48]);
@@ -327,8 +326,10 @@ always @(posedge tck) begin
                 s_eth_payload_axis_tvalid = 0;
                 tx_num = 0;
                 xmit_state <= 0;
-                tx_en <= 0;
+                //tx_en <= 0;
                 
+                input_valid = 0;
+                $display("input_valid == 0");
             end
 
         end
@@ -360,11 +361,11 @@ always @(posedge rck) begin
                 if(m_eth_payload_axis_tlast == 1) begin
             
                     recv_state <= 0;                    
-                    rx_en <= 0;
+                    //rx_en <= 0;
                     rx_payload_data[0] = {rx_hdr_data, rx_arp_payload_data};
-                    //$display("rx_payload_data ='h%h", rx_payload_data[0]);
-                    recv_tlm_data(42);
-
+                    $display("rx_payload_data ='h%h", rx_payload_data[0]);
+                    get_tlm_data();
+                    ready = 1;
                     //$finish;
                 end
             end
@@ -373,5 +374,33 @@ always @(posedge rck) begin
     endcase
 
 end
+
+task set_tlm_data();
+begin
+    $display("set_tlm_data");
+    //tx_payload_data = data;
+    input_valid = 1;
+    $display("set input_valid=", input_valid);
+    //wait(input_valid==0);
+    //$display("set_tlm_data_end");
+end
+endtask
+
+
+function get_data(output bit data);
+begin
+    //$display("ready:", ready);
+    data = ready;
+    ready = 0;
+end
+endfunction
+
+function finalize();
+begin
+    $display("finalize");
+    final_en = 1;
+end
+endfunction
+
 
 endmodule
