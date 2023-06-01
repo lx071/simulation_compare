@@ -25,12 +25,14 @@ using namespace std;
 
 extern "C" void init(svOpenArrayHandle input_payload_data, svOpenArrayHandle output_payload_data);
 extern "C" void kill();
+extern "C" void finalize();
 
 extern "C" void set_tlm_data();
 extern "C" void get_tlm_data();
-extern "C" void get_data(unsigned char* data);
 
-extern "C" void finalize();
+std::condition_variable cv;
+std::mutex mtx;
+bool output_ready;
 
 class Target : sc_module{
 public:
@@ -174,7 +176,7 @@ public:
 
     Initiator(sc_module_name name) : sc_module(name) 
     {
-        // ready = true;
+        output_ready = false;
         dmi_ptr_valid = false;
 
         // Register callbacks for incoming interface method calls
@@ -194,35 +196,28 @@ public:
     const char* out_hex_string = "\x5a\x51\x52\x53\x54\x55\xda\xd1\xd2\xd3\xd4\xd5\x08\x06\x00\x01\x08\x00\x06\x04\x00\x02\xda\xd1\xd2\xd3\xd4\xd5\xc0\xa8\x01\x65\x5a\x51\x52\x53\x54\x55\xc0\xa8\x01\x64";
 
     int len = 42;
-    unsigned char *ready;
 
     void run(int k) {
         const svScope scope = svGetScopeFromName("TOP.bfm");
         assert(scope);  // Check for nullptr if scope not found
         svSetScope(scope);
-        // std::unique_lock<std::mutex> lock(mtx);
-        // ready = false;
-        
-        // unsigned char *in_valid = target.dut_in_valid;
-        // *in_valid = 1;
-        // cv.notify_one();
 
-        // cout << "" << endl;
         for(int i = 0; i < k; i++)
         {
             gen_tlm_data_dmi();
+            set_tlm_data();
+
+            //wait signal
+            std::unique_lock<std::mutex> lock(mtx);
+            cv.wait(lock, [this] { return output_ready; });
+            output_ready = false;
         }
         finalize();
     }
 
     void init() {
-        
         std::thread th(&Initiator::run, this, 5);
         myThread = std::move(th);
-
-        // std::unique_lock<std::mutex> lock(mtx);
-        // cv.wait(lock, [this] { return !ready; });
-
     }
 
     void kill() {
@@ -260,7 +255,7 @@ public:
 
     void gen_tlm_data_dmi()
     {
-        cout << "gen_tlm_data_dmi" << endl;
+        // cout << "gen_tlm_data_dmi" << endl;
         // TLM-2 generic payload transaction, reused across calls to b_transport, DMI and debug
         tlm::tlm_generic_payload* trans = new tlm::tlm_generic_payload;
         trans->set_command(tlm::TLM_WRITE_COMMAND);
@@ -292,23 +287,6 @@ public:
                 data[i] = in_hex_string[len-1-i];
             }
         }
-        //wait signal
-        cout << "begin" << endl;
-        ready = new unsigned char[1];
-
-        set_tlm_data();
-        
-        get_data(ready);
-
-        // cout << "ready:" << int(ready[0]) << endl;
-        while(int(ready[0])!=1)
-        {
-            // cout << "ready:" << int(ready[0]) << endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            get_data(ready);
-        };
-        cout << "end" << endl;
-        
     }
 
     void check()
@@ -325,13 +303,18 @@ public:
         }
         // cout << endl;
     }
+
+    void set_output_ready()
+    {
+        std::unique_lock<std::mutex> lock(mtx);
+        output_ready = true;
+        cv.notify_one();
+    }
     
 private:
-    // std::condition_variable cv;
-    // std::mutex mtx;
+    
     std::thread myThread;
-    // bool ready;
-
+    
     // TLM-2 backward non-blocking transport method
 
     virtual tlm::tlm_sync_enum nb_transport_bw( tlm::tlm_generic_payload& trans,
@@ -378,6 +361,7 @@ void get_tlm_data()
         initialized = true;
     }
     target.recv_tlm_data();
+    initiator.set_output_ready();
 }
 
 

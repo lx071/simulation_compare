@@ -116,14 +116,12 @@ bit[TOTAL_WIDTH-1:TOTAL_WIDTH-112]  rx_hdr_data;
 bit[TOTAL_WIDTH-113:0]    rx_arp_payload_data;
 
 import "DPI-C" context function void init(inout bit[TOTAL_WIDTH-1:0] in_data[], inout bit[TOTAL_WIDTH-1:0] out_data[]);
-import "DPI-C" context function void kill();
 
+export "DPI-C" function set_tlm_data;
 import "DPI-C" context function void get_tlm_data();
-export "DPI-C" task set_tlm_data;
-
-export "DPI-C" function get_data;
 
 export "DPI-C" function finalize;
+import "DPI-C" context function void kill();
 
 arp #(
     .DATA_WIDTH(DATA_WIDTH),
@@ -270,10 +268,7 @@ int tx_num = 0;
 always @(posedge tck) begin
     case (xmit_state)
         0: begin
-            //$display("input_valid == ", input_valid);
-            
             if (input_valid == 1) begin
-                $display("input_valid == 1");
                 //tx_payload_data = ref_tx_data;
                 $display("get tx_payload_data ='h%h", tx_payload_data[0]);
                 //$display("get tx_payload_data ='h%h", tx_payload_data); 
@@ -329,7 +324,6 @@ always @(posedge tck) begin
                 //tx_en <= 0;
                 
                 input_valid = 0;
-                $display("input_valid == 0");
             end
 
         end
@@ -364,8 +358,9 @@ always @(posedge rck) begin
                     //rx_en <= 0;
                     rx_payload_data[0] = {rx_hdr_data, rx_arp_payload_data};
                     $display("rx_payload_data ='h%h", rx_payload_data[0]);
+                    
                     get_tlm_data();
-                    ready = 1;
+                    
                     //$finish;
                 end
             end
@@ -375,29 +370,16 @@ always @(posedge rck) begin
 
 end
 
-task set_tlm_data();
+function set_tlm_data();
 begin
-    $display("set_tlm_data");
-    //tx_payload_data = data;
     input_valid = 1;
-    $display("set input_valid=", input_valid);
-    //wait(input_valid==0);
-    //$display("set_tlm_data_end");
-end
-endtask
-
-
-function get_data(output bit data);
-begin
-    //$display("ready:", ready);
-    data = ready;
-    ready = 0;
 end
 endfunction
 
+
 function finalize();
 begin
-    $display("finalize");
+    //$display("finalize");
     final_en = 1;
 end
 endfunction
