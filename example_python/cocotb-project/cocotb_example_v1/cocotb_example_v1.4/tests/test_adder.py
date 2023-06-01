@@ -9,19 +9,19 @@ import random
 
 async def generate_clock(dut):
     """Generate clock pulses."""
-    dut.clk_i.value = 0
+    dut.clk.value = 0
     # for cycle in range(100):
     while True:
-        dut.clk_i.value = 0
+        dut.clk.value = 0
         await Timer(5, units="ns")
-        dut.clk_i.value = 1
+        dut.v.value = 1
         await Timer(5, units="ns")
 
 
 async def generate_rst(dut):
     dut.reset_n.value = 0
     for cycle in range(10):
-        await RisingEdge(dut.clk_i)
+        await RisingEdge(dut.clk)
     dut.reset_n.value = 1
 
 @cocotb.test()
@@ -31,11 +31,10 @@ async def adder_basic_test(dut):
 
     # await cocotb.start(generate_clock(dut))  # run the clock "in the background"
     await cocotb.start(generate_rst(dut))  # run the clock "in the background"
-
     await RisingEdge(dut.reset_n)
 
     for k in range(2000000):
-        await RisingEdge(dut.clk_i)
+        await RisingEdge(dut.clk)
         dut.start.value = 1
         dut.A.value = k % 200
         dut.B.value = k % 200

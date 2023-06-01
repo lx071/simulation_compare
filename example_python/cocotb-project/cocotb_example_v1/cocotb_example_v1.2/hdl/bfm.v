@@ -34,7 +34,7 @@ initial begin
     start = 0;
     data = 0;
     repeat(RESET_DELAY) @(posedge clk_i);
-    reset_i = 0;
+    reset_i = 1;
 end
 
 tinyalu inst_tinyalu(

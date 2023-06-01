@@ -1,8 +1,8 @@
 `timescale 1ns/1ps
 
 module bfm(
-input   clk_i,
-//input   reset_i,
+input   clk,
+//input   reset_n,
 output  reg [15:0] res_o
 );
 
@@ -12,10 +12,11 @@ reg [2:0] op_s;
 
 parameter PACKAGE_WIDTH=2400;
 parameter NUM=100;
+parameter RESET_DELAY=10;
 
-bit reset_i;
+bit reset_n;
 
-//always #5 clk_i = ~clk_i;
+//always #5 clk = ~clk;
 
 reg xmit_en = 0;
 reg [PACKAGE_WIDTH-1:0] data;
@@ -23,38 +24,34 @@ int num = 0;
 int clk_num = 0;
 reg start;
 //reg [15:0] result;
+reg done;
 
 initial begin
-    //clk_i = 0;
-    reset_i = 0;
+    //clk = 0;
+    reset_n = 0;
     A_s = 0;
     B_s = 0;
     op_s = 0;
     start = 0;
     data = 0;
+    repeat(RESET_DELAY) @(posedge clk);
+    reset_n = 1;
 end
 
 tinyalu inst_tinyalu(
-    .clk(clk_i),
+    .clk(clk),
     .A(A_s),
     .B(B_s),
     .op(op_s),
-    .reset_n(reset_i),
+    .reset_n(reset_n),
     .start(start),
     .done(done),
     .result(res_o)
 );
 
-always @(posedge clk_i) begin
+always @(posedge clk) begin
 
-    if(clk_num<=10) begin
-        clk_num = clk_num + 1;
-    end 
-    if(clk_num==10) begin
-        reset_i = 1;
-    end
-
-    if(!reset_i) begin
+    if(!reset_n) begin
         A_s <= 8'h0;
         B_s <= 8'h0;
         op_s <= 3'h0;

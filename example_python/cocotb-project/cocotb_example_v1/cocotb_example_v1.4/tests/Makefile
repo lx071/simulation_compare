@@ -1,6 +1,7 @@
 SIM ?= verilator
 
 # EXTRA_ARGS += --trace
+# EXTRA_ARGS += --timing
 
 TOPLEVEL_LANG ?= verilog
 

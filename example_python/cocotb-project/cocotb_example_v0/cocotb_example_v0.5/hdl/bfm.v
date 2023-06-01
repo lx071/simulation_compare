@@ -1,8 +1,8 @@
 `timescale 1ns/1ps
 
 module bfm(
-input   clk_i,
-//input   reset_i,
+input   clk,
+//input   reset,
 output  reg [7:0] res_o
 );
 
@@ -11,10 +11,11 @@ reg [7:0] B_s;
 
 parameter PACKAGE_WIDTH=1600;
 parameter NUM=100;
+parameter RESET_DELAY=10;
 
-bit reset_i;
+bit reset;
 
-//always #5 clk_i = ~clk_i;
+//always #5 clk = ~clk;
 
 reg xmit_en = 0;
 reg [PACKAGE_WIDTH-1:0] data;
@@ -22,31 +23,26 @@ int num = 0;
 int clk_num = 0;
 
 initial begin
-    //clk_i = 0;
-    reset_i = 1;
+    //clk = 0;
+    reset = 1;
     A_s = 0;
     B_s = 0;
     data = 0;
+    repeat(RESET_DELAY) @(posedge clk);
+    reset = 0;
 end
 
 MyTopLevel inst_add(
     .io_A(A_s),
     .io_B(B_s),
     .io_X(res_o),
-    .clk(clk_i),
-    .reset(reset_i)
+    .clk(clk),
+    .reset(reset)
 );
 
-always @(posedge clk_i) begin
+always @(posedge clk) begin
 
-    if(clk_num<=10) begin
-        clk_num = clk_num + 1;
-    end 
-    if(clk_num==10) begin
-        reset_i = 0;
-    end
-
-    if(reset_i) begin
+    if(reset) begin
         A_s <= 8'h0;
         B_s <= 8'h0;
     end else begin   

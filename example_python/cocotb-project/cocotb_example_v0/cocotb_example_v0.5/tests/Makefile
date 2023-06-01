@@ -3,6 +3,7 @@ SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 
 # EXTRA_ARGS += --trace
+EXTRA_ARGS += --timing
 
 PWD=$(shell pwd)
 
