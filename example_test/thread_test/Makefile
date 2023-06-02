@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-all: compile_v
+all: compile_g run_g
 
 TOPLEVEL = bfm
 VERILOG_SOURCES += bfm.v

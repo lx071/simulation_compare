@@ -5,9 +5,6 @@
 #include <condition_variable>
 #include <chrono>
 
-#include "verilated.h"
-#include "Vbfm.h"
-
 using namespace std;
 
 extern "C" void init();
@@ -30,9 +27,9 @@ public:
 
     void run(int k) {
         
-        const svScope scope = svGetScopeFromName("TOP.bfm");
-        assert(scope);  // Check for nullptr if scope not found
-        svSetScope(scope);
+        // const svScope scope = svGetScopeFromName("TOP.bfm");
+        // assert(scope);  // Check for nullptr if scope not found
+        // svSetScope(scope);
         
         set_data();
 
@@ -77,21 +74,4 @@ void init()
 void kill()
 {
     initiator.kill();
-}
-
-int main(int argc, char** argv)
-{
-    auto contextp {make_unique<VerilatedContext>()};
-    // std::unique_ptr<VerilatedContext> contextp_;
-    // Vwrapper* top_;
-    contextp->commandArgs(argc, argv);
-    Verilated::traceEverOn(true);
-
-    auto top {make_unique<Vbfm>(contextp.get())};
-    while(!contextp->gotFinish()){
-        top->eval();
-        contextp->timeInc(4000);
-    }
-
-    return 0;
 }
