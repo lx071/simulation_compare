@@ -8,9 +8,6 @@
 #include <tlm_utils/simple_initiator_socket.h>
 #include <tlm_utils/simple_target_socket.h>
 
-#include "verilated.h"
-#include "Vbfm.h"
-
 #include <thread>
 #include <condition_variable>
 #include <chrono>
@@ -382,21 +379,4 @@ void init(svOpenArrayHandle input_payload_data, svOpenArrayHandle output_payload
 void kill()
 {
     initiator.kill();
-}
-
-int sc_main(int argc, char** argv)
-{
-    auto contextp {make_unique<VerilatedContext>()};
-    // std::unique_ptr<VerilatedContext> contextp_;
-    // Vwrapper* top_;
-    contextp->commandArgs(argc, argv);
-    Verilated::traceEverOn(true);
-
-    auto top {make_unique<Vbfm>(contextp.get())};
-    while(!contextp->gotFinish()){
-        top->eval();
-        contextp->timeInc(4000);
-    }
-
-    return 0;
 }
