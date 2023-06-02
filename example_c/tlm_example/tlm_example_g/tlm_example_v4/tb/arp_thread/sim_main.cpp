@@ -195,9 +195,9 @@ public:
     int len = 42;
 
     void run(int k) {
-        const svScope scope = svGetScopeFromName("TOP.bfm");
-        assert(scope);  // Check for nullptr if scope not found
-        svSetScope(scope);
+        // const svScope scope = svGetScopeFromName("TOP.bfm");
+        // assert(scope);  // Check for nullptr if scope not found
+        // svSetScope(scope);
 
         for(int i = 0; i < k; i++)
         {
