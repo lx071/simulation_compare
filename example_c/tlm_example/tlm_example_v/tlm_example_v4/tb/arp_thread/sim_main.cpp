@@ -98,6 +98,7 @@ private:
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
             memcpy(dut_in_data, ptr, len);
+            set_tlm_data();
 
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
         } else {
@@ -204,8 +205,10 @@ public:
 
         for(int i = 0; i < k; i++)
         {
-            gen_tlm_data_dmi();
-            set_tlm_data();
+            // gen_tlm_data_dmi();
+            // set_tlm_data();
+
+            gen_tlm_data();
 
             //wait signal
             std::unique_lock<std::mutex> lock(mtx);
@@ -224,7 +227,7 @@ public:
         myThread.join();
     }
 
-    void gen_tlm_data(int num)
+    void gen_tlm_data()
     {
         tlm::tlm_generic_payload* trans = new tlm::tlm_generic_payload;
         // sc_time delay = sc_time(10, SC_NS);
