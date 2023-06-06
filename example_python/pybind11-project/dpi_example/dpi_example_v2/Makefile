@@ -4,22 +4,6 @@ compile:
 	mkdir build
 	cd build&&cmake ..&&make&&cp test_hash.so ..&&cd ..
 
-exec:
-	# verilator --cc --exe --sv --timing --build hdl/tinyalu.sv hdl/bfm.v hdl/wrapper.v sim_main.cpp ../test_hash.so
-	# verilator --cc --trace --exe --sv --timing --build hdl/tinyalu.sv hdl/bfm.v hdl/wrapper.v sim_main.cpp ../test_hash.so
-
-run:
-	cd obj_dir&&./VMyTopLevel&&cd ..
-
-first:
-	date +%M.%s.%N
-
-middle:
-	date +%M.%s.%N
-
-end:
-	date +%M.%s.%N
-
 clean:
 	-rm -rf build obj_dir
 

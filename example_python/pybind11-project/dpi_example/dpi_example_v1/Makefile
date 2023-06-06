@@ -9,16 +9,8 @@ exec:
 	# verilator --cc --trace --exe --sv --timing --build hdl/tinyalu.sv hdl/bfm.v hdl/wrapper.v sim_main.cpp ../test_adder.so
 
 run:
-	cd obj_dir&&./VMyTopLevel&&cd ..
+	cd obj_dir&&./Vtinyalu&&cd ..
 
-first:
-	date +%M.%s.%N
-
-middle:
-	date +%M.%s.%N
-
-end:
-	date +%M.%s.%N
 
 clean:
 	-rm -rf build obj_dir
