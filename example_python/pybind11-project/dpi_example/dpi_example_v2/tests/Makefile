@@ -1,5 +1,6 @@
-VERILOG_SOURCES += $(PWD)/../hdl/PoseidonTopLevel.v
 VERILOG_SOURCES += $(PWD)/../hdl/PoseidonTopLevelTestbench.v
+VERILOG_SOURCES += $(PWD)/../hdl/PoseidonTopLevel.v
+
 VERILOG_SOURCES += $(PWD)/../hdl/ModAdder.v
 VERILOG_SOURCES += $(PWD)/../hdl/MontMultiplierBasics.v
 VERILOG_SOURCES += $(PWD)/../hdl/ModMultiplier.v
@@ -20,8 +21,8 @@ end:
 
 # only make compile
 compile:
-	# verilator --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
-	galaxsim ../test_hash.so ${VERILOG_SOURCES} -Xutil=1
+	verilator -Wno-fatal --top-module bfm --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
+	# galaxsim ../test_hash.so ${VERILOG_SOURCES}
         
 # only make visual ( make .elf file to the .vcd file )
 

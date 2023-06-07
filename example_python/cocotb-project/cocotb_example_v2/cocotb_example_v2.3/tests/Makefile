@@ -10,6 +10,13 @@
 # 仿真
 # 仿真时读入vvp文件，送进vvp虚拟机执行.
 
+VERILOG_SOURCES += $(PWD)/../hdl/PoseidonTopLevelTestbench.v
+VERILOG_SOURCES += $(PWD)/../hdl/PoseidonTopLevel.v
+
+VERILOG_SOURCES += $(PWD)/../hdl/ModAdder.v
+VERILOG_SOURCES += $(PWD)/../hdl/MontMultiplierBasics.v
+VERILOG_SOURCES += $(PWD)/../hdl/ModMultiplier.v
+
 all: compile
 
 
@@ -21,7 +28,7 @@ compile:
 
 
 compile_g:
-	galaxsim ../hdl/*
+	galaxsim $(VERILOG_SOURCES)
 
 
 run:

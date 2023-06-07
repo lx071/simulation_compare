@@ -4,6 +4,7 @@ import "DPI-C" function void recv_res (input bit[254:0] data);
 import "DPI-C" function void c_py_gen_packet(output bit[99:0][2:0][254:0] pkt);
 //import "DPI-C" function void c_py_gen_packet(output bit[764:0] pkt);
 
+`timescale 1ns/1ps 
 
 module bfm (
     
