@@ -21,14 +21,8 @@ end:
 
 # only make compile
 compile:
-	verilator -Wno-fatal --top-module bfm --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
-	# galaxsim ../test_hash.so ${VERILOG_SOURCES}
+	galaxsim ../test_hash.so ${VERILOG_SOURCES}
         
-# only make visual ( make .elf file to the .vcd file )
-
-exec:
-	python test.py
-
 clean:
 	rm -rf xsim* dump.vcd run.out
 	
