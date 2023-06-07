@@ -10,16 +10,7 @@
 # 仿真
 # 仿真时读入vvp文件，送进vvp虚拟机执行.
 
-all: first compile second visual end
-
-first:
-	date +%M.%s.%N
-
-second:
-	date +%M.%s.%N
-
-end:
-	date +%M.%s.%N
+all: compile
 
 
 # 编译后会生成被指定的目标可执行文件 run.out ，但此文件执行后只会在终端上显示仿真时文字信息，需要使用 vvp 工具将其可视化成 .vcd 文件
@@ -28,14 +19,14 @@ end:
 compile:
 	iverilog -o run.out ./../hdl/*.v
 
-# only make visual ( make .elf file to the .vcd file )
 
-visual:
+compile_g:
+	galaxsim ../hdl/*
+
+
+run:
 	vvp -n run.out
 
 
-exec:
-	python test.py
-
 clean:
-	rm -rf dump.vcd run.out
+	rm -rf dump.vcd run.out xsim*
