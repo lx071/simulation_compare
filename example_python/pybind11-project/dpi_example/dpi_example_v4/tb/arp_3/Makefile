@@ -46,19 +46,14 @@ compile_v:
 # 	verilator -Wno-WIDTH --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
 	verilator -Wno-WIDTH --trace --cc --exe --sv --timing --build ${VERILOG_SOURCES} sim_main.cpp
 
-exec_v:
+run_v:
 	cd obj_dir&&./Vbfm&&cd ..
 
-compile_i:
-	iverilog -o run.out ${VERILOG_SOURCES}
-
-exec_i:
-	vvp -n run.out
 
 compile_g:
 	galaxsim ${VERILOG_SOURCES}
 
-exec_g:
+run_g:
 	./xsim
 
 clean::
